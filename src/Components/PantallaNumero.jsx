@@ -3,31 +3,25 @@ import { useContext } from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 
 const PantallaNumero = ({ objeto }) => {
-    const { numero, cambiarEstadoNumero, actualizarNumero, eliminarNumero } = useContext(NumerosContext)
-    const handleContestaClick = async () => {
+    const { numero, actualizarNumero, eliminarNumero } = useContext(NumerosContext)
+    const handleContestaClick =  () => {
+        
         let objetoActualizado ={
             ...objeto,
-            ultimaFecha: new Date().toISOString().split('T')[0]
+            ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`, 
+            contesta : true
         }
-
-        let objetoAEditar = cambiarEstadoNumero(objetoActualizado, 'Contesta');
-        
-        if (objetoAEditar) {
-            await actualizarNumero(objetoAEditar);
-        }
+        actualizarNumero(objetoActualizado)
     }
-    const handleClickFecha = async () => {
-        const objetoActualizado = {
+    const handleNoContestaClick = () => {
+        let objetoActualizado ={
             ...objeto,
-            ultimaFecha: new Date().toISOString().split('T')[0]
-        };
-        try {
-            await actualizarNumero(objetoActualizado);
-            console.log("Actualización exitosa en el contexto");
-        } catch (error) {
-            console.error("Error al actualizar:", error);
+            ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`,
+            contesta : false
         }
+        actualizarNumero(objetoActualizado)
     }
+    
 
     return (
         <div className="container p-3">
@@ -99,7 +93,7 @@ const PantallaNumero = ({ objeto }) => {
                             </button>
                             <button
                                 className="btn btn-warning px-4 py-2 fw-semibold text-dark shadow-sm"
-                                onClick={handleClickFecha}
+                                onClick={handleNoContestaClick}
                             >
                                 No Contesta
                             </button>

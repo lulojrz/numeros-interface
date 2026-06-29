@@ -2,6 +2,8 @@ import React from 'react'
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { NumerosContext } from './NumerosContext.jsx'
+import Swal from 'sweetalert2'
+
 export const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
@@ -39,10 +41,15 @@ export const AuthProvider = ({ children }) => {
 
             if (!foundUser) {
                 setErrors({ user: 'credenciales invalidas' });
-                alert('Credenciales inválidas. Serás redirigido a la página principal.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Credenciales inválidas. Serás redirigido a la página principal.',
+                    confirmButtonColor: '#007bff'
+                });
                 setTimeout(() => {
                      navigate('/');
-                }, 1000);
+                }, 1500);
                
             } else {
 

@@ -2,85 +2,72 @@ import React from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 import { useContext } from 'react'
 import {AuthContext}  from '../context/AuthContext'
+
 const Login = () => {
 
   const {user,setUser,password,setPassword,errors,setErrors,handleSubmit} = useContext(AuthContext)
 
   return (
-    <>
-   
-     <form
-      onSubmit={handleSubmit}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        maxWidth: '400px',
-        margin: 'auto',
-      }}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <label htmlFor="user" style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>
-          Usuario
-        </label>
-        <input
-          id="user"
-          type="username"
-          placeholder="Ingresar Usuario"
-          value={user}
-          onChange={(e) => setUser(e.target.value)}
-          style={{
-            padding: '0.5rem',
-            border: `1px solid ${errors.user ? 'red' : '#ced4da'}`,
-            borderRadius: '0.25rem',
-          }}
-        />
-        {errors.user && (
-          <div style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            {errors.user}
-          </div>
-        )}
-      </div>
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
+      <div className="card shadow-lg p-5" style={{ width: '100%', maxWidth: '420px', borderRadius: '1rem', border: 'none' }}>
+        <div className="text-center mb-4">
+          <h2 className="fw-bold" style={{ color: '#334155' }}>Bienvenido</h2>
+          <p className="text-muted">Por favor, inicia sesión para continuar</p>
+        </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <label htmlFor="formBasicPassword" style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>
-          Password
-        </label>
-        <input
-          id="formBasicPassword"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            padding: '0.5rem',
-            border: `1px solid ${errors.password ? 'red' : '#ced4da'}`,
-            borderRadius: '0.25rem',
-          }}
-        />
-        {errors.password && (
-          <div style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            {errors.password}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="user" className="form-label fw-semibold" style={{ color: '#475569' }}>
+              Usuario
+            </label>
+            <input
+              id="user"
+              type="text"
+              className={`form-control form-control-lg ${errors.user ? 'is-invalid' : ''}`}
+              placeholder="Ingresar Usuario"
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
+              style={{ fontSize: '1rem', padding: '0.75rem' }}
+            />
+            {errors.user && (
+              <div className="invalid-feedback fw-medium">
+                {errors.user}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <button
-        type="submit"
-        style={{
-          backgroundColor: '#007bff',
-          color: 'white',
-          padding: '0.75rem',
-          border: 'none',
-          borderRadius: '0.25rem',
-          cursor: 'pointer',
-          fontSize: '1rem',
-        }}
-      >
-        Submit
-      </button>
-    </form>
-  </>
+          <div className="mb-4">
+            <label htmlFor="formBasicPassword" className="form-label fw-semibold" style={{ color: '#475569' }}>
+              Contraseña
+            </label>
+            <input
+              id="formBasicPassword"
+              type="password"
+              className={`form-control form-control-lg ${errors.password ? 'is-invalid' : ''}`}
+              placeholder="Ingresar Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ fontSize: '1rem', padding: '0.75rem' }}
+            />
+            {errors.password && (
+              <div className="invalid-feedback fw-medium">
+                {errors.password}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg w-100 fw-bold shadow-sm"
+            style={{ padding: '0.75rem', borderRadius: '0.5rem', backgroundColor: '#007bff', borderColor: '#007bff', transition: 'all 0.2s ease-in-out' }}
+            onMouseOver={(e) => { e.target.style.backgroundColor = '#0056b3'; e.target.style.borderColor = '#0056b3'; }}
+            onMouseOut={(e) => { e.target.style.backgroundColor = '#007bff'; e.target.style.borderColor = '#007bff'; }}
+          >
+            Iniciar Sesión
+          </button>
+        </form>
+      </div>
+    </div>
   )
 }
 

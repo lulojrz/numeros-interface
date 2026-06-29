@@ -1,5 +1,6 @@
 import React from 'react'
 import { createContext, useState, useEffect } from 'react'
+import Swal from 'sweetalert2'
 
 export const NumerosContext = createContext()
 
@@ -15,6 +16,17 @@ export const NumerosProvider = ({ children }) => {
     const [busqueda, setBusqueda] = useState("")
     const api = 'http://localhost:8080/api'
 
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    });
 
     useEffect(() => {
        cargarProductos();
@@ -44,17 +56,35 @@ export const NumerosProvider = ({ children }) => {
 
 
     const eliminarNumero = async (id) => {
-        window.confirm('¿Estás seguro de que deseas eliminar este número?')
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Deseas eliminar este número? Esta acción no se puede revertir.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             await fetch(`${api}/${id}`, {
                 method: 'DELETE'
             })
-            alert('Número eliminado con éxito')
+            Toast.fire({
+                icon: 'success',
+                title: 'Número eliminado con éxito'
+            });
             cargarProductos();
         }
         catch (error) {
             console.log(error)
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al eliminar el número'
+            });
         }
     }
 
@@ -65,18 +95,30 @@ export const NumerosProvider = ({ children }) => {
             return;
         }
         try {
-            await fetch(`${api}/${number.id}`, {
+            const response = 
+            await fetch(`${api}/editar/${number.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(number)
             })
-            alert('Número actualizado con éxito')
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            Toast.fire({
+                icon: 'success',
+                title: 'Número actualizado con éxito'
+            });
             cargarProductos();
         }
         catch (error) {
             console.log(error)
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al actualizar el número'
+            });
         }
     }
 
@@ -89,41 +131,24 @@ export const NumerosProvider = ({ children }) => {
                 },
                 body: JSON.stringify(number)
             })
-            alert('Número agregado con éxito')
+            Toast.fire({
+                icon: 'success',
+                title: 'Número agregado con éxito'
+            });
             cargarProductos();
         }
         catch (error) {
             console.log(error)
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al agregar el número'
+            });
         }
     }
 
 
 
-    const cambiarEstadoNumero = (objetoACambiar, campo) => {
-        if (!objetoACambiar) return null;
-        let objetoActualizado = {};
-        if (campo === 'Contesta') {
-            objetoActualizado = {
-                ...objetoACambiar,
-                contesta: !objetoACambiar.contesta
-            };
-
-
-        }
-
-        const nuevosNumeros = numeros.map(n => {
-            if (n.id === objetoACambiar.id) {
-                return objetoActualizado;
-            }
-            return n;
-        });
-
-
-        setNumeros(nuevosNumeros);
-
-
-        return objetoActualizado;
-    }
+   
     const actualizarReserva = (filtrados) => {
         let filtraditos = filtrados.map((num) => ({ ...num, reservado: true }));
         filtraditos.forEach(async (num) => {
@@ -140,7 +165,10 @@ export const NumerosProvider = ({ children }) => {
                 console.log(error);
             }
         });
-        alert('Números reservados con éxito')
+        Toast.fire({
+            icon: 'success',
+            title: 'Números reservados con éxito'
+        });
 
         cargarProductos();
     }
@@ -159,14 +187,17 @@ export const NumerosProvider = ({ children }) => {
                 console.log(error);
             }
         });
-        alert('Reservados sacados con éxito')
+        Toast.fire({
+            icon: 'success',
+            title: 'Reservados sacados con éxito'
+        });
 
         cargarProductos();
     }
 
 
     return (
-        <NumerosContext.Provider value={{ numero, setNumero, numeros, setNumeros, error, loading, cambiarEstadoNumero, actualizarNumero, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, actualizarReserva, sacarReservados }}>
+        <NumerosContext.Provider value={{ numero, setNumero, numeros, setNumeros, error, loading, actualizarNumero, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, actualizarReserva, sacarReservados }}>
             {children}
         </NumerosContext.Provider>
     )
