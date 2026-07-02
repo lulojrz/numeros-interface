@@ -13,6 +13,12 @@ const ListaNumeros = () => {
         productosFiltrados,
         busqueda,
         setBusqueda,
+        filtroTerritorio,
+        setFiltroTerritorio,
+        filtroManzana,
+        setFiltroManzana,
+        filtroReservado,
+        setFiltroReservado,
         actualizarReserva,
         sacarReservados
     } = useContext(NumerosContext);
@@ -20,32 +26,83 @@ const ListaNumeros = () => {
 
     const numeroSeleccionado = numeros.find((num) => num.id === seleccionado);
 
+    
+    const territoriosUnicos = [...new Set(numeros.map(n => n.territorio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+    const manzanasUnicas = [...new Set(numeros.map(n => n.manzana).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+
     const handleCancelarEdicion = () => {
         setSeleccionado(null);
     };
 
     return (
         <>
-            <form className="mb-3" onSubmit={(e) => e.preventDefault()}>
-                <label className="form-label"><strong>Búsqueda</strong></label>
-                <div className="row g-2">
-                    <div className="col-md">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="buscar calle..."
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                        />
-                    </div>
-                    <div className="col-12 col-md-6">
-                        <div className="d-grid gap-2 d-md-flex justify-content-md-start">
-                            <button type="submit" className="btn btn-primary" onClick={() => actualizarReserva(productosFiltrados)}>
-                                Reservar
-                            </button>
-                            <button type="submit" className="btn btn-secondary" onClick={() => sacarReservados(productosFiltrados)}>
-                                Sacar Reservados
-                            </button>
+            <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
+                <div className="card shadow-sm p-3 border-0 bg-light" style={{ borderRadius: '0.75rem' }}>
+                    <h6 className="mb-3 text-secondary fw-bold">Filtros de Búsqueda</h6>
+                    <div className="row g-3">
+                        <div className="col-md-3">
+                            <label className="form-label text-muted small fw-semibold mb-1">Dirección</label>
+                            <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="Buscar calle..."
+                                value={busqueda}
+                                onChange={(e) => setBusqueda(e.target.value)}
+                            />
+                        </div>
+                        <div className="col-md-3">
+                            <label className="form-label text-muted small fw-semibold mb-1">Territorio</label>
+                            <select
+                                className="form-select form-select-sm"
+                                value={filtroTerritorio}
+                                onChange={(e) => setFiltroTerritorio(e.target.value)}
+                            >
+                                <option value="">Todos</option>
+                                {territoriosUnicos.map((t, idx) => (
+                                    <option key={idx} value={t}>{t}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-md-3">
+                            <label className="form-label text-muted small fw-semibold mb-1">Manzana</label>
+                            <select
+                                className="form-select form-select-sm"
+                                value={filtroManzana}
+                                onChange={(e) => setFiltroManzana(e.target.value)}
+                            >
+                                <option value="">Todas</option>
+                                {manzanasUnicas.map((m, idx) => (
+                                    <option key={idx} value={m}>{m}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-md-3">
+                            <label className="form-label text-muted small fw-semibold mb-1">Estado</label>
+                            <select
+                                className="form-select form-select-sm"
+                                value={filtroReservado}
+                                onChange={(e) => setFiltroReservado(e.target.value)}
+                            >
+                                <option value="">Todos</option>
+                                <option value="si">Reservados</option>
+                                <option value="no">Disponibles</option>
+                            </select>
+                        </div>
+                        
+                        <div className="col-12 mt-3 pt-3 border-top">
+                            <div className="d-flex flex-wrap gap-2 justify-content-end">
+                                <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => {
+                                    setBusqueda(""); setFiltroTerritorio(""); setFiltroManzana(""); setFiltroReservado("");
+                                }}>
+                                    Limpiar Filtros
+                                </button>
+                                <button type="button" className="btn btn-success btn-sm px-3 shadow-sm" onClick={() => actualizarReserva(productosFiltrados)}>
+                                    Reservar Filtrados
+                                </button>
+                                <button type="button" className="btn btn-danger btn-sm px-3 shadow-sm" onClick={() => sacarReservados(productosFiltrados)}>
+                                    Liberar Filtrados
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -65,6 +122,7 @@ const ListaNumeros = () => {
                                     <th scope="col" className="text-secondary fw-semibold">Manzana</th>
                                     <th scope="col" className="text-secondary fw-semibold">Contesta</th>
                                     <th scope="col" className="text-secondary fw-semibold">Última Fecha</th>
+                                    <th scope="col" className="text-secondary fw-semibold">Último Usuario</th>
                                     <th scope="col" className="text-secondary fw-semibold">Reservado</th>
                                     <th scope="col" className="text-center text-secondary fw-semibold">Acciones</th>
                                 </tr>
@@ -84,17 +142,15 @@ const ListaNumeros = () => {
                                                 }
                                             </td>
                                             <td className="text-muted">{num.ultimaFecha}</td>
+                                            <td className="text-muted fw-semibold">
+                                                {num.ult_usuario ? (num.ult_usuario.usuario || 'Sí') : '-'}
+                                            </td>
                                             <td>
                                                 {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}
                                             </td>
                                             <td>
                                                 <div className="d-flex justify-content-center gap-2">
-                                                    <button
-                                                        className='btn btn-outline-secondary btn-sm'
-                                                        onClick={() => setSeleccionado(num.id)}
-                                                    >
-                                                        <i className="bi bi-pencil"></i> Editar
-                                                    </button>
+                                                 
                                                     <button
                                                         className='btn btn-outline-danger btn-sm'
                                                         onClick={() => eliminarNumero(num.id)}

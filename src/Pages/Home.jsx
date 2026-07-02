@@ -1,30 +1,43 @@
 import React, { useEffect } from 'react'
-import Header from '../components/Header'
+import Header from '../Components/Header'
 import Numeros from '../Components/Numeros'
 import { useContext } from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 import Loading from '../Components/Loading'
+import { Link } from 'react-router-dom'
 
 
 const Home = () => {
-  const {numero,numeros,error,loading,setNumero, isAuthenticated,setIsAuth} = useContext(NumerosContext)
+  const {numero,numeros,error,loading,setNumero, isAuthenticated} = useContext(NumerosContext)
 
   return (
     <>
       <Header></Header>
-      <main>
-        <div>
-          <h3>Numero a llamar:</h3>
-        </div>
-        {
-          loading? <Loading /> : <Numeros setNumero={setNumero} ></Numeros>
-        }
-
-
+      <main className="min-vh-100 bg-light pb-5">
+        {!isAuthenticated ? (
+            <div className="container py-5 mt-5 text-center">
+                <div className="row justify-content-center">
+                    <div className="col-lg-8">
+                        <h1 className="display-4 fw-bold text-primary mb-4">Bienvenido a CRM Panel</h1>
+                        <p className="lead text-secondary mb-5">
+                            La herramienta definitiva para gestionar tus contactos y campañas telefónicas. 
+                            Inicia sesión para acceder a los números asignados y comenzar a realizar llamadas.
+                        </p>
+                        <Link to="/login" className="btn btn-primary btn-lg px-5 rounded-pill shadow">
+                            Iniciar Sesión
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        ) : (
+            <div className="container py-4">
+                <div className="text-center mb-4">
+                    <h3 className="fw-semibold text-secondary">Número a llamar:</h3>
+                </div>
+                {loading ? <Loading /> : <Numeros setNumero={setNumero} />}
+            </div>
+        )}
       </main>
-
-
-
     </>
   )
 }

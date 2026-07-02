@@ -25,17 +25,18 @@ function FormularioAgregar() {
     setProducto({ ...producto, [name]: finalValue });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const fechaFormateada = `${producto.ultimaFecha}T00:00:00`;
 
     const datosParaEnviar = {
       ...producto,
-      territorio: Number(producto.territorio), 
-      contesta: Boolean(producto.contesta) 
+      contesta: Boolean(producto.contesta),
+      reservado: Boolean(producto.reservado),
+      ultimaFecha: fechaFormateada
     };
 
-    console.log("Objeto exacto enviado:", datosParaEnviar);
-    agregarNumero(datosParaEnviar);
+    await agregarNumero(datosParaEnviar);
 
     setProducto({
       direccion: "", contesta: false, ultimaFecha: "",

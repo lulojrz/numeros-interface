@@ -1,0 +1,201 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+
+const CambiarContrasena = () => {
+    const [formData, setFormData] = useState({
+        contrasenaActual: '',
+        nuevaContrasena: '',
+        confirmarContrasena: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    const api = 'http://localhost:8080';
+    const usuarioLogueado = localStorage.getItem('usuario'); // Tomamos el usuario del localStorage
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    });
+
+    const handleInputChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // 1. Validar que la nueva contraseña tenga al menos 6 caracteres
+        if (formData.nuevaContrasena.length < 6) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Contraseña muy corta',
+                text: 'La nueva contraseña debe tener al menos 6 caracteres.',
+                confirmButtonColor: '#007bff'
+            });
+            return;
+        }
+
+        // 2. Validar que las contraseñas nuevas coincidan
+        if (formData.nuevaContrasena !== formData.confirmarContrasena) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Las contraseñas no coinciden',
+                text: 'Asegúrate de escribir la misma contraseña en ambos campos nuevos.',
+                confirmButtonColor: '#007bff'
+            });
+            return;
+        }
+
+        // 3. Validar que no sea la misma que la anterior (opcional pero buena práctica)
+        if (formData.contrasenaActual === formData.nuevaContrasena) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Sin cambios',
+                text: 'La nueva contraseña debe ser diferente a la actual.',
+                confirmButtonColor: '#007bff'
+            });
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Se envía al backend: usuario (para saber quién es), contraseña actual (para validar) y la nueva
+            const response = await fetch(`${api}/usuarios/cambiar-contrasena`, {
+                method: 'PUT', // o POST, depende del backend
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    usuario: usuarioLogueado,
+                    contrasenaActual: formData.contrasenaActual,
+                    nuevaContrasena: formData.nuevaContrasena
+                })
+            });
+
+            if (response.ok) {
+                const responseText = await response.text();
+                
+                // Si el backend devuelve un mensaje específico de error como "Contraseña actual incorrecta"
+                if (responseText.toLowerCase().includes("incorrecta") || responseText.toLowerCase().includes("error")) {
+                     Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: responseText || 'La contraseña actual es incorrecta.',
+                        confirmButtonColor: '#007bff'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Tu contraseña ha sido actualizada correctamente.',
+                        confirmButtonColor: '#007bff'
+                    });
+                    // Limpiar el formulario
+                    setFormData({ contrasenaActual: '', nuevaContrasena: '', confirmarContrasena: '' });
+                }
+            } else {
+                // Si la respuesta no fue 2xx
+                const errorMessage = await response.text();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage || 'Hubo un error al intentar cambiar la contraseña.',
+                    confirmButtonColor: '#007bff'
+                });
+            }
+
+        } catch (error) {
+            console.error('Error al cambiar contraseña:', error);
+            Toast.fire({
+                icon: 'error',
+                title: 'Error de conexión con el servidor'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className='container my-5'>
+            <div className='row justify-content-center'>
+                <div className='col-md-6 col-lg-5'>
+                    <div className='card shadow-lg p-4'>
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h2 className="h4 mb-0">Mi Perfil</h2>
+                            <Link to="/admin" className='btn btn-outline-secondary btn-sm'>
+                                Volver
+                            </Link>
+                        </div>
+                        
+                        <hr />
+                        
+                        <p className="text-muted mb-4">Usuario: <strong>{usuarioLogueado}</strong></p>
+
+                        <form onSubmit={handleSubmit}>
+                            <h5 className="mb-3">Cambiar Contraseña</h5>
+                            
+                            <div className="mb-3">
+                                <label className="form-label">Contraseña Actual</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    name="contrasenaActual"
+                                    value={formData.contrasenaActual}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Ingresa tu contraseña actual"
+                                />
+                            </div>
+                            
+                            <div className="mb-3">
+                                <label className="form-label">Nueva Contraseña</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    name="nuevaContrasena"
+                                    value={formData.nuevaContrasena}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Mínimo 6 caracteres"
+                                />
+                            </div>
+                            
+                            <div className="mb-4">
+                                <label className="form-label">Confirmar Nueva Contraseña</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    name="confirmarContrasena"
+                                    value={formData.confirmarContrasena}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Repite la nueva contraseña"
+                                />
+                            </div>
+                            
+                            <div className="d-grid">
+                                <button type="submit" className="btn btn-primary" disabled={loading}>
+                                    {loading ? 'Procesando...' : 'Actualizar Contraseña'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default CambiarContrasena;

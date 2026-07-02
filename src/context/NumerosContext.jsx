@@ -14,6 +14,9 @@ export const NumerosProvider = ({ children }) => {
     const [isAuthenticated, setIsAuth] = useState(false)
     const [seleccionado, setSeleccionado] = useState(null)
     const [busqueda, setBusqueda] = useState("")
+    const [filtroTerritorio, setFiltroTerritorio] = useState("")
+    const [filtroManzana, setFiltroManzana] = useState("")
+    const [filtroReservado, setFiltroReservado] = useState("")
     const api = 'http://localhost:8080/api'
 
     const Toast = Swal.mixin({
@@ -50,9 +53,17 @@ export const NumerosProvider = ({ children }) => {
     }
 
 
-    const productosFiltrados = numeros.filter((num) =>
-        num?.direccion.toLowerCase().includes(busqueda.toLowerCase())
-    )
+    const productosFiltrados = numeros.filter((num) => {
+        const matchesDireccion = num?.direccion?.toLowerCase().includes(busqueda.toLowerCase()) ?? false;
+        const matchesTerritorio = filtroTerritorio === "" || (num?.territorio && num.territorio.toString().toLowerCase() === filtroTerritorio.toLowerCase());
+        const matchesManzana = filtroManzana === "" || (num?.manzana && num.manzana.toString().toLowerCase() === filtroManzana.toLowerCase());
+        
+        let matchesReservado = true;
+        if (filtroReservado === "si") matchesReservado = num?.reservado === true;
+        if (filtroReservado === "no") matchesReservado = num?.reservado === false;
+
+        return matchesDireccion && matchesTerritorio && matchesManzana && matchesReservado;
+    })
 
 
     const eliminarNumero = async (id) => {
@@ -70,7 +81,7 @@ export const NumerosProvider = ({ children }) => {
         if (!result.isConfirmed) return;
 
         try {
-            await fetch(`${api}/${id}`, {
+            await fetch(`${api}/borrar/${id}`, {
                 method: 'DELETE'
             })
             Toast.fire({
@@ -88,43 +99,14 @@ export const NumerosProvider = ({ children }) => {
         }
     }
 
+    
 
-    const actualizarNumero = async (number) => {
-        if (!number.id) {
-            console.error("Error: El objeto no tiene ID", number);
-            return;
-        }
-        try {
-            const response = 
-            await fetch(`${api}/editar/${number.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(number)
-            })
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            Toast.fire({
-                icon: 'success',
-                title: 'Número actualizado con éxito'
-            });
-            cargarProductos();
-        }
-        catch (error) {
-            console.log(error)
-            Toast.fire({
-                icon: 'error',
-                title: 'Error al actualizar el número'
-            });
-        }
-    }
+   
 
     const agregarNumero = async (number) => {
+        console.log("Objeto exacto enviado desde agregarNumero:", number);
         try {
-            await fetch(api, {
+            await fetch(`${api}/agregar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -150,10 +132,14 @@ export const NumerosProvider = ({ children }) => {
 
    
     const actualizarReserva = (filtrados) => {
+        console.log("Filtrados para reservar:", filtrados);
+        
         let filtraditos = filtrados.map((num) => ({ ...num, reservado: true }));
+        console.log("Filtrados actualizados para reservar:", filtraditos);
+         
         filtraditos.forEach(async (num) => {
             try {
-                fetch(`${api}/${num.id}`, {
+                await   fetch(`${api}/editar/${num.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -176,7 +162,7 @@ export const NumerosProvider = ({ children }) => {
         let noReservados = filtrados.map((num) => ({ ...num, reservado: false }));;
         noReservados.forEach(async (num) => {
             try {
-                fetch(`${api}/${num.id}`, {
+                await fetch(`${api}/editar/${num.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -197,7 +183,7 @@ export const NumerosProvider = ({ children }) => {
 
 
     return (
-        <NumerosContext.Provider value={{ numero, setNumero, numeros, setNumeros, error, loading, actualizarNumero, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, actualizarReserva, sacarReservados }}>
+        <NumerosContext.Provider value={{ numero, setNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroManzana, setFiltroManzana, filtroReservado, setFiltroReservado, actualizarReserva, sacarReservados }}>
             {children}
         </NumerosContext.Provider>
     )

@@ -19,9 +19,14 @@ const Admin = () => {
        
         <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
             <h1 className="h2 mb-2 mb-md-0">Panel de Administracion</h1> 
-            <button className='btn btn-danger'>
-                <Link to={"/"}>Cerrar Sesion</Link>
-            </button>
+            <div className="d-flex gap-2 align-items-center">
+                <Link to="/admin/perfil" className="btn btn-outline-secondary">
+                    Mi Perfil
+                </Link>
+                <button className='btn btn-danger' >
+                    <Link to={"/"} className="text-white text-decoration-none">Cancelar</Link>
+                </button>
+            </div>
         </div>
 
         <h3 className="h5">Elija una opcion</h3>
@@ -40,6 +45,9 @@ const Admin = () => {
             >
                 Agregar Nuevo
             </button>
+            <Link to="/admin/usuarios" className="btn btn-outline-info flex-fill fw-semibold">
+                Gestión de Usuarios
+            </Link>
         </div>
         <h1>Progreso</h1>
         <h4>Números contestados: {

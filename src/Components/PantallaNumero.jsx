@@ -5,19 +5,22 @@ import { NumerosContext } from '../context/NumerosContext'
 const PantallaNumero = ({ objeto }) => {
     const { numero, actualizarNumero, eliminarNumero } = useContext(NumerosContext)
     const handleContestaClick =  () => {
-        
+        const usuarioActual = localStorage.getItem('usuario');
         let objetoActualizado ={
             ...objeto,
             ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`, 
-            contesta : true
+            contesta : true,
+            ult_usuario: usuarioActual ? { usuario: usuarioActual } : null
         }
         actualizarNumero(objetoActualizado)
     }
     const handleNoContestaClick = () => {
+        const usuarioActual = localStorage.getItem('usuario');
         let objetoActualizado ={
             ...objeto,
             ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`,
-            contesta : false
+            contesta : false,
+            ult_usuario: usuarioActual ? { usuario: usuarioActual } : null
         }
         actualizarNumero(objetoActualizado)
     }

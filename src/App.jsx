@@ -4,6 +4,8 @@ import { Routes, Route } from 'react-router-dom'
 import './App.css'
 import Login from './Pages/Login'
 import Admin from './Pages/Admin'
+import AdminUsuarios from './Pages/AdminUsuarios'
+import CambiarContrasena from './Pages/CambiarContrasena'
 import { useContext } from 'react'
 import { NumerosContext } from './context/NumerosContext'
 import RutasProtegidas from './rutas/RutasProtegidas'
@@ -20,6 +22,12 @@ function App() {
       <Route path='/login' element={<Login/>}></Route>
       <Route path='/admin' element={
         <RutasProtegidas isAuthenticated={isAuthenticated}><Admin/></RutasProtegidas>
+      }/>
+      <Route path='/admin/usuarios' element={
+        <RutasProtegidas isAuthenticated={isAuthenticated}><AdminUsuarios/></RutasProtegidas>
+      }/>
+      <Route path='/admin/perfil' element={
+        <RutasProtegidas isAuthenticated={isAuthenticated}><CambiarContrasena/></RutasProtegidas>
       }/>
      </Routes>
     </>

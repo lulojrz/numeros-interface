@@ -11,71 +11,86 @@ export const AuthProvider = ({ children }) => {
     const [password, setPassword] = useState('')
     const { setIsAuth } = useContext(NumerosContext)
     const navigate = useNavigate()
+    const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState({})
-    useEffect(()=>{
-    const isAuthenticated = localStorage.getItem('isAuth') === 'true'
-    if(isAuthenticated){
-      setIsAuth(true)
-      navigate('/admin')
-    }
-  },[])
+
+    useEffect(() => {
+        const isAuthenticated = localStorage.getItem('isAuth') === 'true'
+        if (isAuthenticated) {
+            setIsAuth(true)
+            navigate("/")
+        }
+    }, [])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('User:', user);
+        console.log('Password:', password);
         let validationErrors = {};
-        if (!user) validationErrors.user = 'Email es requerido';
-        if (!password) validationErrors.password = 'Password es requerido';
+        if (!user) validationErrors.user = 'Usuario es requerido';
+        if (!password) validationErrors.password = 'Contraseña es requerida';
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
 
+        setIsLoading(true);
+        setErrors({});
+
         try {
-            const res = await fetch('public/data/user.json');
-            const users = await res.json();
+            const res = await fetch('http://localhost:8080/usuarios/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // CAMBIO CLAVE: Asegurate de que matchee con los atributos de tu objeto Java
+                // Si en Java usás 'usuario' y 'contrasena', cambialo acá a: { usuario: user, contrasena: password }
+                body: JSON.stringify({ usuario: user, contrasena: password })
+            });
 
-            const foundUser = users.find(
-                (u) => u.user === user && u.password === password
-            );
-
-            if (!foundUser) {
-                setErrors({ user: 'credenciales invalidas' });
+            // Si el backend responde con un error (como el 401)
+            if (!res.ok) {
+                const errorMessage = await res.text(); // <-- CAMBIADO: .text() en vez de .json()
                 Swal.fire({
                     icon: 'error',
-                    title: 'Oops...',
-                    text: 'Credenciales inválidas. Serás redirigido a la página principal.',
+                    title: 'Error',
+                    text: errorMessage || 'Credenciales incorrectas o error en la autenticación',
                     confirmButtonColor: '#007bff'
                 });
-                setTimeout(() => {
-                     navigate('/');
-                }, 1500);
-               
-            } else {
-
-                if (foundUser.role === 'admin') {
-                    setIsAuth(true);
-                    localStorage.setItem("isAuth", true)
-
-                    navigate('/admin');
-                } else {
-                    navigate('/');
-                    setIsAuth(false);
-                    localStorage.setItem("isAuth", false)
-                }
+                return;
             }
+
+            // Si llegó acá, el estado es 200 OK
+            const responseText = await res.text(); // <-- CAMBIADO: .text() en vez de .json()
+
+            if (responseText === "correcto") {
+                setErrors({});
+                setIsAuth(true);
+                localStorage.setItem('isAuth', 'true');
+                localStorage.setItem('usuario', user);
+                navigate('/');
+            }
+
         } catch (err) {
             console.error('Error fetching users:', err);
-            setErrors({ user: 'Algo salió mal. Por favor, inténtalo de nuevo más tarde.' });
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Algo salió mal. Por favor, inténtalo de nuevo más tarde.',
+                confirmButtonColor: '#007bff'
+            });
+        } finally {
+            setIsLoading(false);
         }
 
     }
 
-  return(
-    <AuthContext.Provider value={{ user, setUser, password, setPassword, handleSubmit,errors, setErrors }}>
-        {children}
-    </AuthContext.Provider>
-  )
+    return (
+        <AuthContext.Provider value={{ user, setUser, password, setPassword, handleSubmit, errors, setErrors, isLoading }}>
+            {children}
+        </AuthContext.Provider>
+    )
 
 
 

@@ -5,7 +5,7 @@ import {AuthContext}  from '../context/AuthContext'
 
 const Login = () => {
 
-  const {user,setUser,password,setPassword,errors,setErrors,handleSubmit} = useContext(AuthContext)
+  const {user,setUser,password,setPassword,errors,setErrors,handleSubmit,isLoading} = useContext(AuthContext)
 
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
@@ -14,6 +14,7 @@ const Login = () => {
           <h2 className="fw-bold" style={{ color: '#334155' }}>Bienvenido</h2>
           <p className="text-muted">Por favor, inicia sesión para continuar</p>
         </div>
+
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -60,10 +61,18 @@ const Login = () => {
             type="submit"
             className="btn btn-primary btn-lg w-100 fw-bold shadow-sm"
             style={{ padding: '0.75rem', borderRadius: '0.5rem', backgroundColor: '#007bff', borderColor: '#007bff', transition: 'all 0.2s ease-in-out' }}
-            onMouseOver={(e) => { e.target.style.backgroundColor = '#0056b3'; e.target.style.borderColor = '#0056b3'; }}
-            onMouseOut={(e) => { e.target.style.backgroundColor = '#007bff'; e.target.style.borderColor = '#007bff'; }}
+            onMouseOver={(e) => { if (!isLoading) { e.target.style.backgroundColor = '#0056b3'; e.target.style.borderColor = '#0056b3'; } }}
+            onMouseOut={(e) => { if (!isLoading) { e.target.style.backgroundColor = '#007bff'; e.target.style.borderColor = '#007bff'; } }}
+            disabled={isLoading}
           >
-            Iniciar Sesión
+            {isLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Cargando...
+              </>
+            ) : (
+              'Iniciar Sesión'
+            )}
           </button>
         </form>
       </div>
