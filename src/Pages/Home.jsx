@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../Components/Header'
 import Numeros from '../Components/Numeros'
 import { useContext } from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 import Loading from '../Components/Loading'
+import TerritoriosPersonales from '../Components/TerritoriosPersonales'
 import { Link } from 'react-router-dom'
 
 
 const Home = () => {
   const {numero,numeros,error,loading,setNumero, isAuthenticated} = useContext(NumerosContext)
+  const [activeTab, setActiveTab] = useState('llamar')
 
   return (
     <>
@@ -31,10 +33,31 @@ const Home = () => {
             </div>
         ) : (
             <div className="container py-4">
-                <div className="text-center mb-4">
-                    <h3 className="fw-semibold text-secondary">Número a llamar:</h3>
+                <div className="d-flex flex-wrap justify-content-center mb-4 gap-3">
+                    <button 
+                        className={`btn fw-semibold px-4 rounded-pill ${activeTab === 'llamar' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`}
+                        onClick={() => setActiveTab('llamar')}
+                    >
+                        Realizar Llamadas
+                    </button>
+                    <button 
+                        className={`btn fw-semibold px-4 rounded-pill ${activeTab === 'territorios' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`}
+                        onClick={() => setActiveTab('territorios')}
+                    >
+                        Territorios Personales
+                    </button>
                 </div>
-                {loading ? <Loading /> : <Numeros setNumero={setNumero} />}
+
+                {activeTab === 'llamar' ? (
+                    <>
+                        <div className="text-center mb-4">
+                            <h3 className="fw-semibold text-secondary">Número a llamar:</h3>
+                        </div>
+                        {loading ? <Loading /> : <Numeros setNumero={setNumero} />}
+                    </>
+                ) : (
+                    <TerritoriosPersonales />
+                )}
             </div>
         )}
       </main>

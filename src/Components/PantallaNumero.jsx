@@ -10,7 +10,7 @@ const PantallaNumero = ({ objeto }) => {
             ...objeto,
             ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`, 
             contesta : true,
-            ult_usuario: usuarioActual ? { usuario: usuarioActual } : null
+            ultUsuario: usuarioActual ? { usuario: usuarioActual } : null
         }
         actualizarNumero(objetoActualizado)
     }
@@ -20,7 +20,18 @@ const PantallaNumero = ({ objeto }) => {
             ...objeto,
             ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`,
             contesta : false,
-            ult_usuario: usuarioActual ? { usuario: usuarioActual } : null
+            ultUsuario: usuarioActual ? { usuario: usuarioActual } : null
+        }
+        actualizarNumero(objetoActualizado)
+    }
+
+    const handleFueraDeServicioClick = () => {
+        const usuarioActual = localStorage.getItem('usuario');
+        let objetoActualizado ={
+            ...objeto,
+            ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`,
+            tocar: false,
+            ultUsuario: usuarioActual ? { usuario: usuarioActual } : null
         }
         actualizarNumero(objetoActualizado)
     }
@@ -102,9 +113,9 @@ const PantallaNumero = ({ objeto }) => {
                             </button>
                             <button
                                 className="btn btn-danger px-4 py-2 fw-semibold shadow-sm"
-                                onClick={() => eliminarNumero(objeto.id)}
+                                onClick={handleFueraDeServicioClick}
                             >
-                                Fuera de Servicio
+                                Fuera de Servicio/ No tocar
                             </button>
                         </>
                     ) : null

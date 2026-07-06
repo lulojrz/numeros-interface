@@ -24,8 +24,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('User:', user);
-        console.log('Password:', password);
+       
         let validationErrors = {};
         if (!user) validationErrors.user = 'Usuario es requerido';
         if (!password) validationErrors.password = 'Contraseña es requerida';

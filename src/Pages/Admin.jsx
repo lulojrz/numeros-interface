@@ -1,7 +1,9 @@
-import React, { useContext , useState} from 'react'
+import React, { useContext , useState, useEffect} from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 import FormularioAgregar from '../Components/FormularioAgregar.jsx'
 import ListaNumeros from '../Components/ListaNumeros.jsx'
+import MisLlamados from '../Components/MisLlamados.jsx'
+import PorEliminar from '../Components/PorEliminar.jsx'
 import { Link } from 'react-router'
 
 const Admin = () => {
@@ -9,6 +11,28 @@ const Admin = () => {
   const numerosContestados = numeros.filter(numero => numero.contesta);
   const [clickeditar,setClickeditar]= useState(false)
   const [clickagregar,setClickagregar]= useState(false)
+  const [clickllamados,setClickllamados]= useState(false)
+  const [clickPorEliminar,setClickPorEliminar]= useState(false)
+  const [isANC, setIsANC] = useState(false)
+
+  useEffect(() => {
+    const fetchPrivilegio = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/usuarios');
+        if (response.ok) {
+          const data = await response.json();
+          const loggedInUsername = localStorage.getItem('usuario');
+          const currentUser = data.find(u => u.usuario === loggedInUsername);
+          if (currentUser?.privilegio === 'ANC') {
+            setIsANC(true);
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchPrivilegio();
+  }, []);
 
   return (
  
@@ -34,20 +58,34 @@ const Admin = () => {
        
         <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
             <button 
-                className={`btn flex-fill fw-semibold ${clickeditar && !clickagregar ? 'btn-primary' : 'btn-outline-primary'}`} 
-                onClick={()=>{setClickeditar(!clickeditar);setClickagregar(false)}}
+                className={`btn flex-fill fw-semibold ${clickeditar ? 'btn-primary' : 'btn-outline-primary'}`} 
+                onClick={()=>{setClickeditar(true); setClickagregar(false); setClickllamados(false); setClickPorEliminar(false);}}
             >
                 Editar/Borrar Producto
             </button>
             <button 
-                className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar ? 'btn-success' : 'btn-outline-success'}`}
-                onClick={()=>{setClickagregar(!clickagregar);setClickeditar(false)}}
+                className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar && !clickllamados && !clickPorEliminar ? 'btn-success' : 'btn-outline-success'}`}
+                onClick={()=>{setClickagregar(true); setClickeditar(false); setClickllamados(false); setClickPorEliminar(false);}}
             >
                 Agregar Nuevo
             </button>
-            <Link to="/admin/usuarios" className="btn btn-outline-info flex-fill fw-semibold">
-                Gestión de Usuarios
-            </Link>
+            <button 
+                className={`btn flex-fill fw-semibold ${clickllamados ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}`}
+                onClick={()=>{setClickllamados(true); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false);}}
+            >
+                Mis Llamados
+            </button>
+            <button 
+                className={`btn flex-fill fw-semibold ${clickPorEliminar ? 'btn-danger text-white' : 'btn-outline-danger'}`}
+                onClick={()=>{setClickPorEliminar(true); setClickeditar(false); setClickagregar(false); setClickllamados(false);}}
+            >
+                Por Eliminar
+            </button>
+            {isANC && (
+                <Link to="/admin/usuarios" className="btn btn-outline-info flex-fill fw-semibold">
+                    Gestión de Usuarios
+                </Link>
+            )}
         </div>
         <h1>Progreso</h1>
         <h4>Números contestados: {
@@ -59,10 +97,15 @@ const Admin = () => {
         <hr />
 
       
-        {clickeditar && clickagregar==false? 
-            <ListaNumeros></ListaNumeros>
-            : <FormularioAgregar></FormularioAgregar> 
-        }
+        {clickPorEliminar ? (
+            <PorEliminar />
+        ) : clickllamados ? (
+            <MisLlamados />
+        ) : clickeditar ? (
+            <ListaNumeros />
+        ) : (
+            <FormularioAgregar />
+        )}
 
     </div> 
 </div >

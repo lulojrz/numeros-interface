@@ -19,6 +19,10 @@ const AdminUsuarios = () => {
 
     const api = 'http://localhost:8080';
 
+    const loggedInUsername = localStorage.getItem('usuario');
+    const currentUser = usuarios.find(u => u.usuario === loggedInUsername);
+    const isANC = currentUser?.privilegio === 'ANC';
+
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -42,6 +46,18 @@ const AdminUsuarios = () => {
             if (response.ok) {
                 const data = await response.json();
                 setUsuarios(data);
+                
+                const loggedUser = data.find(u => u.usuario === localStorage.getItem('usuario'));
+                if (loggedUser && loggedUser.privilegio !== 'ANC') {
+                    setUsuarioEditando(loggedUser);
+                    setFormData({ 
+                        nombre: loggedUser.nombre || '', 
+                        apellido: loggedUser.apellido || '', 
+                        usuario: loggedUser.usuario || '', 
+                        contrasena: '',
+                        privilegio: loggedUser.privilegio || 'usuario'
+                    });
+                }
             }
         } catch (error) {
             console.log(error);
@@ -107,8 +123,12 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario editado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' });
-                setUsuarioEditando(null);
+                
+                // Only reset the form if the user is ANC, otherwise keep them on the edit form
+                if (isANC) {
+                    setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' });
+                    setUsuarioEditando(null);
+                }
                 cargarUsuarios();
             } else {
                 Toast.fire({
@@ -173,7 +193,7 @@ const AdminUsuarios = () => {
             usuario: user.usuario || '', 
             contrasena: '',
             privilegio: user.privilegio || 'usuario'
-        }); // Option to not show password
+        });
         setClickAgregar(false);
     };
 
@@ -186,34 +206,36 @@ const AdminUsuarios = () => {
         <div className='container my-5'>
             <div className='card shadow-lg p-4'>
                 <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
-                    <h1 className="h2 mb-2 mb-md-0">Gestión de Usuarios</h1>
+                    <h1 className="h2 mb-2 mb-md-0">{!isANC ? 'Mi Perfil' : 'Gestión de Usuarios'}</h1>
                     <Link to="/admin" className='btn btn-secondary'>
                         Volver al Panel
                     </Link>
                 </div>
 
-                <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
-                    <button
-                        className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                        onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' }); }}
-                    >
-                        Lista de Usuarios
-                    </button>
-                    <button
-                        className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
-                        onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' }); }}
-                    >
-                        Agregar Nuevo
-                    </button>
-                </div>
+                {isANC && (
+                    <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
+                        <button
+                            className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' }); }}
+                        >
+                            Lista de Usuarios
+                        </button>
+                        <button
+                            className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
+                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' }); }}
+                        >
+                            Agregar Nuevo
+                        </button>
+                    </div>
+                )}
 
-                <hr />
+                {isANC && <hr />}
 
                 {loading ? (
                     <div className="text-center">Cargando...</div>
                 ) : (
                     <>
-                        {(!clickAgregar && !usuarioEditando) && (
+                        {(!clickAgregar && !usuarioEditando && isANC) && (
                             <div className="table-responsive">
                                 <table className="table table-hover">
                                     <thead>
@@ -236,7 +258,9 @@ const AdminUsuarios = () => {
                                                 <td>{u.privilegio}</td>
                                                 <td>
                                                     <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>Editar</button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)}>Eliminar</button>
+                                                    {isANC && (
+                                                        <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)}>Eliminar</button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}
@@ -252,7 +276,7 @@ const AdminUsuarios = () => {
 
                         {(clickAgregar || usuarioEditando) && (
                             <form onSubmit={usuarioEditando ? handleEditar : handleAgregar} className="mt-4">
-                                <h4 className="mb-3">{usuarioEditando ? 'Editar Usuario' : 'Nuevo Usuario'}</h4>
+                                <h4 className="mb-3">{usuarioEditando ? (isANC ? 'Editar Usuario' : 'Editar Mi Perfil') : 'Nuevo Usuario'}</h4>
                                 <div className="mb-3">
                                     <label className="form-label">Nombre</label>
                                     <input
@@ -262,7 +286,6 @@ const AdminUsuarios = () => {
                                         value={formData.nombre}
                                         onChange={handleInputChange}
                                         required
-                                       
                                     />
                                 </div>
                                 <div className="mb-3">
@@ -274,7 +297,6 @@ const AdminUsuarios = () => {
                                         value={formData.apellido}
                                         onChange={handleInputChange}
                                         required
-                                    
                                     />
                                 </div>
                                 <div className="mb-3">
@@ -286,7 +308,6 @@ const AdminUsuarios = () => {
                                         value={formData.usuario}
                                         onChange={handleInputChange}
                                         required
-                                      
                                     />
                                 </div>
                                 <div className="mb-3">
@@ -310,6 +331,7 @@ const AdminUsuarios = () => {
                                         value={formData.privilegio}
                                         onChange={handleInputChange}
                                         required
+                                        disabled={!isANC}
                                     >
                                         <option value="PUB">PUB</option>
                                         <option value="SM">SM</option>
@@ -321,7 +343,7 @@ const AdminUsuarios = () => {
                                     <button type="submit" className={`btn ${usuarioEditando ? 'btn-primary' : 'btn-success'}`}>
                                         {usuarioEditando ? 'Guardar Cambios' : 'Agregar Usuario'}
                                     </button>
-                                    {usuarioEditando && (
+                                    {usuarioEditando && isANC && (
                                         <button type="button" className="btn btn-secondary" onClick={cancelarEdicion}>
                                             Cancelar
                                         </button>

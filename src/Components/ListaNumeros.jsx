@@ -121,10 +121,9 @@ const ListaNumeros = () => {
                                     <th scope="col" className="text-secondary fw-semibold">Territorio</th>
                                     <th scope="col" className="text-secondary fw-semibold">Manzana</th>
                                     <th scope="col" className="text-secondary fw-semibold">Contesta</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Última Fecha</th>
+                                    <th scope="col" className="text-secondary fw-semibold">Última Fecha (Y-MM-DD)</th>
                                     <th scope="col" className="text-secondary fw-semibold">Último Usuario</th>
                                     <th scope="col" className="text-secondary fw-semibold">Reservado</th>
-                                    <th scope="col" className="text-center text-secondary fw-semibold">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -141,24 +140,14 @@ const ListaNumeros = () => {
                                                     <span className="badge bg-secondary">No</span>
                                                 }
                                             </td>
-                                            <td className="text-muted">{num.ultimaFecha}</td>
+                                            <td className="text-muted">{num.ultimaFecha.slice(0, 10)}</td>
                                             <td className="text-muted fw-semibold">
-                                                {num.ult_usuario ? (num.ult_usuario.usuario || 'Sí') : '-'}
+                                                {num.ultUsuario ? (num.ultUsuario.usuario || 'Sí') : '-'}
                                             </td>
                                             <td>
                                                 {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}
                                             </td>
-                                            <td>
-                                                <div className="d-flex justify-content-center gap-2">
-                                                 
-                                                    <button
-                                                        className='btn btn-outline-danger btn-sm'
-                                                        onClick={() => eliminarNumero(num.id)}
-                                                    >
-                                                        <i className="bi bi-trash"></i> Borrar
-                                                    </button>
-                                                </div>
-                                            </td>
+                                          
                                         </tr>
                                     ))
                                 ) : (
