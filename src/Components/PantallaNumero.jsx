@@ -72,7 +72,7 @@ const PantallaNumero = ({ objeto }) => {
                                 </p>
                                 <p className="mb-2 text-dark" style={{ fontSize: '1.1rem' }}>
                                     <span className="text-muted fw-semibold me-2">Territorio:</span> 
-                                    {objeto.territorio} - {objeto.manzana}
+                                    {objeto.territorio} 
                                 </p>
                                 <p className="mb-0 text-dark" style={{ fontSize: '1.1rem' }}>
                                     <span className="text-muted fw-semibold me-2">Último llamado:</span> 

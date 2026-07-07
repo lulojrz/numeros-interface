@@ -26,7 +26,7 @@ const ListaNumeros = () => {
 
     const numeroSeleccionado = numeros.find((num) => num.id === seleccionado);
 
-    
+
     const territoriosUnicos = [...new Set(numeros.map(n => n.territorio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
     const manzanasUnicas = [...new Set(numeros.map(n => n.manzana).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
 
@@ -88,7 +88,7 @@ const ListaNumeros = () => {
                                 <option value="no">Disponibles</option>
                             </select>
                         </div>
-                        
+
                         <div className="col-12 mt-3 pt-3 border-top">
                             <div className="d-flex flex-wrap gap-2 justify-content-end">
                                 <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => {
@@ -119,11 +119,11 @@ const ListaNumeros = () => {
                                     <th scope="col" className="text-secondary fw-semibold">Número</th>
                                     <th scope="col" className="text-secondary fw-semibold">Dirección</th>
                                     <th scope="col" className="text-secondary fw-semibold">Territorio</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Manzana</th>
                                     <th scope="col" className="text-secondary fw-semibold">Contesta</th>
                                     <th scope="col" className="text-secondary fw-semibold">Última Fecha (Y-MM-DD)</th>
                                     <th scope="col" className="text-secondary fw-semibold">Último Usuario</th>
                                     <th scope="col" className="text-secondary fw-semibold">Reservado</th>
+                                    <th scope="col" className="text-secondary fw-semibold">ReservadoA</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -133,7 +133,6 @@ const ListaNumeros = () => {
                                             <td className="fw-bold text-nowrap">{num.numero}</td>
                                             <td>{num.direccion}</td>
                                             <td>{num.territorio}</td>
-                                            <td><span className="badge bg-light text-dark border" style={{ "textTransform": "uppercase" }}>{num.manzana}</span></td>
                                             <td>
                                                 {num.contesta ?
                                                     <span className="badge bg-success">Sí</span> :
@@ -147,12 +146,12 @@ const ListaNumeros = () => {
                                             <td>
                                                 {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}
                                             </td>
-                                          
+                                            <td className="text-muted fw-semibold">{num.reservadoA.usuario || '-'}</td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="7" className="text-center py-4 text-muted">
+                                        <td colSpan="8" className="text-center py-4 text-muted">
                                             No se encontraron números disponibles.
                                         </td>
                                     </tr>

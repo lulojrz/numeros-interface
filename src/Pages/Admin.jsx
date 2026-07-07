@@ -14,6 +14,7 @@ const Admin = () => {
   const [clickllamados,setClickllamados]= useState(false)
   const [clickPorEliminar,setClickPorEliminar]= useState(false)
   const [isANC, setIsANC] = useState(false)
+  const [isPrivileged, setIsPrivileged] = useState(false)
 
   useEffect(() => {
     const fetchPrivilegio = async () => {
@@ -25,6 +26,9 @@ const Admin = () => {
           const currentUser = data.find(u => u.usuario === loggedInUsername);
           if (currentUser?.privilegio === 'ANC') {
             setIsANC(true);
+          }
+          if (currentUser?.privilegio === 'ANC' || currentUser?.privilegio === 'SM') {
+            setIsPrivileged(true);
           }
         }
       } catch (error) {
@@ -57,30 +61,36 @@ const Admin = () => {
 
        
         <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
-            <button 
-                className={`btn flex-fill fw-semibold ${clickeditar ? 'btn-primary' : 'btn-outline-primary'}`} 
-                onClick={()=>{setClickeditar(true); setClickagregar(false); setClickllamados(false); setClickPorEliminar(false);}}
-            >
-                Editar/Borrar Producto
-            </button>
-            <button 
-                className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar && !clickllamados && !clickPorEliminar ? 'btn-success' : 'btn-outline-success'}`}
-                onClick={()=>{setClickagregar(true); setClickeditar(false); setClickllamados(false); setClickPorEliminar(false);}}
-            >
-                Agregar Nuevo
-            </button>
+            {isPrivileged && (
+            <>
+                <button 
+                    className={`btn flex-fill fw-semibold ${clickeditar ? 'btn-primary' : 'btn-outline-primary'}`} 
+                    onClick={()=>{setClickeditar(true); setClickagregar(false); setClickllamados(false); setClickPorEliminar(false);}}
+                >
+                    Editar/Borrar Producto
+                </button>
+                <button 
+                    className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar && !clickllamados && !clickPorEliminar ? 'btn-success' : 'btn-outline-success'}`}
+                    onClick={()=>{setClickagregar(true); setClickeditar(false); setClickllamados(false); setClickPorEliminar(false);}}
+                >
+                    Agregar Nuevo
+                </button>
+            </>
+            )}
             <button 
                 className={`btn flex-fill fw-semibold ${clickllamados ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}`}
                 onClick={()=>{setClickllamados(true); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false);}}
             >
                 Mis Llamados
             </button>
+            {isPrivileged && (
             <button 
                 className={`btn flex-fill fw-semibold ${clickPorEliminar ? 'btn-danger text-white' : 'btn-outline-danger'}`}
                 onClick={()=>{setClickPorEliminar(true); setClickeditar(false); setClickagregar(false); setClickllamados(false);}}
             >
                 Por Eliminar
             </button>
+            )}
             {isANC && (
                 <Link to="/admin/usuarios" className="btn btn-outline-info flex-fill fw-semibold">
                     Gestión de Usuarios
@@ -97,14 +107,16 @@ const Admin = () => {
         <hr />
 
       
-        {clickPorEliminar ? (
+        {clickPorEliminar && isPrivileged ? (
             <PorEliminar />
         ) : clickllamados ? (
             <MisLlamados />
-        ) : clickeditar ? (
+        ) : clickeditar && isPrivileged ? (
             <ListaNumeros />
-        ) : (
+        ) : isPrivileged ? (
             <FormularioAgregar />
+        ) : (
+            <MisLlamados />
         )}
 
     </div> 

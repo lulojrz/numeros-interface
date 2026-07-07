@@ -5,7 +5,7 @@ import PantallaNumero from './PantallaNumero'
 const Numeros = () => {
     const {numeros,setNumero,numero,cambiarEstadoNumero}=useContext(NumerosContext)
     const [numeroAzar,setnumeroAzar]=useState(0); 
-    const filtrador = numeros.filter((num)=> num.contesta==false)
+    const filtrador = numeros.filter((num)=> num.contesta===false && num.tocar !== false)
     
     useEffect(()=>{
       if (filtrador.length > 0) {

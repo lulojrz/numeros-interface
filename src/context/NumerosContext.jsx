@@ -88,7 +88,16 @@ export const NumerosProvider = ({ children }) => {
             if (filtroReservado === "no") matchesReservado = num?.reservado === false;
 
             return matchesDireccion && matchesTerritorio && matchesManzana && matchesReservado;
-        })
+        }).sort((a, b) => {
+            const terrA = String(a.territorio || '');
+            const terrB = String(b.territorio || '');
+            const diffTerr = terrA.localeCompare(terrB, undefined, { numeric: true, sensitivity: 'base' });
+            if (diffTerr !== 0) return diffTerr;
+
+            const manzanaA = String(a.manzana || '');
+            const manzanaB = String(b.manzana || '');
+            return manzanaA.localeCompare(manzanaB, undefined, { numeric: true, sensitivity: 'base' });
+        });
 
 
         const eliminarNumero = async (id) => {
