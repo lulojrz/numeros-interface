@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { NumerosContext } from '../context/NumerosContext';
 
 const AdminUsuarios = () => {
+    const { numeros } = useContext(NumerosContext);
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [clickAgregar, setClickAgregar] = useState(false);
     const [usuarioEditando, setUsuarioEditando] = useState(null);
+    const [filtroReservas, setFiltroReservas] = useState('todos');
     
     // Form state
     const [formData, setFormData] = useState({
@@ -202,6 +205,16 @@ const AdminUsuarios = () => {
         setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' });
     };
 
+    const usuariosFiltrados = usuarios.filter(u => {
+        if (filtroReservas === 'todos') return true;
+        
+        const tieneReservas = numeros.some(n => n.reservado === true && n.reservadoA?.usuario === u.usuario);
+        
+        if (filtroReservas === 'conReservas') return tieneReservas;
+        if (filtroReservas === 'sinReservas') return !tieneReservas;
+        return true;
+    });
+
     return (
         <div className='container my-5'>
             <div className='card shadow-lg p-4'>
@@ -236,41 +249,99 @@ const AdminUsuarios = () => {
                 ) : (
                     <>
                         {(!clickAgregar && !usuarioEditando && isANC) && (
-                            <div className="table-responsive">
-                                <table className="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nombre</th>
-                                            <th>Apellido</th>
-                                            <th>Usuario</th>
-                                            <th>Privilegio</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {usuarios.map(u => (
-                                            <tr key={u.id}>
-                                                <td>{u.id}</td>
-                                                <td>{u.nombre}</td>
-                                                <td>{u.apellido}</td>
-                                                <td>{u.usuario}</td>
-                                                <td>{u.privilegio}</td>
-                                                <td>
-                                                    <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>Editar</button>
-                                                    {isANC && (
-                                                        <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)}>Eliminar</button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {usuarios.length === 0 && (
+                            <div className="mb-4">
+                                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                                    <h4 className="mb-0">Lista de Usuarios</h4>
+                                    <div className="mt-2 mt-md-0 d-flex align-items-center">
+                                        <label className="me-2 fw-semibold text-muted small">Filtrar:</label>
+                                        <select 
+                                            className="form-select form-select-sm w-auto" 
+                                            value={filtroReservas}
+                                            onChange={(e) => setFiltroReservas(e.target.value)}
+                                        >
+                                            <option value="todos">Todos los usuarios</option>
+                                            <option value="conReservas">Con números reservados</option>
+                                            <option value="sinReservas">Sin números reservados</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                {/* Vista Desktop */}
+                                <div className="table-responsive shadow-sm rounded d-none d-md-block">
+                                    <table className="table table-hover table-striped align-middle mb-0">
+                                        <thead className="table-light">
                                             <tr>
-                                                <td colSpan="6" className="text-center">No hay usuarios registrados.</td>
+                                                <th className="text-secondary fw-semibold">ID</th>
+                                                <th className="text-secondary fw-semibold">Nombre</th>
+                                                <th className="text-secondary fw-semibold">Apellido</th>
+                                                <th className="text-secondary fw-semibold">Usuario</th>
+                                                <th className="text-secondary fw-semibold">Privilegio</th>
+                                                <th className="text-secondary fw-semibold text-center">Acciones</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {usuariosFiltrados.map(u => (
+                                                <tr key={u.id}>
+                                                    <td className="fw-bold">{u.id}</td>
+                                                    <td>{u.nombre}</td>
+                                                    <td>{u.apellido}</td>
+                                                    <td>{u.usuario}</td>
+                                                    <td><span className="badge bg-secondary">{u.privilegio}</span></td>
+                                                    <td className="text-center">
+                                                        <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
+                                                            <i className="bi bi-pencil"></i> Editar
+                                                        </button>
+                                                        {isANC && (
+                                                            <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)}>
+                                                                <i className="bi bi-trash"></i>
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {usuariosFiltrados.length === 0 && (
+                                                <tr>
+                                                    <td colSpan="6" className="text-center py-4 text-muted">No se encontraron usuarios.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Vista Mobile */}
+                                <div className="d-md-none">
+                                    {usuariosFiltrados.map(u => (
+                                        <div key={u.id} className="card shadow-sm mb-3 border-0 rounded-3">
+                                            <div className="card-body">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 className="card-title text-primary fw-bold mb-0">{u.usuario}</h5>
+                                                    <span className="badge bg-secondary">{u.privilegio}</span>
+                                                </div>
+                                                <p className="card-text mb-1 text-muted small">
+                                                    <strong>Nombre:</strong> {u.nombre} {u.apellido}
+                                                </p>
+                                                <p className="card-text mb-3 text-muted small">
+                                                    <strong>ID:</strong> {u.id}
+                                                </p>
+                                                <div className="d-flex gap-2">
+                                                    <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
+                                                        <i className="bi bi-pencil"></i> Editar
+                                                    </button>
+                                                    {isANC && (
+                                                        <button className="btn btn-outline-danger btn-sm flex-fill fw-semibold" onClick={() => eliminarUsuario(u.id)}>
+                                                            <i className="bi bi-trash"></i> Eliminar
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {usuariosFiltrados.length === 0 && (
+                                        <div className="text-center py-4 text-muted border rounded shadow-sm bg-white">
+                                            No se encontraron usuarios.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 

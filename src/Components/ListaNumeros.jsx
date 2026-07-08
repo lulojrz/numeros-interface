@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 
 import { NumerosContext } from '../context/NumerosContext';
 
@@ -15,20 +15,48 @@ const ListaNumeros = () => {
         setBusqueda,
         filtroTerritorio,
         setFiltroTerritorio,
-        filtroManzana,
-        setFiltroManzana,
+        filtroEdificio,
+        setFiltroEdificio,
         filtroReservado,
         setFiltroReservado,
         actualizarReserva,
         sacarReservados
     } = useContext(NumerosContext);
+    const [mostrarModal, setMostrarModal] = useState(false);
+    const [usuariosLista, setUsuariosLista] = useState([]);
+    const [usuarioElegido, setUsuarioElegido] = useState("");
 
+    useEffect(() => {
+        const fetchUsuarios = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/usuarios');
+                if (response.ok) {
+                    const data = await response.json();
+                    setUsuariosLista(data);
+                }
+            } catch (error) {
+                console.error("Error fetching usuarios", error);
+            }
+        };
+        fetchUsuarios();
+    }, []);
+
+    const handleConfirmarReserva = () => {
+        if (!usuarioElegido) {
+            alert("Por favor seleccione un usuario.");
+            return;
+        }
+        const usuarioObj = usuariosLista.find(u => u.usuario === usuarioElegido) || { usuario: usuarioElegido };
+        actualizarReserva(productosFiltrados, usuarioObj);
+        setMostrarModal(false);
+        setUsuarioElegido("");
+    };
 
     const numeroSeleccionado = numeros.find((num) => num.id === seleccionado);
 
 
     const territoriosUnicos = [...new Set(numeros.map(n => n.territorio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
-    const manzanasUnicas = [...new Set(numeros.map(n => n.manzana).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+    const edificiosUnicos = [...new Set(numeros.map(n => n.edificio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
 
     const handleCancelarEdicion = () => {
         setSeleccionado(null);
@@ -64,14 +92,14 @@ const ListaNumeros = () => {
                             </select>
                         </div>
                         <div className="col-md-3">
-                            <label className="form-label text-muted small fw-semibold mb-1">Manzana</label>
+                            <label className="form-label text-muted small fw-semibold mb-1">Edificio</label>
                             <select
                                 className="form-select form-select-sm"
-                                value={filtroManzana}
-                                onChange={(e) => setFiltroManzana(e.target.value)}
+                                value={filtroEdificio}
+                                onChange={(e) => setFiltroEdificio(e.target.value)}
                             >
                                 <option value="">Todas</option>
-                                {manzanasUnicas.map((m, idx) => (
+                                {edificiosUnicos.map((m, idx) => (
                                     <option key={idx} value={m}>{m}</option>
                                 ))}
                             </select>
@@ -92,11 +120,11 @@ const ListaNumeros = () => {
                         <div className="col-12 mt-3 pt-3 border-top">
                             <div className="d-flex flex-wrap gap-2 justify-content-end">
                                 <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => {
-                                    setBusqueda(""); setFiltroTerritorio(""); setFiltroManzana(""); setFiltroReservado("");
+                                    setBusqueda(""); setFiltroTerritorio(""); setFiltroEdificio(""); setFiltroReservado("");
                                 }}>
                                     Limpiar Filtros
                                 </button>
-                                <button type="button" className="btn btn-success btn-sm px-3 shadow-sm" onClick={() => actualizarReserva(productosFiltrados)}>
+                                <button type="button" className="btn btn-success btn-sm px-3 shadow-sm" onClick={() => setMostrarModal(true)}>
                                     Reservar Filtrados
                                 </button>
                                 <button type="button" className="btn btn-danger btn-sm px-3 shadow-sm" onClick={() => sacarReservados(productosFiltrados)}>
@@ -112,7 +140,8 @@ const ListaNumeros = () => {
                 <div className="container mt-4">
                     <h2 className="mb-4 text-center text-primary fw-bold">Lista de Números</h2>
 
-                    <div className="table-responsive shadow-sm rounded">
+                    {/* Vista Desktop */}
+                    <div className="table-responsive shadow-sm rounded d-none d-md-block">
                         <table className="table table-hover table-striped align-middle">
                             <thead className="table-light">
                                 <tr>
@@ -146,7 +175,7 @@ const ListaNumeros = () => {
                                             <td>
                                                 {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}
                                             </td>
-                                            <td className="text-muted fw-semibold">{num.reservadoA.usuario || '-'}</td>
+                                            <td className="text-muted fw-semibold">{num.reservadoA?.usuario || '-'}</td>
                                         </tr>
                                     ))
                                 ) : (
@@ -159,6 +188,40 @@ const ListaNumeros = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Vista Mobile */}
+                    <div className="d-md-none">
+                        {productosFiltrados && productosFiltrados.length > 0 ? (
+                            productosFiltrados.map((num) => (
+                                <div key={num.id} className="card shadow-sm mb-3 border-0 rounded-3">
+                                    <div className="card-body">
+                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                            <h5 className="card-title text-primary fw-bold mb-0">{num.numero}</h5>
+                                            <span className="badge bg-light text-dark border">Terr: {num.territorio}</span>
+                                        </div>
+                                        <p className="card-text mb-2 text-muted small">
+                                            <strong>Dirección:</strong> {num.direccion}
+                                        </p>
+                                        <div className="d-flex justify-content-between mb-2 text-muted small">
+                                            <span><strong>Últ. Usr:</strong> {num.ultUsuario ? (num.ultUsuario.usuario || 'Sí') : '-'}</span>
+                                            <span><strong>Contesta:</strong> {num.contesta ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}</span>
+                                        </div>
+                                        <div className="d-flex justify-content-between mb-2 text-muted small">
+                                            <span><strong>Últ. Fecha:</strong> {num.ultimaFecha.slice(0, 10)}</span>
+                                            <span><strong>Res:</strong> {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}</span>
+                                        </div>
+                                        <p className="card-text mb-0 text-muted small">
+                                            <strong>Reservado A:</strong> {num.reservadoA?.usuario || '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-4 text-muted border rounded shadow-sm bg-white">
+                                No se encontraron números disponibles.
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {numeroSeleccionado && (
                     <FormularioEditar
@@ -167,6 +230,31 @@ const ListaNumeros = () => {
                     />
                 )}
             </div>
+            {mostrarModal && (
+                <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Reservar Números</h5>
+                                <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Seleccione el usuario para reservar los números filtrados ({productosFiltrados.length}):</p>
+                                <select className="form-select" value={usuarioElegido} onChange={(e) => setUsuarioElegido(e.target.value)}>
+                                    <option value="">-- Seleccionar Usuario --</option>
+                                    {usuariosLista.map((u) => (
+                                        <option key={u.id || u.usuario} value={u.usuario}>{u.usuario}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setMostrarModal(false)}>Cancelar</button>
+                                <button type="button" className="btn btn-primary" onClick={handleConfirmarReserva}>Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

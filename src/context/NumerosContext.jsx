@@ -15,7 +15,7 @@ export const NumerosProvider = ({ children }) => {
     const [seleccionado, setSeleccionado] = useState(null)
     const [busqueda, setBusqueda] = useState("")
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
-    const [filtroManzana, setFiltroManzana] = useState("")
+    const [filtroEdificio, setFiltroEdificio] = useState("")
     const [filtroReservado, setFiltroReservado] = useState("")
     const api = 'http://localhost:8080/api'
 
@@ -81,22 +81,22 @@ export const NumerosProvider = ({ children }) => {
         const productosFiltrados = numeros.filter((num) => {
             const matchesDireccion = num?.direccion?.toLowerCase().includes(busqueda.toLowerCase()) ?? false;
             const matchesTerritorio = filtroTerritorio === "" || (num?.territorio && num.territorio.toString().toLowerCase() === filtroTerritorio.toLowerCase());
-            const matchesManzana = filtroManzana === "" || (num?.manzana && num.manzana.toString().toLowerCase() === filtroManzana.toLowerCase());
+            const matchesEdificio = filtroEdificio === "" || (num?.edificio && num.edificio.toString().toLowerCase() === filtroEdificio.toLowerCase());
 
             let matchesReservado = true;
             if (filtroReservado === "si") matchesReservado = num?.reservado === true;
             if (filtroReservado === "no") matchesReservado = num?.reservado === false;
 
-            return matchesDireccion && matchesTerritorio && matchesManzana && matchesReservado;
+            return matchesDireccion && matchesTerritorio && matchesEdificio && matchesReservado;
         }).sort((a, b) => {
             const terrA = String(a.territorio || '');
             const terrB = String(b.territorio || '');
             const diffTerr = terrA.localeCompare(terrB, undefined, { numeric: true, sensitivity: 'base' });
             if (diffTerr !== 0) return diffTerr;
 
-            const manzanaA = String(a.manzana || '');
-            const manzanaB = String(b.manzana || '');
-            return manzanaA.localeCompare(manzanaB, undefined, { numeric: true, sensitivity: 'base' });
+            const edificioA = String(a.edificio || '');
+            const edificioB = String(b.edificio || '');
+            return edificioA.localeCompare(edificioB, undefined, { numeric: true, sensitivity: 'base' });
         });
 
 
@@ -165,10 +165,16 @@ export const NumerosProvider = ({ children }) => {
 
 
 
-        const actualizarReserva = (filtrados) => {
+        const actualizarReserva = (filtrados, usuarioSeleccionado) => {
             console.log("Filtrados para reservar:", filtrados);
 
-            let filtraditos = filtrados.map((num) => ({ ...num, reservado: true }));
+            let filtraditos = filtrados.map((num) => ({
+                ...num,
+                reservado: true,
+                ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
+                reservadoA: usuarioSeleccionado ? { usuario: usuarioSeleccionado.usuario } : null,
+                tocar: num.tocar !== undefined ? num.tocar : true
+            }));
             console.log("Filtrados actualizados para reservar:", filtraditos);
 
             filtraditos.forEach(async (num) => {
@@ -193,7 +199,13 @@ export const NumerosProvider = ({ children }) => {
             cargarProductos();
         }
         const sacarReservados = (filtrados) => {
-            let noReservados = filtrados.map((num) => ({ ...num, reservado: false }));;
+            let noReservados = filtrados.map((num) => ({
+                ...num,
+                reservado: false,
+                reservadoA: null,
+                ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
+                tocar: num.tocar !== undefined ? num.tocar : true
+            }));
             noReservados.forEach(async (num) => {
                 try {
                     await fetch(`${api}/editar/${num.id}`, {
@@ -217,7 +229,7 @@ export const NumerosProvider = ({ children }) => {
 
 
         return (
-            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroManzana, setFiltroManzana, filtroReservado, setFiltroReservado, actualizarReserva, sacarReservados }}>
+            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, filtroReservado, setFiltroReservado, actualizarReserva, sacarReservados }}>
                 {children}
             </NumerosContext.Provider>
         )

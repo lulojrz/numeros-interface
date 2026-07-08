@@ -2,17 +2,31 @@ import React, { useState, useContext } from "react";
 import { NumerosContext } from "../context/NumerosContext";
 
 function FormularioAgregar() {
-  const { agregarNumero } = useContext(NumerosContext);
+  const { agregarNumero, numeros } = useContext(NumerosContext);
   
   const [producto, setProducto] = useState({
     direccion: "",
     contesta: false, 
     ultimaFecha: "",
     territorio: "",
-    manzana: "",
+    edificio: "",
     numero: "",
-    reservado:false
+    reservado: false
   });
+
+  const getNextEdificio = (terr) => {
+    if (!terr || !numeros || numeros.length === 0) return "";
+    const edificiosDelTerritorio = numeros
+      .filter((n) => String(n.territorio) === String(terr) && n.edificio)
+      .map((n) => String(n.edificio).trim().toUpperCase());
+    
+    if (edificiosDelTerritorio.length === 0) return "A";
+    
+    const maxEdificio = edificiosDelTerritorio.sort().reverse()[0];
+    const nextCharCode = maxEdificio.charCodeAt(0) + 1;
+    if (nextCharCode > 90) return "A"; 
+    return String.fromCharCode(nextCharCode);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,7 +46,10 @@ function FormularioAgregar() {
     const datosParaEnviar = {
       ...producto,
       contesta: Boolean(producto.contesta),
-      reservado: Boolean(producto.reservado),
+      reservado: false,
+      ultUsuario: null,
+      reservadoA: null,
+      tocar: true,
       ultimaFecha: fechaFormateada
     };
 
@@ -40,7 +57,7 @@ function FormularioAgregar() {
 
     setProducto({
       direccion: "", contesta: false, ultimaFecha: "",
-      territorio: "", manzana: "", numero: "", reservado:false
+      territorio: "", edificio: "", numero: "", reservado: false
     });
   };
 
@@ -81,9 +98,21 @@ function FormularioAgregar() {
                  value={producto.territorio} onChange={handleChange} />
         </div>
         <div className="col-md-6 mb-3">
-          <label className="form-label">Manzana:</label>
-          <input type="text" name="manzana" className="form-control" 
-                 value={producto.manzana} onChange={handleChange} />
+          <label className="form-label">Edificio:</label>
+          <div className="input-group">
+            <input type="text" name="edificio" className="form-control" 
+                   value={producto.edificio} onChange={handleChange} />
+            {producto.territorio && getNextEdificio(producto.territorio) && (
+              <button 
+                type="button" 
+                className="btn btn-outline-secondary" 
+                onClick={() => setProducto({...producto, edificio: getNextEdificio(producto.territorio)})}
+                title="Sugerir siguiente edificio"
+              >
+                Sugerir: {getNextEdificio(producto.territorio)}
+              </button>
+            )}
+          </div>
         </div>
         <div className="col-md-6 mb-3">
           <label className="form-label">Reservado:</label>

@@ -3,6 +3,7 @@ import { NumerosContext } from '../context/NumerosContext'
 import FormularioAgregar from '../Components/FormularioAgregar.jsx'
 import ListaNumeros from '../Components/ListaNumeros.jsx'
 import MisLlamados from '../Components/MisLlamados.jsx'
+import MisReservas from '../Components/MisReservas.jsx'
 import PorEliminar from '../Components/PorEliminar.jsx'
 import { Link } from 'react-router'
 
@@ -12,6 +13,7 @@ const Admin = () => {
   const [clickeditar,setClickeditar]= useState(false)
   const [clickagregar,setClickagregar]= useState(false)
   const [clickllamados,setClickllamados]= useState(false)
+  const [clickReservas, setClickReservas] = useState(false)
   const [clickPorEliminar,setClickPorEliminar]= useState(false)
   const [isANC, setIsANC] = useState(false)
   const [isPrivileged, setIsPrivileged] = useState(false)
@@ -65,13 +67,13 @@ const Admin = () => {
             <>
                 <button 
                     className={`btn flex-fill fw-semibold ${clickeditar ? 'btn-primary' : 'btn-outline-primary'}`} 
-                    onClick={()=>{setClickeditar(true); setClickagregar(false); setClickllamados(false); setClickPorEliminar(false);}}
+                    onClick={()=>{setClickeditar(true); setClickagregar(false); setClickllamados(false); setClickPorEliminar(false); setClickReservas(false);}}
                 >
                     Editar/Borrar Producto
                 </button>
                 <button 
-                    className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar && !clickllamados && !clickPorEliminar ? 'btn-success' : 'btn-outline-success'}`}
-                    onClick={()=>{setClickagregar(true); setClickeditar(false); setClickllamados(false); setClickPorEliminar(false);}}
+                    className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar && !clickllamados && !clickPorEliminar && !clickReservas ? 'btn-success' : 'btn-outline-success'}`}
+                    onClick={()=>{setClickagregar(true); setClickeditar(false); setClickllamados(false); setClickPorEliminar(false); setClickReservas(false);}}
                 >
                     Agregar Nuevo
                 </button>
@@ -79,14 +81,20 @@ const Admin = () => {
             )}
             <button 
                 className={`btn flex-fill fw-semibold ${clickllamados ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}`}
-                onClick={()=>{setClickllamados(true); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false);}}
+                onClick={()=>{setClickllamados(true); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false); setClickReservas(false);}}
             >
                 Mis Llamados
+            </button>
+            <button 
+                className={`btn flex-fill fw-semibold ${clickReservas ? 'btn-info text-white' : 'btn-outline-info'}`}
+                onClick={()=>{setClickReservas(true); setClickllamados(false); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false);}}
+            >
+                Mis Reservas
             </button>
             {isPrivileged && (
             <button 
                 className={`btn flex-fill fw-semibold ${clickPorEliminar ? 'btn-danger text-white' : 'btn-outline-danger'}`}
-                onClick={()=>{setClickPorEliminar(true); setClickeditar(false); setClickagregar(false); setClickllamados(false);}}
+                onClick={()=>{setClickPorEliminar(true); setClickeditar(false); setClickagregar(false); setClickllamados(false); setClickReservas(false);}}
             >
                 Por Eliminar
             </button>
@@ -97,20 +105,24 @@ const Admin = () => {
                 </Link>
             )}
         </div>
-        <h1>Progreso</h1>
-        <h4>Números contestados: {
-        numerosContestados!=0? 
-         Math.round( (numerosContestados.length / numeros.length)*100) + "%"   : 0  + "% "
-    
-         }</h4>
-
-        <hr />
+        {clickeditar && isPrivileged && (
+            <div className="mb-4">
+                <h3 className="h4 text-primary">Progreso</h3>
+                <h5 className="text-secondary">Números contestados: {
+                    numerosContestados.length !== 0 ? 
+                    Math.round((numerosContestados.length / numeros.length) * 100) + "%" : "0%"
+                }</h5>
+                <hr />
+            </div>
+        )}
 
       
         {clickPorEliminar && isPrivileged ? (
             <PorEliminar />
         ) : clickllamados ? (
             <MisLlamados />
+        ) : clickReservas ? (
+            <MisReservas />
         ) : clickeditar && isPrivileged ? (
             <ListaNumeros />
         ) : isPrivileged ? (
