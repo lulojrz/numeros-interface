@@ -69,7 +69,7 @@ const Admin = () => {
                     className={`btn flex-fill fw-semibold ${clickeditar ? 'btn-primary' : 'btn-outline-primary'}`} 
                     onClick={()=>{setClickeditar(true); setClickagregar(false); setClickllamados(false); setClickPorEliminar(false); setClickReservas(false);}}
                 >
-                    Editar/Borrar Producto
+                    Editar Numeros
                 </button>
                 <button 
                     className={`btn flex-fill fw-semibold ${clickagregar && !clickeditar && !clickllamados && !clickPorEliminar && !clickReservas ? 'btn-success' : 'btn-outline-success'}`}

@@ -18,7 +18,9 @@ export const AuthProvider = ({ children }) => {
         const isAuthenticated = localStorage.getItem('isAuth') === 'true'
         if (isAuthenticated) {
             setIsAuth(true)
-            navigate("/")
+            if (window.location.pathname === '/login') {
+                navigate("/")
+            }
         }
     }, [])
 
@@ -68,6 +70,20 @@ export const AuthProvider = ({ children }) => {
                 setIsAuth(true);
                 localStorage.setItem('isAuth', 'true');
                 localStorage.setItem('usuario', user);
+                
+                try {
+                    const userRes = await fetch('http://localhost:8080/usuarios');
+                    if (userRes.ok) {
+                        const data = await userRes.json();
+                        const currentUser = data.find(u => u.usuario === user);
+                        if (currentUser) {
+                            localStorage.setItem('privilegio', currentUser.privilegio);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error fetching user privilege", e);
+                }
+
                 navigate('/');
             }
 

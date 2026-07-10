@@ -10,6 +10,8 @@ const AdminUsuarios = () => {
     const [clickAgregar, setClickAgregar] = useState(false);
     const [usuarioEditando, setUsuarioEditando] = useState(null);
     const [filtroReservas, setFiltroReservas] = useState('todos');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -78,6 +80,7 @@ const AdminUsuarios = () => {
 
     const handleAgregar = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             const response = await fetch(`${api}/usuarios/crear`, {
                 method: 'POST',
@@ -107,11 +110,14 @@ const AdminUsuarios = () => {
                 icon: 'error',
                 title: 'Error de conexión'
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const handleEditar = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             const response = await fetch(`${api}/usuarios/editar/${usuarioEditando.id}`, {
                 method: 'PUT',
@@ -145,6 +151,8 @@ const AdminUsuarios = () => {
                 icon: 'error',
                 title: 'Error de conexión'
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -162,6 +170,7 @@ const AdminUsuarios = () => {
 
         if (!result.isConfirmed) return;
 
+        setDeletingId(id);
         try {
             const response = await fetch(`${api}/usuarios/borrar/${id}`, {
                 method: 'DELETE'
@@ -185,6 +194,8 @@ const AdminUsuarios = () => {
                 icon: 'error',
                 title: 'Error de conexión'
             });
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -291,9 +302,9 @@ const AdminUsuarios = () => {
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
                                                             <i className="bi bi-pencil"></i> Editar
                                                         </button>
-                                                        {isANC && (
-                                                            <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)}>
-                                                                <i className="bi bi-trash"></i>
+                                                        {isANC && u.usuario !== loggedInUsername && (
+                                                            <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
+                                                                {deletingId === u.id ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-trash"></i>}
                                                             </button>
                                                         )}
                                                     </td>
@@ -327,9 +338,9 @@ const AdminUsuarios = () => {
                                                     <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
                                                         <i className="bi bi-pencil"></i> Editar
                                                     </button>
-                                                    {isANC && (
-                                                        <button className="btn btn-outline-danger btn-sm flex-fill fw-semibold" onClick={() => eliminarUsuario(u.id)}>
-                                                            <i className="bi bi-trash"></i> Eliminar
+                                                    {isANC && u.usuario !== loggedInUsername && (
+                                                        <button className="btn btn-outline-danger btn-sm flex-fill fw-semibold" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
+                                                            {deletingId === u.id ? <><span className="spinner-border spinner-border-sm me-1"></span> Borrando...</> : <><i className="bi bi-trash"></i> Eliminar</>}
                                                         </button>
                                                     )}
                                                 </div>
@@ -411,8 +422,12 @@ const AdminUsuarios = () => {
                                     </select>
                                 </div>
                                 <div className="d-flex gap-2">
-                                    <button type="submit" className={`btn ${usuarioEditando ? 'btn-primary' : 'btn-success'}`}>
-                                        {usuarioEditando ? 'Guardar Cambios' : 'Agregar Usuario'}
+                                    <button type="submit" className={`btn ${usuarioEditando ? 'btn-primary' : 'btn-success'}`} disabled={isSubmitting}>
+                                        {isSubmitting ? (
+                                            <><span className="spinner-border spinner-border-sm me-2"></span> Cargando...</>
+                                        ) : (
+                                            usuarioEditando ? 'Guardar Cambios' : 'Agregar Usuario'
+                                        )}
                                     </button>
                                     {usuarioEditando && isANC && (
                                         <button type="button" className="btn btn-secondary" onClick={cancelarEdicion}>

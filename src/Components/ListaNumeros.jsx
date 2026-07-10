@@ -148,6 +148,7 @@ const ListaNumeros = () => {
                                     <th scope="col" className="text-secondary fw-semibold">Número</th>
                                     <th scope="col" className="text-secondary fw-semibold">Dirección</th>
                                     <th scope="col" className="text-secondary fw-semibold">Territorio</th>
+                                    <th scope="col" className="text-secondary fw-semibold">Edificio</th>
                                     <th scope="col" className="text-secondary fw-semibold">Contesta</th>
                                     <th scope="col" className="text-secondary fw-semibold">Última Fecha (Y-MM-DD)</th>
                                     <th scope="col" className="text-secondary fw-semibold">Último Usuario</th>
@@ -162,6 +163,7 @@ const ListaNumeros = () => {
                                             <td className="fw-bold text-nowrap">{num.numero}</td>
                                             <td>{num.direccion}</td>
                                             <td>{num.territorio}</td>
+                                            <td>{num.edificio}</td>
                                             <td>
                                                 {num.contesta ?
                                                     <span className="badge bg-success">Sí</span> :

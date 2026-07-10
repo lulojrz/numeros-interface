@@ -11,7 +11,7 @@ export const NumerosProvider = ({ children }) => {
     const [numeros, setNumeros] = useState([])
     const [error, setError] = useState(false)
     const [loading, setLoading] = useState(true)
-    const [isAuthenticated, setIsAuth] = useState(false)
+    const [isAuthenticated, setIsAuth] = useState(() => localStorage.getItem('isAuth') === 'true')
     const [seleccionado, setSeleccionado] = useState(null)
     const [busqueda, setBusqueda] = useState("")
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
@@ -165,7 +165,7 @@ export const NumerosProvider = ({ children }) => {
 
 
 
-        const actualizarReserva = (filtrados, usuarioSeleccionado) => {
+        const actualizarReserva = async (filtrados, usuarioSeleccionado) => {
             console.log("Filtrados para reservar:", filtrados);
 
             let filtraditos = filtrados.map((num) => ({
@@ -177,28 +177,37 @@ export const NumerosProvider = ({ children }) => {
             }));
             console.log("Filtrados actualizados para reservar:", filtraditos);
 
-            filtraditos.forEach(async (num) => {
-                try {
-                    await fetch(`${api}/editar/${num.id}`, {
+            // Optimistic UI update
+            setNumeros(prev => prev.map(n => {
+                const updated = filtraditos.find(f => f.id === n.id);
+                return updated ? updated : n;
+            }));
+
+            try {
+                // Wait for all PUT requests in parallel
+                await Promise.all(filtraditos.map(num => 
+                    fetch(`${api}/editar/${num.id}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(num)
-
                     })
-                } catch (error) {
-                    console.log(error);
-                }
-            });
-            Toast.fire({
-                icon: 'success',
-                title: 'Números reservados con éxito'
-            });
-
-            cargarProductos();
+                ));
+                
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Números reservados con éxito'
+                });
+            } catch (error) {
+                console.log(error);
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Error en el servidor al guardar reservas'
+                });
+                cargarProductos(); // Sync with server again in case of failure
+            }
         }
-        const sacarReservados = (filtrados) => {
+        
+        const sacarReservados = async (filtrados) => {
             let noReservados = filtrados.map((num) => ({
                 ...num,
                 reservado: false,
@@ -206,25 +215,35 @@ export const NumerosProvider = ({ children }) => {
                 ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
                 tocar: num.tocar !== undefined ? num.tocar : true
             }));
-            noReservados.forEach(async (num) => {
-                try {
-                    await fetch(`${api}/editar/${num.id}`, {
+
+            // Optimistic UI update
+            setNumeros(prev => prev.map(n => {
+                const updated = noReservados.find(f => f.id === n.id);
+                return updated ? updated : n;
+            }));
+
+            try {
+                // Wait for all PUT requests in parallel
+                await Promise.all(noReservados.map(num => 
+                    fetch(`${api}/editar/${num.id}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(num)
                     })
-                } catch (error) {
-                    console.log(error);
-                }
-            });
-            Toast.fire({
-                icon: 'success',
-                title: 'Reservados sacados con éxito'
-            });
-
-            cargarProductos();
+                ));
+                
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Reservados sacados con éxito'
+                });
+            } catch (error) {
+                console.log(error);
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Error en el servidor al liberar reservas'
+                });
+                cargarProductos(); // Sync with server again in case of failure
+            }
         }
 
 
