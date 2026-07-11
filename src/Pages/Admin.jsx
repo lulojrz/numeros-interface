@@ -21,7 +21,7 @@ const Admin = () => {
   useEffect(() => {
     const fetchPrivilegio = async () => {
       try {
-        const response = await fetch('http://localhost:8080/usuarios');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`);
         if (response.ok) {
           const data = await response.json();
           const loggedInUsername = localStorage.getItem('usuario');

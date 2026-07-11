@@ -10,7 +10,7 @@ const CambiarContrasena = () => {
     });
     const [loading, setLoading] = useState(false);
 
-    const api = 'http://localhost:8080';
+    const api = import.meta.env.VITE_API_URL;
     const usuarioLogueado = localStorage.getItem('usuario'); // Tomamos el usuario del localStorage
 
     const Toast = Swal.mixin({

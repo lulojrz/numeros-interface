@@ -17,7 +17,7 @@ export const NumerosProvider = ({ children }) => {
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
     const [filtroEdificio, setFiltroEdificio] = useState("")
     const [filtroReservado, setFiltroReservado] = useState("")
-    const api = 'http://localhost:8080/api'
+    const api = `${import.meta.env.VITE_API_URL}/api`
 
     const Toast = Swal.mixin({
         toast: true,

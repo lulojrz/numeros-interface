@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
         setErrors({});
 
         try {
-            const res = await fetch('http://localhost:8080/usuarios/login', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('usuario', user);
                 
                 try {
-                    const userRes = await fetch('http://localhost:8080/usuarios');
+                    const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`);
                     if (userRes.ok) {
                         const data = await userRes.json();
                         const currentUser = data.find(u => u.usuario === user);

@@ -22,7 +22,7 @@ const AdminUsuarios = () => {
         privilegio: 'usuario'
     });
 
-    const api = 'http://localhost:8080';
+    const api = import.meta.env.VITE_API_URL;
 
     const loggedInUsername = localStorage.getItem('usuario');
     const currentUser = usuarios.find(u => u.usuario === loggedInUsername);
