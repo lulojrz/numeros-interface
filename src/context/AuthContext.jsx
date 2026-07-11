@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         let validationErrors = {};
         if (!user) validationErrors.user = 'Usuario es requerido';
         if (!password) validationErrors.password = 'Contraseña es requerida';
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
                 setIsAuth(true);
                 localStorage.setItem('isAuth', 'true');
                 localStorage.setItem('usuario', user);
-                
+
                 try {
                     const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
                     if (userRes.ok) {
@@ -77,13 +77,13 @@ export const AuthProvider = ({ children }) => {
                         if (currentUser) {
                             localStorage.setItem('privilegio', currentUser.privilegio);
                         }
-                    } catch (fetchUserError) {
-                        console.error("Error de red al buscar el privilegio:", fetchUserError);
-                    } finally {
-                        // Navegamos al home una vez terminado el proceso
-                        navigate('/');
                     }
-                }, 150);
+                } catch (fetchUserError) {
+                    console.error("Error de red al buscar el privilegio:", fetchUserError);
+                } finally {
+                    // Navegamos al home una vez terminado el proceso
+                    navigate('/');
+                }
             }
 
         } catch (err) {
