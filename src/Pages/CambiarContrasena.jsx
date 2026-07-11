@@ -117,7 +117,7 @@ const CambiarContrasena = () => {
             }
 
         } catch (error) {
-            console.error('Error al cambiar contraseña:', error);
+
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión con el servidor'

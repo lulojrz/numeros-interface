@@ -81,14 +81,14 @@ export const AuthProvider = ({ children }) => {
                         }
                     }
                 } catch (e) {
-                    console.error("Error fetching user privilege", e);
+
                 }
 
                 navigate('/');
             }
 
         } catch (err) {
-            console.error('Error fetching users:', err);
+
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',

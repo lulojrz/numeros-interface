@@ -36,7 +36,7 @@ export const NumerosProvider = ({ children }) => {
     }, [])
 
     const actualizarNumero = async (objetoActualizado) => {
-        console.log("Objeto exacto enviado desde actualizarNumero:", objetoActualizado);
+
         try {
             await fetch(`${api}/editar/${objetoActualizado.id}`, {
                 method: 'PUT',
@@ -52,7 +52,7 @@ export const NumerosProvider = ({ children }) => {
             cargarProductos();
         }   
         catch (error) {
-            console.log(error)
+
             Toast.fire({
                 icon: 'error',
                 title: 'Error al actualizar el número'
@@ -67,11 +67,11 @@ export const NumerosProvider = ({ children }) => {
             try {
                 const response = await fetch(api + '/numeros')
                 const data = await response.json()
-                console.log(data)
+
                 setNumeros(data)
             }
             catch (error) {
-                console.log(error)
+    
             } finally {
                 setLoading(false)
             }
@@ -125,7 +125,7 @@ export const NumerosProvider = ({ children }) => {
                 cargarProductos();
             }
             catch (error) {
-                console.log(error)
+    
                 Toast.fire({
                     icon: 'error',
                     title: 'Error al eliminar el número'
@@ -138,7 +138,7 @@ export const NumerosProvider = ({ children }) => {
 
 
         const agregarNumero = async (number) => {
-            console.log("Objeto exacto enviado desde agregarNumero:", number);
+
             try {
                 await fetch(`${api}/agregar`, {
                     method: 'POST',
@@ -154,7 +154,7 @@ export const NumerosProvider = ({ children }) => {
                 cargarProductos();
             }
             catch (error) {
-                console.log(error)
+    
                 Toast.fire({
                     icon: 'error',
                     title: 'Error al agregar el número'
@@ -166,7 +166,7 @@ export const NumerosProvider = ({ children }) => {
 
 
         const actualizarReserva = async (filtrados, usuarioSeleccionado) => {
-            console.log("Filtrados para reservar:", filtrados);
+
 
             let filtraditos = filtrados.map((num) => ({
                 ...num,
@@ -175,7 +175,7 @@ export const NumerosProvider = ({ children }) => {
                 reservadoA: usuarioSeleccionado ? { usuario: usuarioSeleccionado.usuario } : null,
                 tocar: num.tocar !== undefined ? num.tocar : true
             }));
-            console.log("Filtrados actualizados para reservar:", filtraditos);
+
 
             // Optimistic UI update
             setNumeros(prev => prev.map(n => {
@@ -198,7 +198,7 @@ export const NumerosProvider = ({ children }) => {
                     title: 'Números reservados con éxito'
                 });
             } catch (error) {
-                console.log(error);
+    ;
                 Toast.fire({
                     icon: 'error',
                     title: 'Error en el servidor al guardar reservas'
@@ -237,7 +237,7 @@ export const NumerosProvider = ({ children }) => {
                     title: 'Reservados sacados con éxito'
                 });
             } catch (error) {
-                console.log(error);
+    ;
                 Toast.fire({
                     icon: 'error',
                     title: 'Error en el servidor al liberar reservas'

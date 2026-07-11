@@ -65,7 +65,7 @@ const AdminUsuarios = () => {
                 }
             }
         } catch (error) {
-            console.log(error);
+
         } finally {
             setLoading(false);
         }
@@ -105,7 +105,7 @@ const AdminUsuarios = () => {
                 });
             }
         } catch (error) {
-            console.log(error);
+
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión'
@@ -146,7 +146,7 @@ const AdminUsuarios = () => {
                 });
             }
         } catch (error) {
-            console.log(error);
+
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión'
@@ -189,7 +189,7 @@ const AdminUsuarios = () => {
             }
         }
         catch (error) {
-            console.log(error);
+
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión'

@@ -35,7 +35,7 @@ const ListaNumeros = () => {
                     setUsuariosLista(data);
                 }
             } catch (error) {
-                console.error("Error fetching usuarios", error);
+
             }
         };
         fetchUsuarios();

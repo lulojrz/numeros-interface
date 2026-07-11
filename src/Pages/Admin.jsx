@@ -34,7 +34,7 @@ const Admin = () => {
           }
         }
       } catch (error) {
-        console.error(error);
+
       }
     };
     fetchPrivilegio();
