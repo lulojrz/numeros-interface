@@ -1,5 +1,4 @@
-import React from 'react'
-import { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { NumerosContext } from './NumerosContext.jsx'
 import Swal from 'sweetalert2'
@@ -22,11 +21,11 @@ export const AuthProvider = ({ children }) => {
                 navigate("/")
             }
         }
-    }, [])
+    }, [navigate, setIsAuth])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-       
+        
         let validationErrors = {};
         if (!user) validationErrors.user = 'Usuario es requerido';
         if (!password) validationErrors.password = 'Contraseña es requerida';
@@ -46,14 +45,11 @@ export const AuthProvider = ({ children }) => {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                // CAMBIO CLAVE: Asegurate de que matchee con los atributos de tu objeto Java
-                // Si en Java usás 'usuario' y 'contrasena', cambialo acá a: { usuario: user, contrasena: password }
                 body: JSON.stringify({ usuario: user, contrasena: password })
             });
 
-            // Si el backend responde con un error (como el 401)
             if (!res.ok) {
-                const errorMessage = await res.text(); // <-- CAMBIADO: .text() en vez de .json()
+                const errorMessage = await res.text();
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -63,8 +59,7 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
-            // Si llegó acá, el estado es 200 OK
-            const responseText = await res.text(); // <-- CAMBIADO: .text() en vez de .json()
+            const responseText = await res.text();
 
             if (responseText === "correcto") {
                 setErrors({});
@@ -82,16 +77,17 @@ export const AuthProvider = ({ children }) => {
                         if (currentUser) {
                             localStorage.setItem('privilegio', currentUser.privilegio);
                         }
+                    } catch (fetchUserError) {
+                        console.error("Error de red al buscar el privilegio:", fetchUserError);
+                    } finally {
+                        // Navegamos al home una vez terminado el proceso
+                        navigate('/');
                     }
-                } catch (e) {
-
-                }
-
-                navigate('/');
+                }, 150);
             }
 
         } catch (err) {
-
+            console.error("Error crítico en el login:", err);
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -101,19 +97,15 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-
-    }
+    };
 
     return (
         <AuthContext.Provider value={{ user, setUser, password, setPassword, handleSubmit, errors, setErrors, isLoading }}>
             {children}
         </AuthContext.Provider>
-    )
+    );
+};
 
-
-
-
-}
 export const useAuth = () => {
-    return useContext(AuthContext)
-}
+    return useContext(AuthContext);
+};
