@@ -76,7 +76,9 @@ export const AuthProvider = ({ children }) => {
                     const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
                     if (userRes.ok) {
                         const data = await userRes.json();
+                        console.log('Usuarios obtenidos:', data); // <-- Agregado para depuración
                         const currentUser = data.find(u => u.usuario === user);
+                        console.log('Usuario actual:', currentUser); // <-- Agregado para depuración
                         if (currentUser) {
                             localStorage.setItem('privilegio', currentUser.privilegio);
                         }
