@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }) => {
                     if (userRes.ok) {
                         const data = await userRes.json();
                         const currentUser = data.find(u => u.usuario === user);
+                        console.log(currentUser)
                         if (currentUser) {
                             localStorage.setItem('privilegio', currentUser.privilegio);
                         }
