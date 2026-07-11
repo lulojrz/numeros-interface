@@ -17,7 +17,7 @@ export const NumerosProvider = ({ children }) => {
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
     const [filtroEdificio, setFiltroEdificio] = useState("")
     const [filtroReservado, setFiltroReservado] = useState("")
-    const api = `${import.meta.env.VITE_API_URL}/api`
+    const api = `${import.meta.env.VITE_API_URL}`
 
     const Toast = Swal.mixin({
         toast: true,
@@ -38,7 +38,7 @@ export const NumerosProvider = ({ children }) => {
     const actualizarNumero = async (objetoActualizado) => {
 
         try {
-            await fetch(`${api}/editar/${objetoActualizado.id}`, {
+            await fetch(`${api}/api/editar/${objetoActualizado.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ export const NumerosProvider = ({ children }) => {
     const cargarProductos = async () => {
             setLoading(true)
             try {
-                const response = await fetch(api + '/numeros')
+                const response = await fetch(api + '/api/numeros')
                 const data = await response.json()
 
                 setNumeros(data)
@@ -115,7 +115,7 @@ export const NumerosProvider = ({ children }) => {
             if (!result.isConfirmed) return;
 
             try {
-                await fetch(`${api}/borrar/${id}`, {
+                await fetch(`${api}/api/borrar/${id}`, {
                     method: 'DELETE'
                 })
                 Toast.fire({
@@ -140,7 +140,7 @@ export const NumerosProvider = ({ children }) => {
         const agregarNumero = async (number) => {
 
             try {
-                await fetch(`${api}/agregar`, {
+                await fetch(`${api}/api/agregar`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -186,7 +186,7 @@ export const NumerosProvider = ({ children }) => {
             try {
                 // Wait for all PUT requests in parallel
                 await Promise.all(filtraditos.map(num => 
-                    fetch(`${api}/editar/${num.id}`, {
+                    fetch(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(num)
@@ -225,7 +225,7 @@ export const NumerosProvider = ({ children }) => {
             try {
                 // Wait for all PUT requests in parallel
                 await Promise.all(noReservados.map(num => 
-                    fetch(`${api}/editar/${num.id}`, {
+                    fetch(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(num)
