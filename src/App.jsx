@@ -24,7 +24,7 @@ function App() {
         <RutasProtegidas isAuthenticated={isAuthenticated}><Admin/></RutasProtegidas>
       }/>
       <Route path='/admin/usuarios' element={
-        <RutasProtegidas isAuthenticated={isAuthenticated} rolesPermitidos={['ROL_ANC']}><AdminUsuarios/></RutasProtegidas>
+        <RutasProtegidas isAuthenticated={isAuthenticated} rolesPermitidos={['ROLE_ANC']}><AdminUsuarios/></RutasProtegidas>
       }/>
       <Route path='/admin/perfil' element={
         <RutasProtegidas isAuthenticated={isAuthenticated}><CambiarContrasena/></RutasProtegidas>
