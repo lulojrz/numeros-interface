@@ -26,7 +26,7 @@ const AdminUsuarios = () => {
 
     const loggedInUsername = localStorage.getItem('usuario');
     const currentUser = usuarios.find(u => u.usuario === loggedInUsername);
-    const isANC = currentUser?.privilegio === 'ANC';
+    const isANC = currentUser?.privilegio === 'ROL_ANC';
 
     const Toast = Swal.mixin({
         toast: true,
@@ -53,7 +53,7 @@ const AdminUsuarios = () => {
                 setUsuarios(data);
                 
                 const loggedUser = data.find(u => u.usuario === localStorage.getItem('usuario'));
-                if (loggedUser && loggedUser.privilegio !== 'ANC') {
+                if (loggedUser && loggedUser.privilegio !== 'ROL_ANC') {
                     setUsuarioEditando(loggedUser);
                     setFormData({ 
                         nombre: loggedUser.nombre || '', 

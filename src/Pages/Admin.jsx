@@ -28,10 +28,10 @@ const Admin = () => {
           const data = await response.json();
           const loggedInUsername = localStorage.getItem('usuario');
           const currentUser = data.find(u => u.usuario === loggedInUsername);
-          if (currentUser?.privilegio === 'ANC') {
+          if (currentUser?.privilegio === 'ROL_ANC') {
             setIsANC(true);
           }
-          if (currentUser?.privilegio === 'ANC' || currentUser?.privilegio === 'SM') {
+          if (currentUser?.privilegio === 'ROL_ANC' || currentUser?.privilegio === 'ROL_SM') {
             setIsPrivileged(true);
           }
         }
