@@ -77,6 +77,7 @@ const CambiarContrasena = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     usuario: usuarioLogueado,
                     contrasenaActual: formData.contrasenaActual,

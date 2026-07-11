@@ -43,6 +43,7 @@ export const NumerosProvider = ({ children }) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(objetoActualizado)
             })
             Toast.fire({
@@ -65,7 +66,7 @@ export const NumerosProvider = ({ children }) => {
     const cargarProductos = async () => {
             setLoading(true)
             try {
-                const response = await fetch(api + '/api/numeros')
+                const response = await fetch(api + '/api/numeros', { credentials: 'include' })
                 const data = await response.json()
 
                 setNumeros(data)
@@ -116,7 +117,8 @@ export const NumerosProvider = ({ children }) => {
 
             try {
                 await fetch(`${api}/api/borrar/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 })
                 Toast.fire({
                     icon: 'success',
@@ -145,6 +147,7 @@ export const NumerosProvider = ({ children }) => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify(number)
                 })
                 Toast.fire({
@@ -189,6 +192,7 @@ export const NumerosProvider = ({ children }) => {
                     fetch(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
                         body: JSON.stringify(num)
                     })
                 ));
@@ -228,6 +232,7 @@ export const NumerosProvider = ({ children }) => {
                     fetch(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
                         body: JSON.stringify(num)
                     })
                 ));

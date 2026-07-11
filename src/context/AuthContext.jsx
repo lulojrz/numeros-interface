@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 // CAMBIO CLAVE: Asegurate de que matchee con los atributos de tu objeto Java
                 // Si en Java usás 'usuario' y 'contrasena', cambialo acá a: { usuario: user, contrasena: password }
                 body: JSON.stringify({ usuario: user, contrasena: password })
@@ -72,7 +73,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('usuario', user);
                 
                 try {
-                    const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`);
+                    const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
                     if (userRes.ok) {
                         const data = await userRes.json();
                         const currentUser = data.find(u => u.usuario === user);

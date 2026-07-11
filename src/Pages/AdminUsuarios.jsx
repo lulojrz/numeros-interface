@@ -47,7 +47,7 @@ const AdminUsuarios = () => {
     const cargarUsuarios = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${api}/usuarios`);
+            const response = await fetch(`${api}/usuarios`, { credentials: 'include' });
             if (response.ok) {
                 const data = await response.json();
                 setUsuarios(data);
@@ -87,6 +87,7 @@ const AdminUsuarios = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(formData)
             });
             
@@ -124,6 +125,7 @@ const AdminUsuarios = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ ...usuarioEditando, ...formData })
             });
             
@@ -173,7 +175,8 @@ const AdminUsuarios = () => {
         setDeletingId(id);
         try {
             const response = await fetch(`${api}/usuarios/borrar/${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: 'include'
             });
             if (response.ok) {
                 Toast.fire({
