@@ -6,6 +6,7 @@ import Login from './Pages/Login'
 import Admin from './Pages/Admin'
 import AdminUsuarios from './Pages/AdminUsuarios'
 import CambiarContrasena from './Pages/CambiarContrasena'
+import Experiencias from './Pages/Experiencias'
 import { useContext } from 'react'
 import { NumerosContext } from './context/NumerosContext'
 import RutasProtegidas from './rutas/RutasProtegidas'
@@ -28,6 +29,9 @@ function App() {
       }/>
       <Route path='/admin/perfil' element={
         <RutasProtegidas isAuthenticated={isAuthenticated}><CambiarContrasena/></RutasProtegidas>
+      }/>
+      <Route path='/experiencias' element={
+        <RutasProtegidas isAuthenticated={isAuthenticated}><Experiencias/></RutasProtegidas>
       }/>
      </Routes>
     </>

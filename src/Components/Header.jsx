@@ -43,6 +43,9 @@ const Header = () => {
                                         {localStorage.getItem('usuario')} [{localStorage.getItem('privilegio') || '...'}]
                                     </span>
                                 )}
+                                <Link className="nav-link fw-semibold text-dark me-2" to={'/experiencias'}>
+                                    Experiencias
+                                </Link>
                                 <Link className="nav-link fw-semibold text-dark" to={'/admin'}>
                                     Administración
                                 </Link>
