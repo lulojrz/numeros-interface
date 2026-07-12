@@ -5,7 +5,11 @@ import PantallaNumero from './PantallaNumero'
 const Numeros = () => {
     const {numeros,setNumero,numero,cambiarEstadoNumero}=useContext(NumerosContext)
     const [numeroAzar,setnumeroAzar]=useState(0); 
-    const filtrador = numeros.filter((num)=> num.contesta===false && num.tocar !== false)
+    const loggedInUsername = localStorage.getItem('usuario');
+    const filtrador = numeros.filter((num) => {
+      const isReservedForOther = num.reservado && num.reservadoA?.usuario !== loggedInUsername;
+      return num.contesta === false && num.tocar !== false && !isReservedForOther;
+    });
     
     useEffect(()=>{
       if (filtrador.length > 0) {
