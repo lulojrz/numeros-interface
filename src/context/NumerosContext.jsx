@@ -68,6 +68,7 @@ export const NumerosProvider = ({ children }) => {
             try {
                 const response = await fetch(api + '/api/numeros', { credentials: 'include' })
                 const data = await response.json()
+                console.log('Datos cargados:', data); // <-- Agregado para depuración
 
                 setNumeros(data)
             }
