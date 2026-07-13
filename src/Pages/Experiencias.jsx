@@ -30,6 +30,7 @@ const Experiencias = () => {
         } catch (error) {
             console.error("Error al cargar experiencias", error);
         } finally {
+            filename="Experiencias.jsx"
             setLoading(false);
         }
     };
@@ -41,10 +42,20 @@ const Experiencias = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // CONSTRUIMOS EL PAYLOAD CON EL FORMATO CORRECTO PARA JAVA
+            const payload = {
+                titulo: formData.titulo,
+                descripcion: formData.descripcion,
+                fecha: new Date().toISOString(), // Inyectamos la fecha formateada de forma nativa
+                usuario: {
+                    usuario: formData.usuario // Metemos el string adentro del objeto esperado
+                }
+            };
+
             const response = await fetch(`${api}/experiencias/agregar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload), // <-- Mandamos el payload estructurado
                 credentials: 'include'
             });
 
@@ -65,6 +76,8 @@ const Experiencias = () => {
                     showConfirmButton: false
                 });
             } else {
+                const errorMsg = await response.text();
+                console.error("Detalle del error en el backend:", errorMsg);
                 Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar la experiencia.' });
             }
         } catch (error) {
@@ -104,8 +117,7 @@ const Experiencias = () => {
                                                 <h5 className="card-title text-primary fw-bold mb-1">{exp.titulo || 'Sin Título'}</h5>
                                                 <h6 className="card-subtitle mb-3 text-muted small">
                                                     <i className="bi bi-person-fill me-1"></i>
-                                                   
-                                                    Por: <span className="fw-semibold">{exp.usuario?.usuario || exp.usuario || 'Anónimo'}</span>
+                                                    Por: <span className="fw-semibold">{exp.usuario?.usuario || 'Anónimo'}</span>
                                                 </h6>
                                                 <p className="card-text text-secondary">{exp.descripcion}</p>
                                             </div>
