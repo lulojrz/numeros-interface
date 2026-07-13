@@ -65,20 +65,29 @@ export const AuthProvider = ({ children }) => {
                 setErrors({});
                 setIsAuth(true);
                 localStorage.setItem('isAuth', 'true');
-                localStorage.setItem('usuario', user);
 
                 try {
-                    const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
+                    const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { 
+                        credentials: 'include',
+                        cache: 'no-store'
+                    });
+                    
                     if (userRes.ok) {
                         const data = await userRes.json();
                         
-                        const currentUser = data.find(u => u.usuario === user);
+                        const currentUser = data.find(u => u.usuario.trim().toLowerCase() === user.trim().toLowerCase());
                        
                         if (currentUser) {
                             localStorage.setItem('privilegio', currentUser.privilegio);
+                            localStorage.setItem('usuario', currentUser.usuario);
+                        } else {
+                            localStorage.setItem('usuario', user);
                         }
+                    } else {
+                        localStorage.setItem('usuario', user);
                     }
                 } catch (fetchUserError) {
+                    localStorage.setItem('usuario', user);
                     console.error("Error de red al buscar el privilegio:", fetchUserError);
                 } finally {
                     // Navegamos al home una vez terminado el proceso
