@@ -33,32 +33,36 @@ const Header = () => {
             </button>
 
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center text-center text-lg-start mt-3 mt-lg-0">
                     {isAuthenticated ? (
                         <>
-                            <li className="nav-item me-3 d-flex align-items-center">
-                                {localStorage.getItem('usuario') && (
-                                    <span className="badge bg-info text-dark rounded-pill me-3 px-3 py-2">
+                            {localStorage.getItem('usuario') && (
+                                <li className="nav-item mb-3 mb-lg-0 me-lg-3">
+                                    <span className="badge bg-info text-dark rounded-pill px-3 py-2">
                                         <i className="bi bi-person-badge me-1"></i>
                                         {localStorage.getItem('usuario')} [{localStorage.getItem('privilegio') || '...'}]
                                     </span>
-                                )}
-                                <Link className="nav-link fw-semibold text-dark me-2" to={'/experiencias'}>
+                                </li>
+                            )}
+                            <li className="nav-item mb-2 mb-lg-0 me-lg-2">
+                                <Link className="nav-link fw-semibold text-dark" to={'/experiencias'}>
                                     Experiencias
                                 </Link>
+                            </li>
+                            <li className="nav-item mb-4 mb-lg-0 me-lg-3">
                                 <Link className="nav-link fw-semibold text-dark" to={'/admin'}>
                                     Administración
                                 </Link>
                             </li>
-                            <li className="nav-item">
+                            <li className="nav-item mb-2 mb-lg-0">
                                 <button className="btn btn-outline-danger px-4 fw-semibold" onClick={handleLogout}>
                                     Cerrar Sesión
                                 </button>
                             </li>
                         </>
                     ) : (
-                        <li className="nav-item">
-                            <Link className="nav-link active" aria-current="page" to={'/login'}>
+                        <li className="nav-item mb-2 mb-lg-0">
+                            <Link className="nav-link active d-inline-block p-0" aria-current="page" to={'/login'}>
                                 <button className="btn btn-outline-primary px-4 fw-semibold">Iniciar Sesión</button>
                             </Link>
                         </li>
