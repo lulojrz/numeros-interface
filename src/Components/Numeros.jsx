@@ -9,20 +9,14 @@ const Numeros = () => {
     const filtrador = numeros.filter((num) => {
       const isReservedForOther = num.reservado && num.reservadoA?.usuario !== loggedInUsername;
       return num.contesta === false && num.tocar !== false && !isReservedForOther;
-    });
+    }).sort((a, b) => new Date(a.ultimaFecha || 0) - new Date(b.ultimaFecha || 0));
     
     useEffect(()=>{
       if (filtrador.length > 0) {
-        const numerosito = Math.floor(Math.random() * filtrador.length)
-        setnumeroAzar(numerosito);
-        setNumero(filtrador[numerosito]?.number);
+        setnumeroAzar(0);
+        setNumero(filtrador[0]?.numero);
       }
      } ,[numeros])
-
-    
-   
-     
-   
 
   return (
     <>
