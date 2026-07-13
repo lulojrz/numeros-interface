@@ -88,11 +88,11 @@ const Experiencias = () => {
     return (
         <>
             <Header />
-            <main className="min-vh-100 bg-light py-5">
+            <main className="min-vh-100 bg-light py-4 py-md-5">
                 <div className="container">
-                    <div className="d-flex justify-content-between align-items-center mb-4">
-                        <h2 className="text-primary fw-bold">Experiencias</h2>
-                        <button className="btn btn-primary shadow-sm rounded-pill px-4 fw-semibold" onClick={() => setShowModal(true)}>
+                    <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+                        <h2 className="text-primary fw-bold mb-0">Experiencias</h2>
+                        <button className="btn btn-primary shadow-sm rounded-pill px-4 fw-semibold align-self-start align-self-sm-auto" onClick={() => setShowModal(true)}>
                             <i className="bi bi-plus-circle me-2"></i>Nueva Experiencia
                         </button>
                     </div>
@@ -111,7 +111,7 @@ const Experiencias = () => {
                                 </div>
                             ) : (
                                 experiencias.map((exp, index) => (
-                                    <div className="col-md-6 col-lg-4" key={exp.id || index}>
+                                    <div className="col-12 col-md-6 col-lg-4" key={exp.id || index}>
                                         <div className="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
                                             <div className="card-body p-4">
                                                 <h5 className="card-title text-primary fw-bold mb-1">{exp.titulo || 'Sin Título'}</h5>
@@ -133,7 +133,7 @@ const Experiencias = () => {
             {/* Modal para agregar */}
             {showModal && (
                 <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-                    <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-3 mx-sm-auto">
                         <div className="modal-content border-0 shadow-lg rounded-4">
                             <div className="modal-header border-bottom-0 pb-0">
                                 <h5 className="modal-title fw-bold text-primary px-2 pt-2">Nueva Experiencia</h5>
