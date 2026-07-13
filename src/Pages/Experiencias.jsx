@@ -6,13 +6,13 @@ const Experiencias = () => {
     const [experiencias, setExperiencias] = useState([]);
     const [loading, setLoading] = useState(true);
     const api = import.meta.env.VITE_API_URL;
-    
+
     // Modal states
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ 
-        titulo: '', 
-        descripcion: '', 
-        autor: localStorage.getItem('usuario') || '' 
+    const [formData, setFormData] = useState({
+        titulo: '',
+        descripcion: '',
+        usuario: localStorage.getItem('usuario') || ''
     });
 
     useEffect(() => {
@@ -52,10 +52,10 @@ const Experiencias = () => {
                 const nuevaExperiencia = await response.json();
                 setExperiencias([...experiencias, nuevaExperiencia]);
                 setShowModal(false);
-                setFormData({ 
-                    titulo: '', 
-                    descripcion: '', 
-                    autor: localStorage.getItem('usuario') || '' 
+                setFormData({
+                    titulo: '',
+                    descripcion: '',
+                    usuario: localStorage.getItem('usuario') || ''
                 });
                 Swal.fire({
                     icon: 'success',
@@ -104,7 +104,8 @@ const Experiencias = () => {
                                                 <h5 className="card-title text-primary fw-bold mb-1">{exp.titulo || 'Sin Título'}</h5>
                                                 <h6 className="card-subtitle mb-3 text-muted small">
                                                     <i className="bi bi-person-fill me-1"></i>
-                                                    Por: <span className="fw-semibold">{exp.autor || 'Anónimo'}</span>
+                                                   
+                                                    Por: <span className="fw-semibold">{exp.usuario?.usuario || exp.usuario || 'Anónimo'}</span>
                                                 </h6>
                                                 <p className="card-text text-secondary">{exp.descripcion}</p>
                                             </div>
@@ -130,25 +131,25 @@ const Experiencias = () => {
                                 <div className="modal-body p-4">
                                     <div className="mb-4">
                                         <label className="form-label fw-semibold text-secondary">Título</label>
-                                        <input 
-                                            type="text" 
-                                            className="form-control p-3 bg-light border-0 rounded-3" 
-                                            name="titulo" 
+                                        <input
+                                            type="text"
+                                            className="form-control p-3 bg-light border-0 rounded-3"
+                                            name="titulo"
                                             placeholder="Ingresa un título llamativo"
-                                            value={formData.titulo} 
-                                            onChange={handleChange} 
-                                            required 
+                                            value={formData.titulo}
+                                            onChange={handleChange}
+                                            required
                                         />
                                     </div>
                                     <div className="mb-2">
                                         <label className="form-label fw-semibold text-secondary">Descripción</label>
-                                        <textarea 
-                                            className="form-control p-3 bg-light border-0 rounded-3" 
-                                            name="descripcion" 
-                                            rows="5" 
+                                        <textarea
+                                            className="form-control p-3 bg-light border-0 rounded-3"
+                                            name="descripcion"
+                                            rows="5"
                                             placeholder="Cuéntanos tu experiencia..."
-                                            value={formData.descripcion} 
-                                            onChange={handleChange} 
+                                            value={formData.descripcion}
+                                            onChange={handleChange}
                                             required
                                         ></textarea>
                                     </div>
