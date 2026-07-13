@@ -26,9 +26,12 @@ export const AuthProvider = ({ children }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const cleanUser = user.trim().toLowerCase();
+        const cleanPassword = password.trim();
+
         let validationErrors = {};
-        if (!user) validationErrors.user = 'Usuario es requerido';
-        if (!password) validationErrors.password = 'Contraseña es requerida';
+        if (!cleanUser) validationErrors.user = 'Usuario es requerido';
+        if (!cleanPassword) validationErrors.password = 'Contraseña es requerida';
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -45,7 +48,7 @@ export const AuthProvider = ({ children }) => {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ usuario: user, contrasena: password })
+                body: JSON.stringify({ usuario: cleanUser, contrasena: cleanPassword })
             });
 
             if (!res.ok) {
