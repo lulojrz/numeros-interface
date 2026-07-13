@@ -30,7 +30,7 @@ const Experiencias = () => {
         } catch (error) {
             console.error("Error al cargar experiencias", error);
         } finally {
-            filename="Experiencias.jsx"
+         
             setLoading(false);
         }
     };
