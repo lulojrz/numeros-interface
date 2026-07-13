@@ -4,11 +4,19 @@ import { NumerosContext } from '../context/NumerosContext'
 
 const PantallaNumero = ({ objeto }) => {
     const { numero, actualizarNumero, eliminarNumero } = useContext(NumerosContext)
+    
+    const getLocalIsoDate = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}T00:00:00`;
+    };
     const handleContestaClick =  () => {
         const usuarioActual = localStorage.getItem('usuario');
         let objetoActualizado ={
             ...objeto,
-            ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`, 
+            ultimaFecha: getLocalIsoDate(), 
             contesta : true,
             ultUsuario: usuarioActual ? { usuario: usuarioActual } : null
         }
@@ -18,7 +26,7 @@ const PantallaNumero = ({ objeto }) => {
         const usuarioActual = localStorage.getItem('usuario');
         let objetoActualizado ={
             ...objeto,
-            ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`,
+            ultimaFecha: getLocalIsoDate(),
             contesta : false,
             ultUsuario: usuarioActual ? { usuario: usuarioActual } : null
         }
@@ -29,7 +37,7 @@ const PantallaNumero = ({ objeto }) => {
         const usuarioActual = localStorage.getItem('usuario');
         let objetoActualizado ={
             ...objeto,
-            ultimaFecha: `${new Date().toISOString().split('T')[0]}T00:00:00`,
+            ultimaFecha: getLocalIsoDate(),
             tocar: false,
             ultUsuario: usuarioActual ? { usuario: usuarioActual } : null
         }

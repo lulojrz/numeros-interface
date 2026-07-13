@@ -27,7 +27,8 @@ const MisReservas = ({ hideEmpty = false }) => {
     };
 
     const handleResultado = (reserva, tipo) => {
-        const fechaStr = `${new Date().toISOString().split('T')[0]}T00:00:00`;
+        const hoy = new Date();
+        const fechaStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}T00:00:00`;
         const ultUsuario = loggedInUsername ? { usuario: loggedInUsername } : null;
 
         let obj = {
