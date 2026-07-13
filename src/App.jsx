@@ -1,39 +1,54 @@
-import { useState } from 'react'
-import Home from './Pages/Home'
+import { useState, useContext, lazy, Suspense } from 'react' // 1. Importamos lazy y Suspense
 import { Routes, Route } from 'react-router-dom'
 import './App.css'
-import Login from './Pages/Login'
-import Admin from './Pages/Admin'
-import AdminUsuarios from './Pages/AdminUsuarios'
-import CambiarContrasena from './Pages/CambiarContrasena'
-import Experiencias from './Pages/Experiencias'
-import { useContext } from 'react'
+
 import { NumerosContext } from './context/NumerosContext'
 import RutasProtegidas from './rutas/RutasProtegidas'
 
+// 2. Componentes estáticos (Los que se necesitan SI O SI al cargar la app de entrada)
+import Home from './Pages/Home'
+import Login from './Pages/Login'
 
+// 3. Componentes perezosos (Se descargarán por separado en "chunks" solo cuando el usuario navegue a ellos)
+const Admin = lazy(() => import('./Pages/Admin'))
+const AdminUsuarios = lazy(() => import('./Pages/AdminUsuarios'))
+const CambiarContrasena = lazy(() => import('./Pages/CambiarContrasena'))
+const Experiencias = lazy(() => import('./Pages/Experiencias'))
 
 function App() {
-  
-  const {numero,numeros,error,loading,setNumero, isAuthenticated,setIsAuth} = useContext(NumerosContext)
+  const { numero, numeros, error, loading, setNumero, isAuthenticated } = useContext(NumerosContext)
+
   return (
     <>
-     <Routes>
-      <Route path="/" element={<Home numero={numero} numeros = {numeros} error = {error} loading ={loading} setNumero = {setNumero} />} />
-      <Route path='/login' element={<Login/>}></Route>
-      <Route path='/admin' element={
-        <RutasProtegidas isAuthenticated={isAuthenticated}><Admin/></RutasProtegidas>
-      }/>
-      <Route path='/admin/usuarios' element={
-        <RutasProtegidas isAuthenticated={isAuthenticated} rolesPermitidos={['ROLE_ANC']}><AdminUsuarios/></RutasProtegidas>
-      }/>
-      <Route path='/admin/perfil' element={
-        <RutasProtegidas isAuthenticated={isAuthenticated}><CambiarContrasena/></RutasProtegidas>
-      }/>
-      <Route path='/experiencias' element={
-        <RutasProtegidas isAuthenticated={isAuthenticated}><Experiencias/></RutasProtegidas>
-      }/>
-     </Routes>
+      {/* 4. Envolvemos las rutas en Suspense e inyectamos un spinner de Bootstrap como fallback temporal */}
+      <Suspense fallback={
+        <div className="d-flex min-vh-100 justify-content-center align-items-center bg-light">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando sección...</span>
+          </div>
+        </div>
+      }>
+        <Routes>
+          <Route path="/" element={<Home numero={numero} numeros={numeros} error={error} loading={loading} setNumero={setNumero} />} />
+          <Route path='/login' element={<Login />} />
+          
+          <Route path='/admin' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><Admin /></RutasProtegidas>
+          } />
+          
+          <Route path='/admin/usuarios' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated} rolesPermitidos={['ROLE_ANC']}><AdminUsuarios /></RutasProtegidas>
+          } />
+          
+          <Route path='/admin/perfil' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><CambiarContrasena /></RutasProtegidas>
+          } />
+          
+          <Route path='/experiencias' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><Experiencias /></RutasProtegidas>
+          } />
+        </Routes>
+      </Suspense>
     </>
   )
 }
