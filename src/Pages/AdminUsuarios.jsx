@@ -418,10 +418,10 @@ const AdminUsuarios = () => {
                                         required
                                         disabled={!isANC}
                                     >
-                                        <option value="PUB">PUB</option>
-                                        <option value="SM">SM</option>
-                                        <option value="ANC">ANC</option>
-                                        <option value="PR">PR</option>
+                                        <option value="ROLE_PUB">PUB</option>
+                                        <option value="ROLE_SM">SM</option>
+                                        <option value="ROLE_ANC">ANC</option>
+                                        <option value="ROLE_PR">PR</option>
                                     </select>
                                 </div>
                                 <div className="d-flex gap-2">
