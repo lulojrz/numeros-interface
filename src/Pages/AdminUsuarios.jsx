@@ -19,7 +19,7 @@ const AdminUsuarios = () => {
         apellido: '',
         usuario: '',
         contrasena: 'prueba123',
-        privilegio: 'usuario'
+        privilegio: 'ROLE_PUB'
     });
 
     const api = import.meta.env.VITE_API_URL;
@@ -60,7 +60,7 @@ const AdminUsuarios = () => {
                         apellido: loggedUser.apellido || '', 
                         usuario: loggedUser.usuario || '', 
                         contrasena: '',
-                        privilegio: loggedUser.privilegio || 'usuario'
+                        privilegio: loggedUser.privilegio || 'ROLE_PUB'
                     });
                 }
             }
@@ -96,7 +96,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario agregado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' });
+                setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
                 setClickAgregar(false);
                 cargarUsuarios();
             } else {
@@ -137,7 +137,7 @@ const AdminUsuarios = () => {
                 
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
                 if (isANC) {
-                    setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' });
+                    setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
                     setUsuarioEditando(null);
                 }
                 cargarUsuarios();
@@ -209,14 +209,14 @@ const AdminUsuarios = () => {
             apellido: user.apellido || '', 
             usuario: user.usuario || '', 
             contrasena: '',
-            privilegio: user.privilegio || 'usuario'
+            privilegio: user.privilegio || 'ROLE_PUB'
         });
         setClickAgregar(false);
     };
 
     const cancelarEdicion = () => {
         setUsuarioEditando(null);
-        setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' });
+        setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
     };
 
     const usuariosFiltrados = usuarios.filter(u => {
@@ -243,13 +243,13 @@ const AdminUsuarios = () => {
                     <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
                         <button
                             className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' }); }}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
                         >
                             Lista de Usuarios
                         </button>
                         <button
                             className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
-                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'usuario' }); }}
+                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
                         >
                             Agregar Nuevo
                         </button>
