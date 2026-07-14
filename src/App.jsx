@@ -14,6 +14,7 @@ const Admin = lazy(() => import('./Pages/Admin'))
 const AdminUsuarios = lazy(() => import('./Pages/AdminUsuarios'))
 const CambiarContrasena = lazy(() => import('./Pages/CambiarContrasena'))
 const Experiencias = lazy(() => import('./Pages/Experiencias'))
+const PredicacionPublica = lazy(() => import('./Pages/PredicacionPublica'))
 
 function App() {
   const { numero, numeros, error, loading, setNumero, isAuthenticated } = useContext(NumerosContext)
@@ -46,6 +47,10 @@ function App() {
           
           <Route path='/experiencias' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><Experiencias /></RutasProtegidas>
+          } />
+
+          <Route path='/predicacion' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionPublica /></RutasProtegidas>
           } />
         </Routes>
       </Suspense>

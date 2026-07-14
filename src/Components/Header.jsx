@@ -49,6 +49,11 @@ const Header = () => {
                                     Experiencias
                                 </Link>
                             </li>
+                            <li className="nav-item mb-2 mb-lg-0 me-lg-2">
+                                <Link className="nav-link fw-semibold text-dark" to={'/predicacion'}>
+                                    Predicación
+                                </Link>
+                            </li>
                             <li className="nav-item mb-4 mb-lg-0 me-lg-3">
                                 <Link className="nav-link fw-semibold text-dark" to={'/admin'}>
                                     Administración
