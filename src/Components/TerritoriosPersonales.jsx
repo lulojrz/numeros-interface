@@ -66,22 +66,61 @@ const TerritoriosPersonales = () => {
                         </form>
                     </div>
 
-                    <div className="mt-4 mx-auto text-center" style={{ maxWidth: '800px' }}>
+                    <div className="mt-4 mx-auto text-center">
                         <button 
                             className="btn btn-outline-primary mb-3 fw-semibold"
-                            onClick={() => setMostrarMapa(!mostrarMapa)}
+                            onClick={() => setMostrarMapa(true)}
                         >
-                            <i className={`bi ${mostrarMapa ? 'bi-eye-slash' : 'bi-map'} me-2`}></i>
-                            {mostrarMapa ? 'Ocultar mapa de zonas' : 'Ver mapa de zonas'}
+                            <i className="bi bi-map me-2"></i>
+                            Ver mapa de zonas
                         </button>
                         
                         {mostrarMapa && (
-                            <div className="ratio ratio-16x9 shadow-sm border rounded overflow-hidden mb-4">
-                                <iframe 
-                                    src="https://www.google.com/maps/d/embed?mid=1Q2YLge2FsHV1aUYzNV4fzLL8MHNwV2Y&ehbc=2E312F" 
-                                    title="Mapa de territorios"
-                                    allowFullScreen
-                                ></iframe>
+                            <div style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                backgroundColor: 'rgba(0,0,0,0.6)',
+                                zIndex: 9999,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                padding: '1rem'
+                            }}>
+                                <div className="shadow-lg" style={{ 
+                                    width: '100%', 
+                                    maxWidth: '1200px', 
+                                    height: '90vh', 
+                                    backgroundColor: 'white', 
+                                    borderRadius: '1rem', 
+                                    overflow: 'hidden', 
+                                    display: 'flex', 
+                                    flexDirection: 'column' 
+                                }}>
+                                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                        <h5 className="m-0 fw-bold text-primary">
+                                            <i className="bi bi-geo-alt-fill me-2"></i>
+                                            Mapa de Territorios
+                                        </h5>
+                                        <button 
+                                            type="button" 
+                                            className="btn-close" 
+                                            onClick={() => setMostrarMapa(false)} 
+                                            aria-label="Cerrar"
+                                        ></button>
+                                    </div>
+                                    <div className="flex-grow-1 position-relative">
+                                        <iframe 
+                                            src="https://www.google.com/maps/d/embed?mid=1Q2YLge2FsHV1aUYzNV4fzLL8MHNwV2Y&ehbc=2E312F" 
+                                            title="Mapa de territorios"
+                                            style={{ border: 0, width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+                                            allowFullScreen
+                                        ></iframe>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
