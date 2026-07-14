@@ -10,7 +10,7 @@ const GestionPuntos = () => {
     const fetchPuntos = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${api}/api/puntos`, {
+            const response = await fetch(`${api}/api/turnos/puntos`, {
                 credentials: 'include'
             });
             if (response.ok) {
