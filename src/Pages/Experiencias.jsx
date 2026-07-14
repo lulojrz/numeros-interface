@@ -97,7 +97,7 @@ const Experiencias = () => {
                         </button>
                     </div>
 
-                    {loading ? (
+                  {loading ? (
                         // Reemplazo del spinner por Skeletons con la misma grilla de Bootstrap
                         <div className="row g-4">
                             {[1, 2, 3].map((n) => (
@@ -122,9 +122,28 @@ const Experiencias = () => {
                             ))}
                         </div>
                     ) : (
-                        // Aquí sigue tu render normal de experiencias.map(...)
+                        // Renderizado de las experiencias reales una vez cargadas
                         <div className="row g-4">
-                            {/* ... */}
+                            {experiencias.length === 0 ? (
+                                <div className="col-12 text-center text-muted mt-5">
+                                    <p className="fs-5">No hay experiencias compartidas aún. ¡Sé el primero en agregar una!</p>
+                                </div>
+                            ) : (
+                                experiencias.map((exp, index) => (
+                                    <div className="col-md-6 col-lg-4" key={exp.id || index}>
+                                        <div className="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                                            <div className="card-body p-4">
+                                                <h5 className="card-title text-primary fw-bold mb-1">{exp.titulo || 'Sin Título'}</h5>
+                                                <h6 className="card-subtitle mb-3 text-muted small">
+                                                    <i className="bi bi-person-fill me-1"></i>
+                                                    Por: <span className="fw-semibold">{exp.usuario?.usuario || 'Anónimo'}</span>
+                                                </h6>
+                                                <p className="card-text text-secondary">{exp.descripcion}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     )}
                 </div>
