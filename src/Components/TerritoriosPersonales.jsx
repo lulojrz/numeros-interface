@@ -12,7 +12,7 @@ const TerritoriosPersonales = () => {
         e.preventDefault();
         const especificacion = e.target.querySelector('input[type="text"]').value;
         const mensaje = encodeURIComponent(`Hola! Me gustaria pedir un territorio personal en la zona de ${especificacion}`);
-        const url = `https://api.whatsapp.com/send?phone=5491139562904&text=${mensaje}`;
+        const url = `https://api.whatsapp.com/send?phone=5491151030168&text=${mensaje}`;
         window.open(url, '_blank');
     }
 
