@@ -5,7 +5,8 @@ import ListaNumeros from '../Components/ListaNumeros.jsx'
 import MisLlamados from '../Components/MisLlamados.jsx'
 import MisReservas from '../Components/MisReservas.jsx'
 import PorEliminar from '../Components/PorEliminar.jsx'
-import { Link } from 'react-router'
+import GestionPuntos from '../Components/GestionPuntos.jsx'
+import { Link } from 'react-router-dom'
 
 const Admin = () => {
   const {numeros}= useContext(NumerosContext)
@@ -17,6 +18,7 @@ const Admin = () => {
   const [clickPorEliminar,setClickPorEliminar]= useState(false)
   const [isANC, setIsANC] = useState(false)
   const [isPrivileged, setIsPrivileged] = useState(false)
+  const [tabActiva, setTabActiva] = useState('telefonica')
 
   useEffect(() => {
     const fetchPrivilegio = async () => {
@@ -51,17 +53,46 @@ const Admin = () => {
        
         <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
             <h1 className="h2 mb-2 mb-md-0">Panel de Administracion</h1> 
-            <div className="d-flex gap-2 align-items-center">
+            <div className="d-flex gap-2 align-items-center flex-wrap">
+                {isANC && (
+                    <Link to="/admin/usuarios" className="btn btn-info fw-semibold text-dark shadow-sm">
+                        <i className="bi bi-people-fill me-2"></i>Gestión de Usuarios
+                    </Link>
+                )}
                 <Link to="/admin/perfil" className="btn btn-outline-secondary">
                     Mi Perfil
                 </Link>
-                <button className='btn btn-danger' >
-                    <Link to={"/"} className="text-white text-decoration-none">Cancelar</Link>
-                </button>
+                <Link to="/" className="btn btn-danger">
+                    Cancelar
+                </Link>
             </div>
         </div>
 
-        <h3 className="h5">Elija una opcion</h3>
+        {/* Pestañas Principales */}
+        <ul className="nav nav-tabs mb-4">
+            <li className="nav-item">
+                <button 
+                    className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active' : 'text-secondary'}`} 
+                    onClick={() => setTabActiva('telefonica')}
+                    style={tabActiva === 'telefonica' ? { color: '#0d6efd' } : {}}
+                >
+                    <i className="bi bi-telephone-fill me-2"></i>Predicación Telefónica
+                </button>
+            </li>
+            <li className="nav-item">
+                <button 
+                    className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active' : 'text-secondary'}`} 
+                    onClick={() => setTabActiva('publica')}
+                    style={tabActiva === 'publica' ? { color: '#198754' } : {}}
+                >
+                    <i className="bi bi-geo-alt-fill me-2"></i>Predicación Pública
+                </button>
+            </li>
+        </ul>
+
+        {tabActiva === 'telefonica' && (
+            <>
+                <h3 className="h5">Elija una opcion (Telefónica)</h3>
 
        
         <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
@@ -101,11 +132,6 @@ const Admin = () => {
                 Por Eliminar
             </button>
             )}
-            {isANC && (
-                <Link to="/admin/usuarios" className="btn btn-outline-info flex-fill fw-semibold">
-                    Gestión de Usuarios
-                </Link>
-            )}
         </div>
         {clickeditar && isPrivileged && (
             <div className="mb-4">
@@ -131,6 +157,12 @@ const Admin = () => {
             <FormularioAgregar />
         ) : (
             <MisLlamados />
+        )}
+            </>
+        )}
+
+        {tabActiva === 'publica' && (
+            <GestionPuntos />
         )}
 
     </div> 
