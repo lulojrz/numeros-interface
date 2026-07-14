@@ -43,7 +43,7 @@ const GestionPuntos = () => {
         }
 
         try {
-            const response = await fetch(`${api}/api/puntos`, {
+            const response = await fetch(`${api}/api/turnos/puntos`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
