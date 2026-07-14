@@ -1,10 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import MisReservas from './MisReservas';
 import { NumerosContext } from '../context/NumerosContext';
 
 const TerritoriosPersonales = () => {
     const { numeros } = useContext(NumerosContext);
     const loggedInUsername = localStorage.getItem('usuario');
+    const [mostrarMapa, setMostrarMapa] = useState(false);
 
     const tieneReservas = numeros.some(n => n.reservado === true && n.reservadoA?.usuario === loggedInUsername);
 
@@ -63,6 +64,26 @@ const TerritoriosPersonales = () => {
                                 Serás redirigido a WhatsApp para enviar tu solicitud al administrador.
                             </div>
                         </form>
+                    </div>
+
+                    <div className="mt-4 mx-auto text-center" style={{ maxWidth: '800px' }}>
+                        <button 
+                            className="btn btn-outline-primary mb-3 fw-semibold"
+                            onClick={() => setMostrarMapa(!mostrarMapa)}
+                        >
+                            <i className={`bi ${mostrarMapa ? 'bi-eye-slash' : 'bi-map'} me-2`}></i>
+                            {mostrarMapa ? 'Ocultar mapa de zonas' : 'Ver mapa de zonas'}
+                        </button>
+                        
+                        {mostrarMapa && (
+                            <div className="ratio ratio-16x9 shadow-sm border rounded overflow-hidden mb-4">
+                                <iframe 
+                                    src="https://www.google.com/maps/d/embed?mid=1Q2YLge2FsHV1aUYzNV4fzLL8MHNwV2Y&ehbc=2E312F" 
+                                    title="Mapa de territorios"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        )}
                     </div>
                 </>
             )}
