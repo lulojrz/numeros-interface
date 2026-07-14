@@ -69,6 +69,42 @@ const GestionPuntos = () => {
         }
     };
 
+    const toggleActivo = async (punto) => {
+        try {
+            const response = await fetch(`${api}/api/puntos/${punto.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    ...punto,
+                    activo: !punto.activo
+                })
+            });
+
+            if (response.ok) {
+                // Actualizamos localmente el estado para no tener que recargar todo
+                setPuntos(puntos.map(p => 
+                    p.id === punto.id ? { ...p, activo: !p.activo } : p
+                ));
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `Punto ${!punto.activo ? 'activado' : 'desactivado'} con éxito`,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            } else {
+                Swal.fire('Error', 'No se pudo actualizar el estado del punto.', 'error');
+            }
+        } catch (error) {
+            console.error("Error al actualizar punto", error);
+            Swal.fire('Error', 'Problema de red al actualizar el punto.', 'error');
+        }
+    };
+
     return (
         <div className="container-fluid p-0 mt-4">
             <div className="row g-4">
@@ -133,6 +169,7 @@ const GestionPuntos = () => {
                                                 <th scope="col">Nombre</th>
                                                 <th scope="col">Dirección</th>
                                                 <th scope="col" className="text-center">Estado</th>
+                                                <th scope="col" className="text-center">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -146,6 +183,14 @@ const GestionPuntos = () => {
                                                         ) : (
                                                             <span className="badge bg-danger rounded-pill px-3">Inactivo</span>
                                                         )}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <button 
+                                                            className={`btn btn-sm ${punto.activo ? 'btn-outline-danger' : 'btn-outline-success'} fw-semibold`}
+                                                            onClick={() => toggleActivo(punto)}
+                                                        >
+                                                            {punto.activo ? 'Desactivar' : 'Activar'}
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
