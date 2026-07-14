@@ -1,7 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-
 import { NumerosContext } from '../context/NumerosContext';
-
 import FormularioEditar from './FormularioEditar';
 
 const ListaNumeros = () => {
@@ -20,8 +18,10 @@ const ListaNumeros = () => {
         filtroReservado,
         setFiltroReservado,
         actualizarReserva,
-        sacarReservados
+        sacarReservados,
+        loading // <-- Extraemos 'loading' que viene del contexto de números
     } = useContext(NumerosContext);
+    
     const [mostrarModal, setMostrarModal] = useState(false);
     const [usuariosLista, setUsuariosLista] = useState([]);
     const [usuarioElegido, setUsuarioElegido] = useState("");
@@ -36,9 +36,7 @@ const ListaNumeros = () => {
                     const data = await response.json();
                     setUsuariosLista(data);
                 }
-            } catch (error) {
-
-            }
+            } catch (error) {}
         };
         fetchUsuarios();
     }, []);
@@ -55,7 +53,6 @@ const ListaNumeros = () => {
     };
 
     const numeroSeleccionado = numeros.find((num) => num.id === seleccionado);
-
 
     const territoriosUnicos = [...new Set(numeros.map(n => n.territorio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
     const edificiosUnicos = [...new Set(numeros.map(n => n.edificio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
@@ -159,7 +156,22 @@ const ListaNumeros = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {productosFiltrados && productosFiltrados.length > 0 ? (
+                                {loading ? (
+                                    // 1. Muestra filas fantasma simulando las 9 columnas en desktop
+                                    [1, 2, 3, 4, 5].map((n) => (
+                                        <tr key={n}>
+                                            <td><div className="skeleton skeleton-text w-75 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-100 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-50 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-50 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-50 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-75 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-60 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-50 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-60 my-1"></div></td>
+                                        </tr>
+                                    ))
+                                ) : productosFiltrados && productosFiltrados.length > 0 ? (
                                     productosFiltrados.map((num) => (
                                         <tr key={num.id}>
                                             <td className="fw-bold text-nowrap">{num.numero}</td>
@@ -172,7 +184,7 @@ const ListaNumeros = () => {
                                                     <span className="badge bg-secondary">No</span>
                                                 }
                                             </td>
-                                            <td className="text-muted">{num.ultimaFecha.slice(0, 10)}</td>
+                                            <td className="text-muted">{num.ultimaFecha ? num.ultimaFecha.slice(0, 10) : '-'}</td>
                                             <td className="text-muted fw-semibold">
                                                 {num.ultUsuario ? (num.ultUsuario.usuario || 'Sí') : '-'}
                                             </td>
@@ -184,7 +196,7 @@ const ListaNumeros = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="8" className="text-center py-4 text-muted">
+                                        <td colSpan="9" className="text-center py-4 text-muted">
                                             No se encontraron números disponibles.
                                         </td>
                                     </tr>
@@ -195,7 +207,22 @@ const ListaNumeros = () => {
 
                     {/* Vista Mobile */}
                     <div className="d-md-none">
-                        {productosFiltrados && productosFiltrados.length > 0 ? (
+                        {loading ? (
+                            // 2. Muestra 3 tarjetas fantasma con el alto correspondiente en mobile
+                            [1, 2, 3].map((n) => (
+                                <div key={n} className="card shadow-sm mb-3 border-0 rounded-3" style={{ minHeight: '160px' }}>
+                                    <div className="card-body">
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <div className="skeleton skeleton-title w-50 mb-0"></div>
+                                            <div className="skeleton skeleton-text w-25 mb-0"></div>
+                                        </div>
+                                        <div className="skeleton skeleton-text w-100 mb-2"></div>
+                                        <div className="skeleton skeleton-text w-75 mb-2"></div>
+                                        <div className="skeleton skeleton-text w-50 mb-0"></div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : productosFiltrados && productosFiltrados.length > 0 ? (
                             productosFiltrados.map((num) => (
                                 <div key={num.id} className="card shadow-sm mb-3 border-0 rounded-3">
                                     <div className="card-body">
@@ -211,7 +238,7 @@ const ListaNumeros = () => {
                                             <span><strong>Contesta:</strong> {num.contesta ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}</span>
                                         </div>
                                         <div className="d-flex justify-content-between mb-2 text-muted small">
-                                            <span><strong>Últ. Fecha:</strong> {num.ultimaFecha.slice(0, 10)}</span>
+                                            <span><strong>Últ. Fecha:</strong> {num.ultimaFecha ? num.ultimaFecha.slice(0, 10) : '-'}</span>
                                             <span><strong>Res:</strong> {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}</span>
                                         </div>
                                         <p className="card-text mb-0 text-muted small">
@@ -234,6 +261,8 @@ const ListaNumeros = () => {
                     />
                 )}
             </div>
+            
+            {/* Modal para agregar */}
             {mostrarModal && (
                 <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                     <div className="modal-dialog modal-dialog-centered">
@@ -243,7 +272,7 @@ const ListaNumeros = () => {
                                 <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
                             </div>
                             <div className="modal-body">
-                                <p>Seleccione el usuario para reservar los números filtrados ({productosFiltrados.length}):</p>
+                                <p>Seleccione el usuario para reservar los números filtrados ({productosFiltrados ? productosFiltrados.length : 0}):</p>
                                 <select className="form-select" value={usuarioElegido} onChange={(e) => setUsuarioElegido(e.target.value)}>
                                     <option value="">-- Seleccionar Usuario --</option>
                                     {usuariosLista.map((u) => (

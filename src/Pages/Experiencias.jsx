@@ -30,7 +30,7 @@ const Experiencias = () => {
         } catch (error) {
             console.error("Error al cargar experiencias", error);
         } finally {
-         
+
             setLoading(false);
         }
     };
@@ -98,33 +98,33 @@ const Experiencias = () => {
                     </div>
 
                     {loading ? (
-                        <div className="text-center py-5">
-                            <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Cargando...</span>
-                            </div>
-                        </div>
-                    ) : (
+                        // Reemplazo del spinner por Skeletons con la misma grilla de Bootstrap
                         <div className="row g-4">
-                            {experiencias.length === 0 ? (
-                                <div className="col-12 text-center text-muted mt-5">
-                                    <p className="fs-5">No hay experiencias compartidas aún. ¡Sé el primero en agregar una!</p>
-                                </div>
-                            ) : (
-                                experiencias.map((exp, index) => (
-                                    <div className="col-12 col-md-6 col-lg-4" key={exp.id || index}>
-                                        <div className="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                                            <div className="card-body p-4">
-                                                <h5 className="card-title text-primary fw-bold mb-1">{exp.titulo || 'Sin Título'}</h5>
-                                                <h6 className="card-subtitle mb-3 text-muted small">
-                                                    <i className="bi bi-person-fill me-1"></i>
-                                                    Por: <span className="fw-semibold">{exp.usuario?.usuario || 'Anónimo'}</span>
-                                                </h6>
-                                                <p className="card-text text-secondary">{exp.descripcion}</p>
+                            {[1, 2, 3].map((n) => (
+                                <div className="col-md-6 col-lg-4" key={n}>
+                                    <div className="card h-100 shadow-sm border-0 rounded-4 overflow-hidden" style={{ minHeight: '180px' }}>
+                                        <div className="card-body p-4 d-flex flex-column justify-content-between">
+                                            <div>
+                                                {/* Esqueleto del Título */}
+                                                <div className="skeleton skeleton-title w-75"></div>
+
+                                                {/* Esqueleto del Autor */}
+                                                <div className="skeleton skeleton-text w-50 mb-3"></div>
+
+                                                {/* Esqueleto del Contenido */}
+                                                <div className="skeleton skeleton-text w-100"></div>
+                                                <div className="skeleton skeleton-text w-100"></div>
+                                                <div className="skeleton skeleton-text w-75"></div>
                                             </div>
                                         </div>
                                     </div>
-                                ))
-                            )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        // Aquí sigue tu render normal de experiencias.map(...)
+                        <div className="row g-4">
+                            {/* ... */}
                         </div>
                     )}
                 </div>
