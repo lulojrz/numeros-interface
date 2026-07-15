@@ -71,7 +71,7 @@ const GestionPuntos = () => {
 
     const toggleActivo = async (punto) => {
         try {
-            const response = await fetch(`${api}/api/puntos/${punto.id}`, {
+            const response = await fetch(`${api}/api/turnos/puntos/${punto.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
