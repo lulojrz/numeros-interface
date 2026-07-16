@@ -6,6 +6,7 @@ const GestionPlantillas = () => {
     const [puntos, setPuntos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [nuevaPlantilla, setNuevaPlantilla] = useState({
+
         diaSemana: 'LUNES',
         horaInicio: '',
         horaFin: '',
@@ -58,7 +59,11 @@ const GestionPlantillas = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setNuevaPlantilla(prev => ({ ...prev, [name]: value }));
+        if (name === 'puntoId') {
+            setNuevaPlantilla(prev => ({ ...prev, punto: { id: value } }));
+        } else {
+            setNuevaPlantilla(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -82,7 +87,7 @@ const GestionPlantillas = () => {
                     horaInicio: nuevaPlantilla.horaInicio,
                     horaFin: nuevaPlantilla.horaFin,
                     punto: {
-                        id: parseInt(nuevaPlantilla.puntoId)
+                        id: parseInt(nuevaPlantilla.punto.id, 10)
                     }
                 })
             });
