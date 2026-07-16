@@ -6,6 +6,7 @@ import MisLlamados from '../Components/MisLlamados.jsx'
 import MisReservas from '../Components/MisReservas.jsx'
 import PorEliminar from '../Components/PorEliminar.jsx'
 import GestionPuntos from '../Components/GestionPuntos.jsx'
+import GestionPlantillas from '../Components/GestionPlantillas.jsx'
 import { Link } from 'react-router-dom'
 
 const Admin = () => {
@@ -19,6 +20,7 @@ const Admin = () => {
   const [isANC, setIsANC] = useState(false)
   const [isPrivileged, setIsPrivileged] = useState(false)
   const [tabActiva, setTabActiva] = useState('telefonica')
+  const [subTabPublica, setSubTabPublica] = useState('puntos')
 
   useEffect(() => {
     const fetchPrivilegio = async () => {
@@ -162,7 +164,29 @@ const Admin = () => {
         )}
 
         {tabActiva === 'publica' && (
-            <GestionPuntos />
+            <>
+                <h3 className="h5">Elija una opcion (Pública)</h3>
+                <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
+                    <button 
+                        className={`btn flex-fill fw-semibold ${subTabPublica === 'puntos' ? 'btn-success' : 'btn-outline-success'}`}
+                        onClick={() => setSubTabPublica('puntos')}
+                    >
+                        Gestión de Puntos
+                    </button>
+                    <button 
+                        className={`btn flex-fill fw-semibold ${subTabPublica === 'plantillas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => setSubTabPublica('plantillas')}
+                    >
+                        Plantillas de Turnos
+                    </button>
+                </div>
+                
+                {subTabPublica === 'puntos' ? (
+                    <GestionPuntos />
+                ) : (
+                    <GestionPlantillas />
+                )}
+            </>
         )}
 
     </div> 
