@@ -6,17 +6,22 @@ const GestionPlantillas = () => {
     const [puntos, setPuntos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [nuevaPlantilla, setNuevaPlantilla] = useState({
-
-        diaSemana: 'LUNES',
+        diaSemana: 'MONDAY',
         horaInicio: '',
         horaFin: '',
-        punto:{ id: '' }
+        punto: { id: '' }
     });
     
     const api = import.meta.env.VITE_API_URL;
 
     const diasSemana = [
-        'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'
+        { value: 'MONDAY', label: 'Lunes' },
+        { value: 'TUESDAY', label: 'Martes' },
+        { value: 'WEDNESDAY', label: 'Miércoles' },
+        { value: 'THURSDAY', label: 'Jueves' },
+        { value: 'FRIDAY', label: 'Viernes' },
+        { value: 'SATURDAY', label: 'Sábado' },
+        { value: 'SUNDAY', label: 'Domingo' }
     ];
 
     const fetchPuntos = async () => {
@@ -75,6 +80,10 @@ const GestionPlantillas = () => {
         }
         console.log("Submitting new plantilla:", nuevaPlantilla);
 
+        const formatTime = (timeStr) => {
+            return timeStr && timeStr.split(':').length === 2 ? `${timeStr}:00` : timeStr;
+        };
+
         try {
             const response = await fetch(`${api}/api/turnos/crear`, {
                 method: 'POST',
@@ -84,8 +93,8 @@ const GestionPlantillas = () => {
                 credentials: 'include',
                 body: JSON.stringify({
                     diaSemana: nuevaPlantilla.diaSemana,
-                    horaInicio: nuevaPlantilla.horaInicio,
-                    horaFin: nuevaPlantilla.horaFin,
+                    horaInicio: formatTime(nuevaPlantilla.horaInicio),
+                    horaFin: formatTime(nuevaPlantilla.horaFin),
                     punto: {
                         id: parseInt(nuevaPlantilla.punto.id, 10)
                     }
@@ -95,7 +104,7 @@ const GestionPlantillas = () => {
             if (response.ok) {
                 Swal.fire('¡Éxito!', 'La plantilla se ha agregado correctamente.', 'success');
                 setNuevaPlantilla({ 
-                    diaSemana: 'LUNES', 
+                    diaSemana: 'MONDAY', 
                     horaInicio: '', 
                     horaFin: '', 
                     punto: { id: '' } 
@@ -142,6 +151,11 @@ const GestionPlantillas = () => {
         }
     };
 
+    const getDiaLabel = (diaValue) => {
+        const dia = diasSemana.find(d => d.value === diaValue);
+        return dia ? dia.label : diaValue;
+    };
+
     return (
         <div className="container-fluid p-0 mt-4">
             <div className="row g-4">
@@ -176,7 +190,7 @@ const GestionPlantillas = () => {
                                         required
                                     >
                                         {diasSemana.map(dia => (
-                                            <option key={dia} value={dia}>{dia}</option>
+                                            <option key={dia.value} value={dia.value}>{dia.label}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -240,7 +254,7 @@ const GestionPlantillas = () => {
                                         <tbody>
                                             {plantillas.map(plantilla => (
                                                 <tr key={plantilla.id}>
-                                                    <td className="fw-semibold">{plantilla.diaSemana}</td>
+                                                    <td className="fw-semibold">{getDiaLabel(plantilla.diaSemana)}</td>
                                                     <td>{plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}</td>
                                                     <td className="text-muted">{plantilla.punto?.nombre || 'Desconocido'}</td>
                                                     <td>
