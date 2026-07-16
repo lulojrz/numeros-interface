@@ -156,6 +156,19 @@ const GestionPlantillas = () => {
         return dia ? dia.label : diaValue;
     };
 
+    const plantillasOrdenadas = [...plantillas].sort((a, b) => {
+        const dayOrder = {
+            'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3, 'THURSDAY': 4,
+            'FRIDAY': 5, 'SATURDAY': 6, 'SUNDAY': 7
+        };
+        const dayDiff = (dayOrder[a.diaSemana] || 0) - (dayOrder[b.diaSemana] || 0);
+        if (dayDiff !== 0) return dayDiff;
+        
+        const timeA = a.horaInicio || '00:00';
+        const timeB = b.horaInicio || '00:00';
+        return timeA.localeCompare(timeB);
+    });
+
     return (
         <div className="container-fluid p-0 mt-4">
             <div className="row g-4">
@@ -252,7 +265,7 @@ const GestionPlantillas = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {plantillas.map(plantilla => (
+                                            {plantillasOrdenadas.map(plantilla => (
                                                 <tr key={plantilla.id}>
                                                     <td className="fw-semibold">{getDiaLabel(plantilla.diaSemana)}</td>
                                                     <td>{plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}</td>
