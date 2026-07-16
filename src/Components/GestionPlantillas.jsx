@@ -9,7 +9,7 @@ const GestionPlantillas = () => {
         diaSemana: 'LUNES',
         horaInicio: '',
         horaFin: '',
-        puntoId: ''
+        punto:{ id: '' }
     });
     
     const api = import.meta.env.VITE_API_URL;
@@ -64,7 +64,7 @@ const GestionPlantillas = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!nuevaPlantilla.diaSemana || !nuevaPlantilla.horaInicio || !nuevaPlantilla.horaFin || !nuevaPlantilla.puntoId) {
+        if (!nuevaPlantilla.diaSemana || !nuevaPlantilla.horaInicio || !nuevaPlantilla.horaFin || !nuevaPlantilla.punto.id) {
             Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
             return;
         }
