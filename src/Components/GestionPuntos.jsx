@@ -5,6 +5,8 @@ const GestionPuntos = () => {
     const [puntos, setPuntos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [nuevoPunto, setNuevoPunto] = useState({ nombre: '', direccion: '' });
+    const [filtroTexto, setFiltroTexto] = useState('');
+    const [filtroEstado, setFiltroEstado] = useState('todos');
     const api = import.meta.env.VITE_API_URL;
 
     const fetchPuntos = async () => {
@@ -105,6 +107,15 @@ const GestionPuntos = () => {
         }
     };
 
+    const puntosFiltrados = puntos.filter(punto => {
+        const coincideTexto = punto.nombre.toLowerCase().includes(filtroTexto.toLowerCase()) || 
+                              (punto.direccion && punto.direccion.toLowerCase().includes(filtroTexto.toLowerCase()));
+        
+        if (filtroEstado === 'activos') return coincideTexto && punto.activo;
+        if (filtroEstado === 'inactivos') return coincideTexto && !punto.activo;
+        return coincideTexto;
+    });
+
     return (
         <div className="container-fluid p-0 mt-4">
             <div className="row g-4">
@@ -151,6 +162,25 @@ const GestionPuntos = () => {
                         <div className="card-body p-4">
                             <h4 className="card-title fw-bold text-secondary mb-4">Puntos Disponibles</h4>
                             
+                            <div className="d-flex flex-column flex-md-row gap-3 mb-4">
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    placeholder="Buscar por nombre o dirección..." 
+                                    value={filtroTexto}
+                                    onChange={(e) => setFiltroTexto(e.target.value)}
+                                />
+                                <select 
+                                    className="form-select w-auto"
+                                    value={filtroEstado}
+                                    onChange={(e) => setFiltroEstado(e.target.value)}
+                                >
+                                    <option value="todos">Todos los estados</option>
+                                    <option value="activos">Activos</option>
+                                    <option value="inactivos">Inactivos</option>
+                                </select>
+                            </div>
+
                             {loading ? (
                                 <div className="text-center py-4">
                                     <div className="spinner-border text-primary" role="status">
@@ -160,6 +190,10 @@ const GestionPuntos = () => {
                             ) : puntos.length === 0 ? (
                                 <div className="alert alert-info border-0 shadow-sm text-center">
                                     No hay puntos de predicación registrados todavía.
+                                </div>
+                            ) : puntosFiltrados.length === 0 ? (
+                                <div className="alert alert-warning border-0 shadow-sm text-center">
+                                    No se encontraron puntos que coincidan con los filtros.
                                 </div>
                             ) : (
                                 <div className="table-responsive">
@@ -173,7 +207,7 @@ const GestionPuntos = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {puntos.map(punto => (
+                                            {puntosFiltrados.map(punto => (
                                                 <tr key={punto.id}>
                                                     <td className="fw-semibold">{punto.nombre}</td>
                                                     <td className="text-muted">{punto.direccion || 'Sin dirección'}</td>
