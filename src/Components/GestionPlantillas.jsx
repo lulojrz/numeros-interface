@@ -93,7 +93,7 @@ const GestionPlantillas = () => {
                     diaSemana: 'LUNES', 
                     horaInicio: '', 
                     horaFin: '', 
-                    puntoId: '' 
+                    punto: { id: '' } 
                 });
                 fetchPlantillas();
             } else {
@@ -151,7 +151,7 @@ const GestionPlantillas = () => {
                                     <select 
                                         className="form-select" 
                                         name="puntoId"
-                                        value={nuevaPlantilla.puntoId}
+                                        value={nuevaPlantilla.punto.id || ''}
                                         onChange={handleChange}
                                         required
                                     >
