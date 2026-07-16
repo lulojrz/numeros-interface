@@ -68,6 +68,7 @@ const GestionPlantillas = () => {
             Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
             return;
         }
+        console.log("Submitting new plantilla:", nuevaPlantilla);
 
         try {
             const response = await fetch(`${api}/api/turnos/crear`, {
