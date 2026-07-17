@@ -5,6 +5,7 @@ const GestionPlantillas = () => {
     const [plantillas, setPlantillas] = useState([]);
     const [puntos, setPuntos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [diaActivo, setDiaActivo] = useState('MONDAY');
     const [nuevaPlantilla, setNuevaPlantilla] = useState({
         diaSemana: 'MONDAY',
         horaInicio: '',
@@ -169,6 +170,8 @@ const GestionPlantillas = () => {
         return timeA.localeCompare(timeB);
     });
 
+    const plantillasFiltradas = plantillasOrdenadas.filter(p => p.diaSemana === diaActivo);
+
     return (
         <div className="container-fluid p-0 mt-4">
             <div className="row g-4">
@@ -243,6 +246,22 @@ const GestionPlantillas = () => {
                         <div className="card-body p-4">
                             <h4 className="card-title fw-bold text-secondary mb-4">Plantillas de Turnos</h4>
                             
+                            {/* Tabs por Día */}
+                            <ul className="nav nav-pills mb-4 flex-nowrap overflow-auto" style={{ whiteSpace: 'nowrap' }}>
+                                {diasSemana.map(dia => (
+                                    <li className="nav-item" key={dia.value}>
+                                        <button
+                                            className={`nav-link fw-semibold ${diaActivo === dia.value ? 'active' : ''}`}
+                                            onClick={() => setDiaActivo(dia.value)}
+                                            type="button"
+                                            style={diaActivo !== dia.value ? { color: '#6c757d' } : {}}
+                                        >
+                                            {dia.label}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+
                             {loading ? (
                                 <div className="text-center py-4">
                                     <div className="spinner-border text-primary" role="status">
@@ -251,23 +270,25 @@ const GestionPlantillas = () => {
                                 </div>
                             ) : plantillas.length === 0 ? (
                                 <div className="alert alert-info border-0 shadow-sm text-center">
-                                    No hay plantillas de turnos registradas.
+                                    No hay ninguna plantilla de turnos registrada.
+                                </div>
+                            ) : plantillasFiltradas.length === 0 ? (
+                                <div className="alert alert-warning border-0 shadow-sm text-center">
+                                    No hay plantillas registradas para el {getDiaLabel(diaActivo)}.
                                 </div>
                             ) : (
                                 <div className="table-responsive">
                                     <table className="table table-hover align-middle text-center">
                                         <thead className="table-light">
                                             <tr>
-                                                <th scope="col">Día</th>
                                                 <th scope="col">Horario</th>
                                                 <th scope="col">Punto</th>
                                                 <th scope="col">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {plantillasOrdenadas.map(plantilla => (
+                                            {plantillasFiltradas.map(plantilla => (
                                                 <tr key={plantilla.id}>
-                                                    <td className="fw-semibold">{getDiaLabel(plantilla.diaSemana)}</td>
                                                     <td>{plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}</td>
                                                     <td className="text-muted">{plantilla.punto?.nombre || 'Desconocido'}</td>
                                                     <td>
