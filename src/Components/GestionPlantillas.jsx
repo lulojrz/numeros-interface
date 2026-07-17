@@ -6,6 +6,7 @@ const GestionPlantillas = () => {
     const [puntos, setPuntos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [diaActivo, setDiaActivo] = useState('MONDAY');
+    const [filtroPunto, setFiltroPunto] = useState('todos');
     const [nuevaPlantilla, setNuevaPlantilla] = useState({
         diaSemana: 'MONDAY',
         horaInicio: '',
@@ -170,7 +171,11 @@ const GestionPlantillas = () => {
         return timeA.localeCompare(timeB);
     });
 
-    const plantillasFiltradas = plantillasOrdenadas.filter(p => p.diaSemana === diaActivo);
+    const plantillasFiltradas = plantillasOrdenadas.filter(p => {
+        if (p.diaSemana !== diaActivo) return false;
+        if (filtroPunto !== 'todos' && p.punto?.id.toString() !== filtroPunto) return false;
+        return true;
+    });
 
     return (
         <div className="container-fluid p-0 mt-4">
@@ -244,10 +249,24 @@ const GestionPlantillas = () => {
                 <div className="col-12 col-lg-8">
                     <div className="card shadow-sm border-0">
                         <div className="card-body p-4">
-                            <h4 className="card-title fw-bold text-secondary mb-4">Plantillas de Turnos</h4>
+                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+                                <h4 className="card-title fw-bold text-secondary mb-0">Plantillas de Turnos</h4>
+                                <div className="w-100" style={{ maxWidth: '300px' }}>
+                                    <select 
+                                        className="form-select w-100"
+                                        value={filtroPunto}
+                                        onChange={(e) => setFiltroPunto(e.target.value)}
+                                    >
+                                        <option value="todos">Todos los puntos</option>
+                                        {puntos.map(p => (
+                                            <option key={p.id} value={p.id}>{p.nombre}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                             
                             {/* Tabs por Día */}
-                            <ul className="nav nav-pills mb-4 flex-nowrap overflow-auto" style={{ whiteSpace: 'nowrap' }}>
+                            <ul className="nav nav-pills mb-4 flex-nowrap overflow-x-auto pb-2" style={{ whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
                                 {diasSemana.map(dia => (
                                     <li className="nav-item" key={dia.value}>
                                         <button
