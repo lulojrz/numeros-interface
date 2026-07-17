@@ -296,33 +296,62 @@ const GestionPlantillas = () => {
                                     No hay plantillas registradas para el {getDiaLabel(diaActivo)}.
                                 </div>
                             ) : (
-                                <div className="table-responsive">
-                                    <table className="table table-hover align-middle text-center">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th scope="col">Horario</th>
-                                                <th scope="col">Punto</th>
-                                                <th scope="col">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {plantillasFiltradas.map(plantilla => (
-                                                <tr key={plantilla.id}>
-                                                    <td>{plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}</td>
-                                                    <td className="text-muted">{plantilla.punto?.nombre || 'Desconocido'}</td>
-                                                    <td>
+                                <React.Fragment>
+                                    {/* Vista Desktop (Tabla) */}
+                                    <div className="table-responsive d-none d-md-block">
+                                        <table className="table table-hover align-middle text-center mb-0">
+                                            <thead className="table-light">
+                                                <tr>
+                                                    <th scope="col">Horario</th>
+                                                    <th scope="col">Punto</th>
+                                                    <th scope="col">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {plantillasFiltradas.map(plantilla => (
+                                                    <tr key={plantilla.id}>
+                                                        <td className="fw-semibold">{plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}</td>
+                                                        <td className="text-muted">{plantilla.punto?.nombre || 'Desconocido'}</td>
+                                                        <td>
+                                                            <button 
+                                                                className="btn btn-sm btn-outline-danger fw-semibold"
+                                                                onClick={() => eliminarPlantilla(plantilla.id)}
+                                                            >
+                                                                <i className="bi bi-trash-fill me-1"></i> Eliminar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Vista Mobile (Tarjetas) */}
+                                    <div className="d-block d-md-none">
+                                        {plantillasFiltradas.map(plantilla => (
+                                            <div key={plantilla.id} className="card mb-3 border border-light shadow-sm">
+                                                <div className="card-body p-3">
+                                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                                        <span className="fw-bold text-primary fs-5">
+                                                            <i className="bi bi-clock me-2"></i>
+                                                            {plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}
+                                                        </span>
                                                         <button 
-                                                            className="btn btn-sm btn-outline-danger fw-semibold"
+                                                            className="btn btn-sm btn-outline-danger"
                                                             onClick={() => eliminarPlantilla(plantilla.id)}
                                                         >
-                                                            <i className="bi bi-trash-fill me-1"></i> Eliminar
+                                                            <i className="bi bi-trash-fill"></i>
                                                         </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                    </div>
+                                                    <div className="d-flex align-items-center text-muted">
+                                                        <i className="bi bi-geo-alt-fill me-2 text-secondary"></i>
+                                                        <span>{plantilla.punto?.nombre || 'Desconocido'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </React.Fragment>
                             )}
                         </div>
                     </div>
