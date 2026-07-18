@@ -1,38 +1,59 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { AuthContext } from '../context/AuthContext';
-import { NumerosContext } from '../context/NumerosContext';
+import { Link } from 'react-router-dom';
+
+// Funciones de utilidad movidas fuera del componente para uso global
+const formatearFecha = (fecha) => {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getLunes = (fecha) => {
+    const d = new Date(fecha);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+    d.setDate(diff);
+    return d;
+};
 
 const PredicacionPublica = () => {
     // Auth info
     const usuarioActual = localStorage.getItem('usuario');
     const privilegio = localStorage.getItem('privilegio');
-    const isAdmin = privilegio === 'ROLE_ANC' || privilegio === 'ROLE_ADMIN'; // adjust if needed
+    const isAdmin = privilegio === 'ROLE_ANC' || privilegio === 'ROLE_ADMIN'; 
     const api = import.meta.env.VITE_API_URL;
 
     const [turnos, setTurnos] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // We use a date object to track the current week we are viewing
-    // Start with today's date
     const [fechaActual, setFechaActual] = useState(new Date());
 
-    // Format date as YYYY-MM-DD for the backend
-    const formatearFecha = (fecha) => {
-        const year = fecha.getFullYear();
-        const month = String(fecha.getMonth() + 1).padStart(2, '0');
-        const day = String(fecha.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
+    // Filtros y Pestañas
+    const [diaActivo, setDiaActivo] = useState(formatearFecha(new Date()));
+    const [filtroPunto, setFiltroPunto] = useState('todos');
+    const [soloDisponibles, setSoloDisponibles] = useState(false);
 
-    // Calculate Monday of the current week (useful for UI or if you want to explicitly pass Monday)
-    const getLunes = (fecha) => {
-        const d = new Date(fecha);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-        d.setDate(diff);
+    // Generar los 7 días de la semana actual
+    const diasSemanaActual = Array.from({ length: 7 }).map((_, i) => {
+        const d = getLunes(fechaActual);
+        d.setDate(d.getDate() + i);
         return d;
-    };
+    });
+
+    // Mantener la pestaña activa dentro de la semana visible
+    useEffect(() => {
+        const lunes = getLunes(fechaActual);
+        const domingo = new Date(lunes);
+        domingo.setDate(lunes.getDate() + 6);
+        
+        // Creamos la fecha agregando la hora para evitar bugs de zona horaria
+        const activo = new Date(diaActivo + "T12:00:00");
+        if (activo < lunes || activo > domingo) {
+            setDiaActivo(formatearFecha(lunes));
+        }
+    }, [fechaActual, diaActivo]);
 
     const fetchTurnos = async (fecha) => {
         setLoading(true);
@@ -56,8 +77,8 @@ const PredicacionPublica = () => {
     };
 
     useEffect(() => {
-        // Create a copy of the date to avoid mutating the state object directly during fetch
         fetchTurnos(new Date(fechaActual));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fechaActual]);
 
     const cambiarSemana = (dias) => {
@@ -73,7 +94,8 @@ const PredicacionPublica = () => {
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Sí, generar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981'
         });
 
         if (result.isConfirmed) {
@@ -108,7 +130,6 @@ const PredicacionPublica = () => {
             });
 
             if (response.ok) {
-                // Refresh list
                 fetchTurnos(new Date(fechaActual));
             } else {
                 const text = await response.text();
@@ -120,117 +141,226 @@ const PredicacionPublica = () => {
         }
     };
 
-    // Group turnos by date for rendering
-    const agruparPorFecha = () => {
-        const grupos = {};
-        turnos.forEach(turno => {
-            if (!grupos[turno.fecha]) {
-                grupos[turno.fecha] = [];
-            }
-            grupos[turno.fecha].push(turno);
-        });
-        return grupos;
-    };
+    // Puntos únicos para el filtro
+    const puntosUnicos = [...new Set(turnos.map(t => t.punto.nombre))].sort();
 
-    const turnosAgrupados = agruparPorFecha();
+    // Lógica de filtrado
+    const turnosFiltrados = turnos
+        .filter(turno => {
+            if (turno.fecha !== diaActivo) return false;
+            if (filtroPunto !== 'todos' && turno.punto.nombre !== filtroPunto) return false;
+            
+            const estaLleno = turno.publicador1 && turno.publicador2;
+            if (soloDisponibles && estaLleno) return false;
+            
+            return true;
+        })
+        .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
 
     const renderBotonAnotarse = (turno) => {
         const estaAnotado1 = turno.publicador1 && turno.publicador1.usuario === usuarioActual;
         const estaAnotado2 = turno.publicador2 && turno.publicador2.usuario === usuarioActual;
         const estaAnotado = estaAnotado1 || estaAnotado2;
-        
         const estaLleno = turno.publicador1 && turno.publicador2;
 
         if (estaAnotado) {
             return (
-                <button onClick={() => anotarse(turno.id)} className="btn btn-outline-danger w-100 mt-2 fw-bold">
-                    Desanotarme
+                <button onClick={() => anotarse(turno.id)} className="btn btn-outline-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
+                    <i className="bi bi-x-circle me-2"></i>Desanotarme
                 </button>
             );
         }
 
         if (estaLleno) {
             return (
-                <button className="btn btn-secondary w-100 mt-2 fw-bold" disabled>
-                    Lleno
+                <button className="btn btn-secondary w-100 mt-3 fw-bold rounded-pill opacity-75" disabled>
+                    <i className="bi bi-lock-fill me-2"></i>Lleno
                 </button>
             );
         }
 
         return (
-            <button onClick={() => anotarse(turno.id)} className="btn btn-primary w-100 mt-2 fw-bold">
-                Anotarme
+            <button onClick={() => anotarse(turno.id)} className="btn btn-primary w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
+                <i className="bi bi-check-circle me-2"></i>Anotarme
             </button>
         );
     };
 
+    const diasSemanaNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
     return (
-        <div className="container py-5">
-            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                <h2 className="fw-bold mb-3 mb-md-0" style={{ color: '#334155' }}>Predicación Pública</h2>
+        <div className="container py-5" style={{ maxWidth: '1200px' }}>
+            {/* Header */}
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                <div className="d-flex align-items-center gap-3">
+                    <Link to="/" className="btn btn-outline-secondary rounded-circle shadow-sm d-flex justify-content-center align-items-center" style={{width: '40px', height: '40px'}} title="Volver al inicio">
+                        <i className="bi bi-arrow-left"></i>
+                    </Link>
+                    <h2 className="fw-bold mb-0" style={{ color: '#1e293b' }}>
+                        <i className="bi bi-calendar-event me-2 text-primary"></i>
+                        Predicación Pública
+                    </h2>
+                </div>
                 {isAdmin && (
-                    <button onClick={generarTurnos} className="btn btn-success shadow-sm">
-                        Generar Turnos (Semana Actual)
+                    <button onClick={generarTurnos} className="btn btn-success shadow-sm rounded-pill px-4 fw-semibold">
+                        <i className="bi bi-magic me-2"></i>Generar Semana
                     </button>
                 )}
             </div>
 
-            {/* Controles de Semana */}
-            <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm flex-wrap gap-2">
-                <button onClick={() => cambiarSemana(-7)} className="btn btn-outline-primary">
-                    &laquo; Ant
-                </button>
-                <h5 className="mb-0 fw-semibold text-muted text-center" style={{fontSize: '1.1rem'}}>
-                    Semana del {new Date(getLunes(new Date(fechaActual)).getTime() + Math.abs(getLunes(new Date(fechaActual)).getTimezoneOffset()*60000)).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                </h5>
-                <button onClick={() => cambiarSemana(7)} className="btn btn-outline-primary">
-                    Sig &raquo;
-                </button>
+            {/* Panel de Controles: Navegación de Semana y Filtros */}
+            <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '1rem' }}>
+                <div className="card-body p-4">
+                    <div className="row align-items-center g-4">
+                        {/* Navegador de Semana */}
+                        <div className="col-12 col-lg-5">
+                            <div className="d-flex justify-content-between align-items-center bg-light p-2 rounded-pill">
+                                <button onClick={() => cambiarSemana(-7)} className="btn btn-sm btn-white rounded-circle shadow-sm" style={{width: '36px', height: '36px'}}>
+                                    <i className="bi bi-chevron-left"></i>
+                                </button>
+                                <h6 className="mb-0 fw-bold text-primary">
+                                    Semana del {diasSemanaActual[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                                </h6>
+                                <button onClick={() => cambiarSemana(7)} className="btn btn-sm btn-white rounded-circle shadow-sm" style={{width: '36px', height: '36px'}}>
+                                    <i className="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Filtros */}
+                        <div className="col-12 col-lg-7 d-flex flex-column flex-sm-row justify-content-lg-end align-items-sm-center gap-3">
+                            <div className="form-check form-switch fs-6 me-sm-2">
+                                <input 
+                                    className="form-check-input shadow-sm" 
+                                    type="checkbox" 
+                                    role="switch" 
+                                    id="switchDisponibles"
+                                    checked={soloDisponibles}
+                                    onChange={(e) => setSoloDisponibles(e.target.checked)}
+                                />
+                                <label className="form-check-label text-muted fw-medium" htmlFor="switchDisponibles">Solo disponibles</label>
+                            </div>
+                            
+                            <select 
+                                className="form-select form-select-sm shadow-sm rounded-pill px-3 py-2 border-0 bg-light"
+                                style={{ maxWidth: '250px' }}
+                                value={filtroPunto}
+                                onChange={(e) => setFiltroPunto(e.target.value)}
+                            >
+                                <option value="todos">Todas las ubicaciones</option>
+                                {puntosUnicos.map((punto, index) => (
+                                    <option key={index} value={punto}>{punto}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            {/* Pestañas de Días */}
+            <ul className="nav nav-pills mb-4 flex-nowrap overflow-x-auto pb-2 gap-2" style={{ whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
+                {diasSemanaActual.map((dia, index) => {
+                    const fechaStr = formatearFecha(dia);
+                    const isActivo = diaActivo === fechaStr;
+                    return (
+                        <li className="nav-item" key={index}>
+                            <button
+                                className={`nav-link fw-bold px-4 rounded-pill ${isActivo ? 'active shadow' : 'bg-white text-secondary border'}`}
+                                onClick={() => setDiaActivo(fechaStr)}
+                            >
+                                {diasSemanaNombres[dia.getDay()]} {dia.getDate()}
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+
+            {/* Contenido (Tarjetas) */}
             {loading ? (
                 <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
+                    <div className="spinner-grow text-primary" role="status">
                         <span className="visually-hidden">Cargando...</span>
                     </div>
                 </div>
-            ) : turnos.length === 0 ? (
-                <div className="alert alert-info text-center shadow-sm">
-                    No hay turnos generados para esta semana.
+            ) : turnosFiltrados.length === 0 ? (
+                <div className="text-center py-5 bg-white shadow-sm rounded-4 border-0">
+                    <i className="bi bi-inbox text-muted" style={{ fontSize: '3rem' }}></i>
+                    <h5 className="mt-3 text-secondary">No hay turnos para mostrar</h5>
+                    <p className="text-muted mb-0">Prueba cambiando de día o ajustando los filtros.</p>
                 </div>
             ) : (
                 <div className="row g-4">
-                    {Object.keys(turnosAgrupados).map((fechaStr, index) => {
-                        // Avoid timezone issues with string dates
-                        const [yyyy, mm, dd] = fechaStr.split('-');
-                        const dateObj = new Date(yyyy, mm - 1, dd);
+                    {turnosFiltrados.map(turno => {
+                        const cuposOcupados = (turno.publicador1 ? 1 : 0) + (turno.publicador2 ? 1 : 0);
+                        const isLleno = cuposOcupados === 2;
+                        const isAnotado = (turno.publicador1?.usuario === usuarioActual) || (turno.publicador2?.usuario === usuarioActual);
+                        
+                        // Dynamic borders based on status
+                        let cardBorderClass = "border-0";
+                        if (isAnotado) cardBorderClass = "border border-primary border-2";
+                        else if (isLleno) cardBorderClass = "border border-secondary opacity-75";
+
                         return (
-                            <div key={index} className="col-12">
-                                <h4 className="border-bottom pb-2 mb-3 mt-3 text-capitalize" style={{ color: '#475569', fontSize: '1.25rem' }}>
-                                    {dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                                </h4>
-                                <div className="row g-3">
-                                    {turnosAgrupados[fechaStr].map(turno => (
-                                        <div key={turno.id} className="col-md-6 col-lg-4">
-                                            <div className="card h-100 shadow-sm border-0" style={{ borderRadius: '0.75rem' }}>
-                                                <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center" style={{ borderTopLeftRadius: '0.75rem', borderTopRightRadius: '0.75rem' }}>
-                                                    <span className="fw-bold fs-5">{turno.horaInicio.slice(0, 5)} - {turno.horaFin.slice(0, 5)}</span>
-                                                    <small className="badge bg-light text-primary fs-6">{turno.punto.nombre}</small>
-                                                </div>
-                                                <div className="card-body bg-light">
-                                                    <div className="mb-2 d-flex align-items-center gap-2">
-                                                        <div className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" style={{width: '24px', height:'24px', fontSize: '0.8rem'}}>1</div> 
-                                                        {turno.publicador1 ? <span className="fw-medium">{turno.publicador1.usuario}</span> : <span className="text-muted fst-italic">Libre</span>}
-                                                    </div>
-                                                    <div className="mb-3 d-flex align-items-center gap-2">
-                                                        <div className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" style={{width: '24px', height:'24px', fontSize: '0.8rem'}}>2</div> 
-                                                        {turno.publicador2 ? <span className="fw-medium">{turno.publicador2.usuario}</span> : <span className="text-muted fst-italic">Libre</span>}
-                                                    </div>
-                                                    {renderBotonAnotarse(turno)}
-                                                </div>
+                            <div key={turno.id} className="col-12 col-md-6 col-xl-4">
+                                <div className={`card h-100 shadow-sm ${cardBorderClass}`} style={{ borderRadius: '1rem', transition: 'all 0.2s ease-in-out' }}>
+                                    
+                                    {/* Header de la Tarjeta */}
+                                    <div className="card-header bg-transparent border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+                                        <div className="d-flex align-items-center">
+                                            <div className="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                                <i className="bi bi-clock-fill fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h5 className="mb-0 fw-bold text-dark">
+                                                    {turno.horaInicio.slice(0, 5)} <span className="text-muted fw-normal mx-1">a</span> {turno.horaFin.slice(0, 5)}
+                                                </h5>
                                             </div>
                                         </div>
-                                    ))}
+                                        {/* Badge de estado */}
+                                        {isLleno ? (
+                                            <span className="badge bg-secondary rounded-pill">Lleno</span>
+                                        ) : (
+                                            <span className="badge bg-success bg-opacity-10 text-success rounded-pill border border-success fw-semibold">
+                                                {2 - cuposOcupados} {2 - cuposOcupados === 1 ? 'Lugar' : 'Lugares'}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Cuerpo de la Tarjeta */}
+                                    <div className="card-body px-4 pb-4">
+                                        <div className="d-flex align-items-center mb-4 text-secondary">
+                                            <i className="bi bi-geo-alt-fill me-2 text-danger"></i>
+                                            <span className="fw-medium">{turno.punto.nombre}</span>
+                                        </div>
+
+                                        <div className="d-flex flex-column gap-2 mb-3">
+                                            {/* Slot 1 */}
+                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light">
+                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>1</div> 
+                                                {turno.publicador1 ? (
+                                                    <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
+                                                        {turno.publicador1.nombre} {turno.publicador1.apellido}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted fst-italic">Espacio libre</span>
+                                                )}
+                                            </div>
+
+                                            {/* Slot 2 */}
+                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light">
+                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>2</div> 
+                                                {turno.publicador2 ? (
+                                                    <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
+                                                        {turno.publicador2.nombre} {turno.publicador2.apellido}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted fst-italic">Espacio libre</span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {renderBotonAnotarse(turno)}
+                                    </div>
                                 </div>
                             </div>
                         )
