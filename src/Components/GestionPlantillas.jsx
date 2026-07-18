@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 const GestionPlantillas = () => {
     const [plantillas, setPlantillas] = useState([]);
     const [puntos, setPuntos] = useState([]);
+    const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [diaActivo, setDiaActivo] = useState('MONDAY');
     const [filtroPunto, setFiltroPunto] = useState('todos');
@@ -11,7 +12,9 @@ const GestionPlantillas = () => {
         diaSemana: 'MONDAY',
         horaInicio: '',
         horaFin: '',
-        punto: { id: '' }
+        punto: { id: '' },
+        publicador1: { id: '' },
+        publicador2: { id: '' }
     });
     
     const api = import.meta.env.VITE_API_URL;
@@ -41,6 +44,20 @@ const GestionPlantillas = () => {
         }
     };
 
+    const fetchUsuarios = async () => {
+        try {
+            const response = await fetch(`${api}/usuarios`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUsuarios(data);
+            }
+        } catch (error) {
+            console.error("Error al cargar usuarios", error);
+        }
+    };
+
     const fetchPlantillas = async () => {
         setLoading(true);
         try {
@@ -61,6 +78,7 @@ const GestionPlantillas = () => {
 
     useEffect(() => {
         fetchPuntos();
+        fetchUsuarios();
         fetchPlantillas();
     }, []);
 
@@ -68,6 +86,10 @@ const GestionPlantillas = () => {
         const { name, value } = e.target;
         if (name === 'puntoId') {
             setNuevaPlantilla(prev => ({ ...prev, punto: { id: value } }));
+        } else if (name === 'publicador1Id') {
+            setNuevaPlantilla(prev => ({ ...prev, publicador1: { id: value } }));
+        } else if (name === 'publicador2Id') {
+            setNuevaPlantilla(prev => ({ ...prev, publicador2: { id: value } }));
         } else {
             setNuevaPlantilla(prev => ({ ...prev, [name]: value }));
         }
@@ -86,6 +108,22 @@ const GestionPlantillas = () => {
             return timeStr && timeStr.split(':').length === 2 ? `${timeStr}:00` : timeStr;
         };
 
+        const payload = {
+            diaSemana: nuevaPlantilla.diaSemana,
+            horaInicio: formatTime(nuevaPlantilla.horaInicio),
+            horaFin: formatTime(nuevaPlantilla.horaFin),
+            punto: {
+                id: parseInt(nuevaPlantilla.punto.id, 10)
+            }
+        };
+
+        if (nuevaPlantilla.publicador1.id) {
+            payload.publicador1 = { id: parseInt(nuevaPlantilla.publicador1.id, 10) };
+        }
+        if (nuevaPlantilla.publicador2.id) {
+            payload.publicador2 = { id: parseInt(nuevaPlantilla.publicador2.id, 10) };
+        }
+
         try {
             const response = await fetch(`${api}/api/turnos/crear`, {
                 method: 'POST',
@@ -93,14 +131,7 @@ const GestionPlantillas = () => {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({
-                    diaSemana: nuevaPlantilla.diaSemana,
-                    horaInicio: formatTime(nuevaPlantilla.horaInicio),
-                    horaFin: formatTime(nuevaPlantilla.horaFin),
-                    punto: {
-                        id: parseInt(nuevaPlantilla.punto.id, 10)
-                    }
-                })
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
@@ -109,7 +140,9 @@ const GestionPlantillas = () => {
                     diaSemana: 'MONDAY', 
                     horaInicio: '', 
                     horaFin: '', 
-                    punto: { id: '' } 
+                    punto: { id: '' },
+                    publicador1: { id: '' },
+                    publicador2: { id: '' }
                 });
                 fetchPlantillas();
             } else {
@@ -226,7 +259,7 @@ const GestionPlantillas = () => {
                                         required
                                     />
                                 </div>
-                                <div className="mb-4">
+                                <div className="mb-3">
                                     <label className="form-label fw-semibold">Hora de Fin *</label>
                                     <input 
                                         type="time" 
@@ -236,6 +269,34 @@ const GestionPlantillas = () => {
                                         onChange={handleChange}
                                         required
                                     />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label fw-semibold">Publicador 1 (Opcional)</label>
+                                    <select 
+                                        className="form-select" 
+                                        name="publicador1Id"
+                                        value={nuevaPlantilla.publicador1.id || ''}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Sin asignar</option>
+                                        {usuarios.map(u => (
+                                            <option key={u.id} value={u.id}>{u.nombre} {u.apellido || ''}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="form-label fw-semibold">Publicador 2 (Opcional)</label>
+                                    <select 
+                                        className="form-select" 
+                                        name="publicador2Id"
+                                        value={nuevaPlantilla.publicador2.id || ''}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Sin asignar</option>
+                                        {usuarios.map(u => (
+                                            <option key={u.id} value={u.id}>{u.nombre} {u.apellido || ''}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <button type="submit" className="btn btn-success w-100 fw-bold shadow-sm">
                                     Guardar Plantilla
@@ -304,6 +365,7 @@ const GestionPlantillas = () => {
                                                 <tr>
                                                     <th scope="col">Horario</th>
                                                     <th scope="col">Punto</th>
+                                                    <th scope="col">Fijos</th>
                                                     <th scope="col">Acciones</th>
                                                 </tr>
                                             </thead>
@@ -312,6 +374,13 @@ const GestionPlantillas = () => {
                                                     <tr key={plantilla.id}>
                                                         <td className="fw-semibold">{plantilla.horaInicio?.slice(0, 5)} - {plantilla.horaFin?.slice(0, 5)}</td>
                                                         <td className="text-muted">{plantilla.punto?.nombre || 'Desconocido'}</td>
+                                                        <td>
+                                                            <div className="small text-start d-inline-block">
+                                                                {plantilla.publicador1 ? <div><i className="bi bi-person-fill text-secondary"></i> {plantilla.publicador1.nombre} {plantilla.publicador1.apellido || ''}</div> : null}
+                                                                {plantilla.publicador2 ? <div><i className="bi bi-person-fill text-secondary"></i> {plantilla.publicador2.nombre} {plantilla.publicador2.apellido || ''}</div> : null}
+                                                                {!plantilla.publicador1 && !plantilla.publicador2 ? <span className="text-muted fst-italic">Nadie</span> : null}
+                                                            </div>
+                                                        </td>
                                                         <td>
                                                             <button 
                                                                 className="btn btn-sm btn-outline-danger fw-semibold"
@@ -347,6 +416,14 @@ const GestionPlantillas = () => {
                                                         <i className="bi bi-geo-alt-fill me-2 text-secondary"></i>
                                                         <span>{plantilla.punto?.nombre || 'Desconocido'}</span>
                                                     </div>
+                                                    {(plantilla.publicador1 || plantilla.publicador2) && (
+                                                        <div className="d-flex align-items-center mt-2 small text-muted">
+                                                            <i className="bi bi-people-fill me-2 text-info"></i>
+                                                            <span>
+                                                                {[plantilla.publicador1?.nombre, plantilla.publicador2?.nombre].filter(Boolean).join(' y ')}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
