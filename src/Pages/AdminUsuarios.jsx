@@ -18,6 +18,7 @@ const AdminUsuarios = () => {
         nombre: '',
         apellido: '',
         usuario: '',
+        telefono: '',
         contrasena: 'prueba123',
         privilegio: 'ROLE_PUB'
     });
@@ -58,7 +59,8 @@ const AdminUsuarios = () => {
                     setFormData({ 
                         nombre: loggedUser.nombre || '', 
                         apellido: loggedUser.apellido || '', 
-                        usuario: loggedUser.usuario || '', 
+                        usuario: loggedUser.usuario || '',
+                        telefono: loggedUser.telefono || '',
                         contrasena: '',
                         privilegio: loggedUser.privilegio || 'ROLE_PUB'
                     });
@@ -80,6 +82,12 @@ const AdminUsuarios = () => {
 
     const handleAgregar = async (e) => {
         e.preventDefault();
+        
+        if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.usuario.trim() || !formData.telefono.trim()) {
+            Toast.fire({ icon: 'warning', title: 'Por favor, no dejes campos obligatorios en blanco.' });
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const response = await fetch(`${api}/usuarios/crear`, {
@@ -96,7 +104,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario agregado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
+                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
                 setClickAgregar(false);
                 cargarUsuarios();
             } else {
@@ -118,6 +126,12 @@ const AdminUsuarios = () => {
 
     const handleEditar = async (e) => {
         e.preventDefault();
+
+        if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.usuario.trim() || !formData.telefono.trim()) {
+            Toast.fire({ icon: 'warning', title: 'Por favor, no dejes campos obligatorios en blanco.' });
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const response = await fetch(`${api}/usuarios/editar/${usuarioEditando.id}`, {
@@ -137,7 +151,7 @@ const AdminUsuarios = () => {
                 
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
                 if (isANC) {
-                    setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
+                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
                     setUsuarioEditando(null);
                 }
                 cargarUsuarios();
@@ -208,6 +222,7 @@ const AdminUsuarios = () => {
             nombre: user.nombre || '', 
             apellido: user.apellido || '', 
             usuario: user.usuario || '', 
+            telefono: user.telefono || '',
             contrasena: '',
             privilegio: user.privilegio || 'ROLE_PUB'
         });
@@ -216,7 +231,7 @@ const AdminUsuarios = () => {
 
     const cancelarEdicion = () => {
         setUsuarioEditando(null);
-        setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
+        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
     };
 
     const usuariosFiltrados = usuarios.filter(u => {
@@ -243,13 +258,13 @@ const AdminUsuarios = () => {
                     <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
                         <button
                             className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
                         >
                             Lista de Usuarios
                         </button>
                         <button
                             className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
-                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
+                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
                         >
                             Agregar Nuevo
                         </button>
@@ -391,6 +406,18 @@ const AdminUsuarios = () => {
                                         className="form-control"
                                         name="usuario"
                                         value={formData.usuario}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Teléfono</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="telefono"
+                                        placeholder="Ej: 1139562904"
+                                        value={formData.telefono}
                                         onChange={handleInputChange}
                                         required
                                     />

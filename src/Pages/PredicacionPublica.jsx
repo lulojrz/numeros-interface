@@ -27,6 +27,7 @@ const PredicacionPublica = () => {
 
     const [turnos, setTurnos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingTurnoId, setLoadingTurnoId] = useState(null);
     
     const [fechaActual, setFechaActual] = useState(new Date());
 
@@ -138,6 +139,7 @@ const PredicacionPublica = () => {
             if (!result.isConfirmed) return;
         }
 
+        setLoadingTurnoId(idTurno);
         try {
             const response = await fetch(`${api}/api/turnos/anotarse/${idTurno}?usuario=${usuarioActual}`, {
                 method: 'PUT',
@@ -162,11 +164,14 @@ const PredicacionPublica = () => {
                 }
             } else {
                 const text = await response.text();
-                Swal.fire('Atención', text || 'No se pudo realizar la acción.', 'warning');
+                Swal.fire('No se pudo completar', text || 'Este turno ya fue ocupado o hubo un conflicto. Por favor, recarga los turnos.', 'warning');
+                fetchTurnos(new Date(fechaActual));
             }
         } catch (error) {
             console.error(error);
-            Swal.fire('Error', 'Problema de red al actualizar el turno.', 'error');
+            Swal.fire('Error de conexión', 'Hubo un problema al conectar. Verifica tu internet e intenta de nuevo.', 'error');
+        } finally {
+            setLoadingTurnoId(null);
         }
     };
 
@@ -191,6 +196,16 @@ const PredicacionPublica = () => {
         const estaAnotado2 = turno.publicador2 && turno.publicador2.usuario === usuarioActual;
         const estaAnotado = estaAnotado1 || estaAnotado2;
         const estaLleno = turno.publicador1 && turno.publicador2;
+        const isLoading = loadingTurnoId === turno.id;
+
+        if (isLoading) {
+            return (
+                <button className="btn btn-secondary w-100 mt-3 fw-bold rounded-pill shadow-sm opacity-75" disabled>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Procesando...
+                </button>
+            );
+        }
 
         if (estaAnotado) {
             return (
@@ -364,27 +379,31 @@ const PredicacionPublica = () => {
 
                                         <div className="d-flex flex-column gap-2 mb-3">
                                             {/* Slot 1 */}
-                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light">
-                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>1</div> 
-                                                {turno.publicador1 ? (
-                                                    <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
-                                                        {turno.publicador1.nombre} {turno.publicador1.apellido}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-muted fst-italic">Espacio libre</span>
-                                                )}
+                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light overflow-hidden">
+                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>1</div> 
+                                                <div className="text-truncate">
+                                                    {turno.publicador1 ? (
+                                                        <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
+                                                            {turno.publicador1.nombre} {turno.publicador1.apellido}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-muted fst-italic">Espacio libre</span>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             {/* Slot 2 */}
-                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light">
-                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>2</div> 
-                                                {turno.publicador2 ? (
-                                                    <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
-                                                        {turno.publicador2.nombre} {turno.publicador2.apellido}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-muted fst-italic">Espacio libre</span>
-                                                )}
+                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light overflow-hidden">
+                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>2</div> 
+                                                <div className="text-truncate">
+                                                    {turno.publicador2 ? (
+                                                        <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
+                                                            {turno.publicador2.nombre} {turno.publicador2.apellido}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-muted fst-italic">Espacio libre</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
