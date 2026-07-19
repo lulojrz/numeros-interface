@@ -122,7 +122,22 @@ const PredicacionPublica = () => {
         }
     };
 
-    const anotarse = async (idTurno) => {
+    const manejarTurno = async (idTurno, isDesanotando) => {
+        if (isDesanotando) {
+            const result = await Swal.fire({
+                title: '¿Cancelar turno?',
+                text: "Acuérdate de avisarle al hermano encargado del carrito en caso de cancelar.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cancelar turno',
+                cancelButtonText: 'Volver'
+            });
+
+            if (!result.isConfirmed) return;
+        }
+
         try {
             const response = await fetch(`${api}/api/turnos/anotarse/${idTurno}?usuario=${usuarioActual}`, {
                 method: 'PUT',
@@ -131,6 +146,20 @@ const PredicacionPublica = () => {
 
             if (response.ok) {
                 fetchTurnos(new Date(fechaActual));
+                
+                if (!isDesanotando) {
+                    const numeroEncargado = "1139562904";
+                    const enlaceWpp = `https://wa.me/549${numeroEncargado}`;
+                    Swal.fire({
+                        title: '¡Anotado con éxito!',
+                        html: `En el caso de querer participar con carrito acuérdate de avisarle al hermano que lo tiene en su casa.<br><br><a href="${enlaceWpp}" target="_blank" class="btn btn-success mt-3" style="text-decoration: none;"><i class="bi bi-whatsapp me-2"></i>Avisar por WhatsApp</a>`,
+                        icon: 'success',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                } else {
+                    Swal.fire('Cancelado', 'Te has bajado del turno exitosamente.', 'success');
+                }
             } else {
                 const text = await response.text();
                 Swal.fire('Atención', text || 'No se pudo realizar la acción.', 'warning');
@@ -165,7 +194,7 @@ const PredicacionPublica = () => {
 
         if (estaAnotado) {
             return (
-                <button onClick={() => anotarse(turno.id)} className="btn btn-outline-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
+                <button onClick={() => manejarTurno(turno.id, true)} className="btn btn-outline-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
                     <i className="bi bi-x-circle me-2"></i>Desanotarme
                 </button>
             );
@@ -180,7 +209,7 @@ const PredicacionPublica = () => {
         }
 
         return (
-            <button onClick={() => anotarse(turno.id)} className="btn btn-primary w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
+            <button onClick={() => manejarTurno(turno.id, false)} className="btn btn-primary w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
                 <i className="bi bi-check-circle me-2"></i>Anotarme
             </button>
         );
