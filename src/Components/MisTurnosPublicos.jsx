@@ -12,7 +12,7 @@ const MisTurnosPublicos = () => {
         const fetchMisTurnos = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${api}/api/turnos/${usuarioActual}`, {
+                const response = await fetch(`${api}/api/turnos/usuario/${usuarioActual}`, {
                     credentials: 'include'
                 });
 
