@@ -78,13 +78,13 @@ const EstadisticasDashboard = () => {
                 cubiertosMesPasado += cuposOcupados;
             }
 
-            // Calcular asistencia (ocupados vs totales)
+            // Calcular asistencia (turnos ocupados vs totales)
             if (turno.punto && turno.punto.nombre) {
                 if (!asistenciaPuntos[turno.punto.nombre]) {
                     asistenciaPuntos[turno.punto.nombre] = { ocupados: 0, total: 0 };
                 }
-                asistenciaPuntos[turno.punto.nombre].ocupados += cuposOcupados;
-                asistenciaPuntos[turno.punto.nombre].total += 2; // Cada turno tiene 2 cupos máximo
+                asistenciaPuntos[turno.punto.nombre].ocupados += cuposOcupados > 0 ? 1 : 0; // Turno cubierto si hay al menos 1 persona
+                asistenciaPuntos[turno.punto.nombre].total += 1; // 1 turno en total
             }
         });
 
@@ -229,7 +229,7 @@ const EstadisticasDashboard = () => {
                                         <tbody>
                                             {dataPuntos.map((punto, index) => (
                                                 <tr key={index}>
-                                                    <td className="fw-medium">{punto.nombre} <br/><small className="text-muted">{punto.ocupados} de {punto.total} lugares</small></td>
+                                                    <td className="fw-medium">{punto.nombre} <br/><small className="text-muted">{punto.ocupados} de {punto.total} turnos</small></td>
                                                     <td className="text-center">
                                                         <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2">
                                                             {punto.porcentaje}%
