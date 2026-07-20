@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const MisTurnosPublicos = () => {
     const [turnosActivos, setTurnosActivos] = useState([]);
@@ -59,6 +61,47 @@ const MisTurnosPublicos = () => {
 
         if (usuarioActual) {
             fetchMisTurnos();
+            
+            // WebSocket logic para mantener los turnos propios en vivo
+            const socket = new SockJS(`${api}/ws-turnos`);
+            const stompClient = new Client({
+                webSocketFactory: () => socket,
+                reconnectDelay: 5000,
+                onConnect: () => {
+                    stompClient.subscribe('/topic/turnos', (message) => {
+                        if (message.body) {
+                            // Fetch silencioso
+                            fetch(`${api}/api/turnos/usuario/${usuarioActual}`, {
+                                credentials: 'include'
+                            }).then(res => {
+                                if (res.ok) return res.json();
+                                throw new Error("Error fetching silent");
+                            }).then(data => {
+                                const hoy = new Date();
+                                hoy.setHours(0, 0, 0, 0);
+                                const activos = [];
+                                const pasados = [];
+                                data.forEach(turno => {
+                                    const [year, month, day] = turno.fecha.split('-');
+                                    const fechaTurno = new Date(year, month - 1, day);
+                                    fechaTurno.setHours(0, 0, 0, 0);
+                                    if (fechaTurno >= hoy) activos.push(turno);
+                                    else pasados.push(turno);
+                                });
+                                activos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                                pasados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                                setTurnosActivos(activos);
+                                setTurnosPasados(pasados);
+                            }).catch(err => console.error(err));
+                        }
+                    });
+                }
+            });
+            stompClient.activate();
+
+            return () => {
+                stompClient.deactivate();
+            };
         } else {
             setLoading(false);
         }

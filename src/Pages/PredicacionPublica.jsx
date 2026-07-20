@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 // Funciones de utilidad movidas fuera del componente para uso global
 const formatearFecha = (fecha) => {
@@ -77,8 +79,42 @@ const PredicacionPublica = () => {
         }
     };
 
+    const fetchTurnosSilencioso = async (fecha) => {
+        try {
+            const fechaStr = formatearFecha(fecha);
+            const response = await fetch(`${api}/api/turnos/semana?fecha=${fechaStr}`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setTurnos(data);
+            }
+        } catch (error) {
+            console.error("Error actualizando turnos en vivo:", error);
+        }
+    };
+
     useEffect(() => {
         fetchTurnos(new Date(fechaActual));
+        
+        const socket = new SockJS(`${api}/ws-turnos`);
+        const stompClient = new Client({
+            webSocketFactory: () => socket,
+            reconnectDelay: 5000,
+            onConnect: () => {
+                console.log('Conectado a WebSocket de turnos en vivo');
+                stompClient.subscribe('/topic/turnos', (message) => {
+                    if (message.body) {
+                        fetchTurnosSilencioso(new Date(fechaActual));
+                    }
+                });
+            }
+        });
+        stompClient.activate();
+
+        return () => {
+            stompClient.deactivate();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fechaActual]);
 
