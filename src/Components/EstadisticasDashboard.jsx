@@ -11,6 +11,9 @@ const EstadisticasDashboard = () => {
     const [turnos, setTurnos] = useState([]);
     const [loading, setLoading] = useState(true);
     const api = import.meta.env.VITE_API_URL;
+    
+    const currentYear = new Date().getFullYear();
+    const [yearSelected, setYearSelected] = useState(currentYear.toString());
 
     // --- Telefónica Stats ---
     const numerosContestados = numeros.filter(numero => numero.contesta);
@@ -29,7 +32,7 @@ const EstadisticasDashboard = () => {
         const fetchTurnos = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${api}/api/turnos/todos`, {
+                const response = await fetch(`${api}/api/turnos/todos?year=${yearSelected}`, {
                     credentials: 'include'
                 });
                 if (response.ok) {
@@ -46,7 +49,7 @@ const EstadisticasDashboard = () => {
         };
 
         fetchTurnos();
-    }, [api]);
+    }, [api, yearSelected]);
 
     const getPublicaStats = () => {
         const hoy = new Date();
@@ -124,6 +127,24 @@ const EstadisticasDashboard = () => {
 
     return (
         <div className="container-fluid p-0 mt-4">
+            
+            <div className="d-flex justify-content-end mb-3">
+                <div className="d-flex align-items-center bg-white rounded-pill px-3 py-1 shadow-sm border">
+                    <i className="bi bi-calendar-event text-primary me-2"></i>
+                    <span className="text-secondary fw-semibold me-2">Año de Estadísticas:</span>
+                    <select 
+                        className="form-select form-select-sm border-0 bg-transparent fw-bold text-primary p-0 pe-3" 
+                        value={yearSelected} 
+                        onChange={(e) => setYearSelected(e.target.value)}
+                        style={{ width: 'auto', cursor: 'pointer', outline: 'none', boxShadow: 'none' }}
+                    >
+                        <option value={currentYear + 1}>{currentYear + 1}</option>
+                        <option value={currentYear}>{currentYear}</option>
+                        <option value={currentYear - 1}>{currentYear - 1}</option>
+                        <option value={currentYear - 2}>{currentYear - 2}</option>
+                    </select>
+                </div>
+            </div>
             
             {/* Alerta de Reinicio Telefónica */}
             {necesitaReinicio && (
