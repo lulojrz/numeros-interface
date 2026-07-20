@@ -59,7 +59,7 @@ const EstadisticasDashboard = () => {
         let cubiertosEsteMes = 0;
         let cubiertosMesPasado = 0;
         
-        // Puntos con menor asistencia: map de {nombrePunto: huecosVacios}
+        // Puntos con menor asistencia: map de {nombrePunto: {ocupados, total}}
         const asistenciaPuntos = {};
 
         turnos.forEach(turno => {
@@ -78,13 +78,13 @@ const EstadisticasDashboard = () => {
                 cubiertosMesPasado += cuposOcupados;
             }
 
-            // Calcular asistencia (huecos libres)
+            // Calcular asistencia (ocupados vs totales)
             if (turno.punto && turno.punto.nombre) {
                 if (!asistenciaPuntos[turno.punto.nombre]) {
-                    asistenciaPuntos[turno.punto.nombre] = 0;
+                    asistenciaPuntos[turno.punto.nombre] = { ocupados: 0, total: 0 };
                 }
-                const huecos = 2 - cuposOcupados;
-                asistenciaPuntos[turno.punto.nombre] += huecos;
+                asistenciaPuntos[turno.punto.nombre].ocupados += cuposOcupados;
+                asistenciaPuntos[turno.punto.nombre].total += 2; // Cada turno tiene 2 cupos máximo
             }
         });
 
@@ -93,13 +93,19 @@ const EstadisticasDashboard = () => {
             { name: 'Este Mes', 'Turnos Cubiertos': cubiertosEsteMes }
         ];
 
-        // Ordenar puntos por mayor cantidad de huecos (menor asistencia)
+        // Ordenar puntos por menor porcentaje de ocupación (menor asistencia)
         const dataPuntos = Object.keys(asistenciaPuntos)
-            .map(nombre => ({
-                nombre,
-                'Cupos Vacíos': asistenciaPuntos[nombre]
-            }))
-            .sort((a, b) => b['Cupos Vacíos'] - a['Cupos Vacíos'])
+            .map(nombre => {
+                const p = asistenciaPuntos[nombre];
+                const porcentaje = p.total > 0 ? Math.round((p.ocupados / p.total) * 100) : 0;
+                return {
+                    nombre,
+                    porcentaje,
+                    ocupados: p.ocupados,
+                    total: p.total
+                };
+            })
+            .sort((a, b) => a.porcentaje - b.porcentaje)
             .slice(0, 5); // top 5 peores
 
         return { dataMensual, dataPuntos };
@@ -206,7 +212,7 @@ const EstadisticasDashboard = () => {
                                 <i className="bi bi-geo-alt-fill me-2"></i>
                                 Puntos con Menor Asistencia (Histórico)
                             </h5>
-                            <p className="text-muted small mb-4">Puntos de predicación que han acumulado la mayor cantidad de cupos vacíos a lo largo del tiempo.</p>
+                            <p className="text-muted small mb-4">Muestra los puntos con el porcentaje de ocupación más bajo a lo largo del tiempo.</p>
                             
                             {dataPuntos.length === 0 ? (
                                 <div className="alert alert-light text-center">No hay datos suficientes.</div>
@@ -216,22 +222,22 @@ const EstadisticasDashboard = () => {
                                         <thead className="table-light">
                                             <tr>
                                                 <th>Punto de Predicación</th>
-                                                <th className="text-center">Cupos Vacíos (Totales)</th>
-                                                <th>Estado</th>
+                                                <th className="text-center">Porcentaje Ocupado</th>
+                                                <th>Progreso</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {dataPuntos.map((punto, index) => (
                                                 <tr key={index}>
-                                                    <td className="fw-medium">{punto.nombre}</td>
+                                                    <td className="fw-medium">{punto.nombre} <br/><small className="text-muted">{punto.ocupados} de {punto.total} lugares</small></td>
                                                     <td className="text-center">
-                                                        <span className="badge bg-danger rounded-pill px-3 py-2">
-                                                            {punto['Cupos Vacíos']}
+                                                        <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2">
+                                                            {punto.porcentaje}%
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <div className="progress" style={{height: '8px'}}>
-                                                            <div className="progress-bar bg-danger" role="progressbar" style={{width: `${Math.min((punto['Cupos Vacíos'] / 20) * 100, 100)}%`}}></div>
+                                                            <div className="progress-bar bg-danger" role="progressbar" style={{width: `${punto.porcentaje}%`}}></div>
                                                         </div>
                                                     </td>
                                                 </tr>
