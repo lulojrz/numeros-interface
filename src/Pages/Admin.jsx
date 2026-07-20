@@ -8,6 +8,7 @@ import PorEliminar from '../Components/PorEliminar.jsx'
 import GestionPuntos from '../Components/GestionPuntos.jsx'
 import GestionPlantillas from '../Components/GestionPlantillas.jsx'
 import MisTurnosPublicos from '../Components/MisTurnosPublicos.jsx'
+import EstadisticasDashboard from '../Components/EstadisticasDashboard.jsx'
 import { Link } from 'react-router-dom'
 
 const Admin = () => {
@@ -91,6 +92,17 @@ const Admin = () => {
                     <i className="bi bi-geo-alt-fill me-2"></i>Predicación Pública
                 </button>
             </li>
+            {isPrivileged && (
+            <li className="nav-item">
+                <button 
+                    className={`nav-link fw-bold ${tabActiva === 'estadisticas' ? 'active' : 'text-secondary'}`} 
+                    onClick={() => setTabActiva('estadisticas')}
+                    style={tabActiva === 'estadisticas' ? { color: '#6f42c1' } : {}}
+                >
+                    <i className="bi bi-graph-up me-2"></i>Estadísticas
+                </button>
+            </li>
+            )}
         </ul>
 
         {tabActiva === 'telefonica' && (
@@ -194,6 +206,10 @@ const Admin = () => {
                     <MisTurnosPublicos />
                 )}
             </>
+        )}
+
+        {tabActiva === 'estadisticas' && isPrivileged && (
+            <EstadisticasDashboard />
         )}
 
     </div> 
