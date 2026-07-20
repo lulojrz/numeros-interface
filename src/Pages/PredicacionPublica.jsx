@@ -36,6 +36,7 @@ const PredicacionPublica = () => {
     // Filtros y Pestañas
     const [diaActivo, setDiaActivo] = useState(formatearFecha(new Date()));
     const [filtroPunto, setFiltroPunto] = useState('todos');
+    const [filtroHorario, setFiltroHorario] = useState('todos');
     const [soloDisponibles, setSoloDisponibles] = useState(false);
 
     // Generar los 7 días de la semana actual
@@ -220,6 +221,13 @@ const PredicacionPublica = () => {
             if (turno.fecha !== diaActivo) return false;
             if (filtroPunto !== 'todos' && turno.punto.nombre !== filtroPunto) return false;
             
+            if (filtroHorario !== 'todos') {
+                const hora = parseInt(turno.horaInicio.split(':')[0], 10);
+                if (filtroHorario === 'mañana' && hora >= 13) return false;
+                if (filtroHorario === 'tarde' && (hora < 13 || hora >= 19)) return false;
+                if (filtroHorario === 'noche' && hora < 19) return false;
+            }
+
             const estaLleno = turno.publicador1 && turno.publicador2;
             if (soloDisponibles && estaLleno) return false;
             
@@ -306,10 +314,9 @@ const PredicacionPublica = () => {
                                 </button>
                             </div>
                         </div>
-
                         {/* Filtros */}
-                        <div className="col-12 col-lg-7 d-flex flex-column flex-sm-row justify-content-lg-end align-items-sm-center gap-3">
-                            <div className="form-check form-switch fs-6 me-sm-2">
+                        <div className="col-12 col-lg-7 d-flex flex-column flex-sm-row justify-content-lg-end align-items-sm-center gap-2">
+                            <div className="form-check form-switch fs-6 me-sm-2 mb-2 mb-sm-0">
                                 <input 
                                     className="form-check-input shadow-sm" 
                                     type="checkbox" 
@@ -318,16 +325,28 @@ const PredicacionPublica = () => {
                                     checked={soloDisponibles}
                                     onChange={(e) => setSoloDisponibles(e.target.checked)}
                                 />
-                                <label className="form-check-label text-muted fw-medium" htmlFor="switchDisponibles">Solo disponibles</label>
+                                <label className="form-check-label text-muted" htmlFor="switchDisponibles">Solo disponibles</label>
                             </div>
                             
                             <select 
-                                className="form-select form-select-sm shadow-sm rounded-pill px-3 py-2 border-0 bg-light"
-                                style={{ maxWidth: '250px' }}
-                                value={filtroPunto}
-                                onChange={(e) => setFiltroPunto(e.target.value)}
+                                className="form-select form-select-sm shadow-sm border-0 bg-light fw-medium text-secondary" 
+                                value={filtroHorario} 
+                                onChange={(e) => setFiltroHorario(e.target.value)}
+                                style={{ width: 'auto', minWidth: '130px' }}
                             >
-                                <option value="todos">Todas las ubicaciones</option>
+                                <option value="todos">Cualquier Hora</option>
+                                <option value="mañana">Mañana (antes 13hs)</option>
+                                <option value="tarde">Tarde (13hs - 19hs)</option>
+                                <option value="noche">Noche (después 19hs)</option>
+                            </select>
+
+                            <select 
+                                className="form-select form-select-sm shadow-sm border-0 bg-light fw-medium text-secondary" 
+                                value={filtroPunto} 
+                                onChange={(e) => setFiltroPunto(e.target.value)}
+                                style={{ width: 'auto', minWidth: '140px' }}
+                            >
+                                <option value="todos">Todos los puntos</option>
                                 {puntosUnicos.map((punto, index) => (
                                     <option key={index} value={punto}>{punto}</option>
                                 ))}
