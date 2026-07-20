@@ -7,6 +7,7 @@ import MisReservas from '../Components/MisReservas.jsx'
 import PorEliminar from '../Components/PorEliminar.jsx'
 import GestionPuntos from '../Components/GestionPuntos.jsx'
 import GestionPlantillas from '../Components/GestionPlantillas.jsx'
+import MisTurnosPublicos from '../Components/MisTurnosPublicos.jsx'
 import { Link } from 'react-router-dom'
 
 const Admin = () => {
@@ -165,26 +166,32 @@ const Admin = () => {
 
         {tabActiva === 'publica' && (
             <>
-                <h3 className="h5">Elija una opcion (Pública)</h3>
-                <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
-                    <button 
-                        className={`btn flex-fill fw-semibold ${subTabPublica === 'puntos' ? 'btn-success' : 'btn-outline-success'}`}
-                        onClick={() => setSubTabPublica('puntos')}
-                    >
-                        Gestión de Puntos
-                    </button>
-                    <button 
-                        className={`btn flex-fill fw-semibold ${subTabPublica === 'plantillas' ? 'btn-primary' : 'btn-outline-primary'}`}
-                        onClick={() => setSubTabPublica('plantillas')}
-                    >
-                        Plantillas de Turnos
-                    </button>
-                </div>
-                
-                {subTabPublica === 'puntos' ? (
-                    <GestionPuntos />
+                {isPrivileged ? (
+                    <>
+                        <h3 className="h5">Elija una opcion (Pública)</h3>
+                        <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
+                            <button 
+                                className={`btn flex-fill fw-semibold ${subTabPublica === 'puntos' ? 'btn-success' : 'btn-outline-success'}`}
+                                onClick={() => setSubTabPublica('puntos')}
+                            >
+                                Gestión de Puntos
+                            </button>
+                            <button 
+                                className={`btn flex-fill fw-semibold ${subTabPublica === 'plantillas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setSubTabPublica('plantillas')}
+                            >
+                                Plantillas de Turnos
+                            </button>
+                        </div>
+                        
+                        {subTabPublica === 'puntos' ? (
+                            <GestionPuntos />
+                        ) : (
+                            <GestionPlantillas />
+                        )}
+                    </>
                 ) : (
-                    <GestionPlantillas />
+                    <MisTurnosPublicos />
                 )}
             </>
         )}
