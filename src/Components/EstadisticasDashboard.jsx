@@ -105,8 +105,7 @@ const EstadisticasDashboard = () => {
                     total: p.total
                 };
             })
-            .sort((a, b) => a.porcentaje - b.porcentaje)
-            .slice(0, 5); // top 5 peores
+            .sort((a, b) => a.porcentaje - b.porcentaje);
 
         return { dataMensual, dataPuntos };
     };
