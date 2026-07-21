@@ -12,46 +12,55 @@ const Login = () => {
       
       <div className="card shadow-lg p-5" style={{ width: '100%', maxWidth: '420px', borderRadius: '1rem', border: 'none' }}>
         <div className="text-center mb-4">
-          {/* Logo SVG Animado */}
-          <div className="mb-3 d-flex justify-content-center">
-            <svg viewBox="0 0 200 200" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
-              {/* Círculo exterior completamente cerrado */}
-              <circle cx="100" cy="100" r="85" fill="none" stroke="#76989d" strokeWidth="4" />
-
-              {/* Sombra o Umbral en el piso (Aparece cuando la puerta se abre hacia afuera) */}
-              <polygon points="70,144 50,153 130,144" fill="#76989d" style={{
-                transition: 'opacity 2s',
-                opacity: isDoorOpening ? 1 : 0
+          {/* Logo Animado en HTML (Compatible con iOS/Mobile) */}
+          <div className="mb-3 d-flex justify-content-center" style={{ overflow: 'visible' }}>
+            <div style={{ width: '200px', height: '200px', position: 'relative', transform: 'scale(0.8)' }}>
+              {/* Círculo exterior */}
+              <div style={{ 
+                position: 'absolute', top: 15, left: 15, width: 170, height: 170, 
+                border: '4px solid #76989d', borderRadius: '50%', boxSizing: 'border-box' 
               }} />
 
-              {/* Marco de la puerta (En forma de L invertida, como en la nueva imagen) */}
-              {/* Poste izquierdo */}
-              <rect x="70" y="45" width="10" height="100" fill="#76989d" />
-              {/* Viga superior */}
-              <rect x="70" y="45" width="60" height="10" fill="#76989d" />
+              {/* Sombra o Umbral en el piso */}
+              <div style={{
+                position: 'absolute', top: 144, left: 50, width: 80, height: 9,
+                backgroundColor: '#76989d',
+                clipPath: 'polygon(25% 0, 100% 0, 0 100%)',
+                WebkitClipPath: 'polygon(25% 0, 100% 0, 0 100%)', // Para compatibilidad iOS
+                transition: 'opacity 2s', opacity: isDoorOpening ? 1 : 0
+              }} />
 
-              {/* Texto JW centrado en el hueco de la puerta */}
-              <text x="105" y="110" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="32" fill="#76989d" fontWeight="700"
-                style={{
-                  transition: 'text-shadow 2s ease-in-out',
-                  textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.6)' : 'none'
-                }}
-              >JW</text>
+              {/* Marco de la puerta */}
+              <div style={{ position: 'absolute', left: 70, top: 45, width: 10, height: 100, backgroundColor: '#76989d' }} />
+              <div style={{ position: 'absolute', left: 70, top: 45, width: 60, height: 10, backgroundColor: '#76989d' }} />
 
-              {/* Puerta animada (Bisagra en x=130) */}
-              {/* Se abre hacia AFUERA (rotateY negativo) para coincidir con la perspectiva de la imagen */}
-              <g style={{ 
-                transformOrigin: '130px 55px', 
-                transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)',
+              {/* Texto JW */}
+              <div style={{
+                position: 'absolute', left: 80, top: 55, width: 50, height: 90,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#76989d', fontSize: '32px', fontWeight: '700', fontFamily: "'Inter', sans-serif",
+                transition: 'text-shadow 2s ease-in-out',
+                textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.6)' : 'none',
+                zIndex: 1
+              }}>JW</div>
+
+              {/* Puerta animada */}
+              <div style={{
+                position: 'absolute', left: 79, top: 55, width: 51, height: 90,
+                transformOrigin: 'right center',
+                transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1), background-color 2s',
                 transform: isDoorOpening ? 'perspective(600px) rotateY(-65deg)' : 'perspective(600px) rotateY(0deg)',
+                backgroundColor: isDoorOpening ? '#6b8e93' : '#76989d',
+                zIndex: 2,
                 transformStyle: 'preserve-3d'
               }}>
-                  {/* Rectángulo de la puerta */}
-                  <rect x="79" y="55" width="51" height="90" fill={isDoorOpening ? "#6b8e93" : "#76989d"} style={{ transition: 'fill 2s' }} />
-                  {/* Pomo de la puerta */}
-                  <circle cx="86" cy="100" r="3.5" fill="#fff" />
-              </g>
-            </svg>
+                {/* Pomo de la puerta */}
+                <div style={{
+                  position: 'absolute', left: 3.5, top: '50%', transform: 'translateY(-50%)',
+                  width: 7, height: 7, backgroundColor: '#fff', borderRadius: '50%'
+                }} />
+              </div>
+            </div>
           </div>
 
           <h2 className="fw-bold" style={{ color: '#334155' }}>Bienvenido</h2>
