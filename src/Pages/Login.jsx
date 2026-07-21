@@ -17,9 +17,7 @@ const Login = () => {
             <svg viewBox="0 0 200 200" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
               {/* Círculo exterior (Simétrico y centrado) */}
               <path d="M 70 179.5 A 85 85 0 1 1 130 179.5" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="round" />
-              
-              {/* Camino (Curva S elegante con stroke) */}
-              <path d="M 70 175 C 120 170, 80 135, 100 120" fill="none" stroke="#76989d" strokeWidth="10" strokeLinecap="round" />
+              {/* Camino eliminado por petición del usuario */}
 
               {/* Marco de la puerta (Más angosto y alto para mejor proporción) */}
               <polyline points="82,120 82,65 118,65" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
