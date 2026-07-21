@@ -18,31 +18,31 @@ const Login = () => {
               {/* Círculo exterior (Simétrico y centrado) */}
               <path d="M 70 179.5 A 85 85 0 1 1 130 179.5" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="round" />
               
-              {/* Camino (Efecto de carretera con perspectiva que se ensancha abajo) */}
-              <path d="M 65 185 Q 130 160 100 118 Q 80 150 50 178 Z" fill="#76989d" />
+              {/* Camino (Curva S elegante con stroke) */}
+              <path d="M 70 175 C 120 170, 80 135, 100 120" fill="none" stroke="#76989d" strokeWidth="10" strokeLinecap="round" />
 
-              {/* Marco de la puerta (Perfectamente centrado en X=100) */}
-              <polyline points="75,118 75,60 125,60" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
+              {/* Marco de la puerta (Más angosto y alto para mejor proporción) */}
+              <polyline points="82,120 82,65 118,65" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
 
-              {/* Texto JW perfectamente centrado */}
-              <text x="100" y="98" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="24" fill="#76989d" fontWeight="700"
+              {/* Texto JW centrado y ajustado al marco */}
+              <text x="100" y="98" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="20" fill="#76989d" fontWeight="700"
                 style={{
                   transition: 'text-shadow 2s ease-in-out',
                   textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.6)' : 'none'
                 }}
               >JW</text>
 
-              {/* Puerta animada (Bisagra en el poste derecho x=125) */}
+              {/* Puerta animada (Bisagra en el poste derecho x=118) */}
               <g style={{ 
-                transformOrigin: '125px 60px', 
+                transformOrigin: '118px 65px', 
                 transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)',
                 transform: isDoorOpening ? 'perspective(600px) rotateY(105deg)' : 'perspective(600px) rotateY(0deg)',
                 transformStyle: 'preserve-3d'
               }}>
-                  {/* Rectángulo de la puerta (Ligeramente más grande para tapar bien el marco y el texto) */}
-                  <rect x="73" y="58" width="52" height="61" fill={isDoorOpening ? "#5a7a7e" : "#76989d"} style={{ transition: 'fill 2s' }} />
-                  {/* Pomo de la puerta (A la izquierda) */}
-                  <circle cx="82" cy="92" r="2.5" fill="#fff" style={{
+                  {/* Rectángulo de la puerta (Cubre exactamente el marco) */}
+                  <rect x="80" y="63" width="40" height="59" fill={isDoorOpening ? "#5a7a7e" : "#76989d"} style={{ transition: 'fill 2s' }} />
+                  {/* Pomo de la puerta */}
+                  <circle cx="87" cy="94" r="2.5" fill="#fff" style={{
                     transition: 'opacity 2s',
                     opacity: isDoorOpening ? 0.2 : 1
                   }}/>
