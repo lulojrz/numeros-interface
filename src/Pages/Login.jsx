@@ -1,8 +1,6 @@
 import React from 'react'
-import { NumerosContext } from '../context/NumerosContext'
 import { useContext } from 'react'
 import {AuthContext}  from '../context/AuthContext'
-import logoImg from '../assets/logo.jpg'
 import '../App.css'
 
 const Login = () => {
@@ -10,39 +8,38 @@ const Login = () => {
   const {user, setUser, password, setPassword, errors, setErrors, handleSubmit, isLoading, isDoorOpening} = useContext(AuthContext)
 
   return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f4f7f6', overflow: isDoorOpening ? 'hidden' : 'auto' }}>
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
       
-      {/* ANIMACIÓN DE PUERTA */}
-      {isDoorOpening && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          zIndex: 9999, perspective: '2000px', pointerEvents: 'none',
-          display: 'flex', backgroundColor: '#f4f7f6'
-        }}>
-          {/* Panel Izquierdo (Fijo o Bisagra) */}
-          <div style={{
-            width: '100%', height: '100%',
-            backgroundColor: '#76989d', // Color del logo aprox
-            transformOrigin: 'left center',
-            animation: 'abrirPuerta 2.5s forwards ease-in-out',
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            boxShadow: 'inset -10px 0 30px rgba(0,0,0,0.2)'
-          }}>
-            {/* Aquí puedes cambiar logo.jpg por el nombre real de la imagen que guardaste */}
-            <div style={{
-              backgroundColor: 'white', padding: '2rem', borderRadius: '50%',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
-            }}>
-               <img src={logoImg} alt="Logo JW" style={{width: '150px', height: '150px', objectFit: 'contain', borderRadius: '50%'}} onError={(e) => e.target.style.display = 'none'} />
-               {/* Si la imagen falla, el texto de abajo se mostrará como respaldo */}
-               <h1 className="fw-bold m-0" style={{color: '#76989d', textAlign: 'center'}}>JW</h1>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="card shadow-lg p-5" style={{ width: '100%', maxWidth: '420px', borderRadius: '1rem', border: 'none' }}>
         <div className="text-center mb-4">
+          {/* Logo SVG Animado */}
+          <div className="mb-3 d-flex justify-content-center">
+            <svg viewBox="0 0 200 200" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
+              {/* Círculo exterior roto abajo */}
+              <path d="M 70 174 A 85 85 0 1 1 120 182" fill="none" stroke="#76989d" strokeWidth="3" strokeLinecap="round" />
+              
+              {/* Camino ondulado */}
+              <path d="M 68 156 C 130 145, 60 130, 105 118" fill="none" stroke="#76989d" strokeWidth="12" strokeLinecap="round"/>
+
+              {/* Marco de la puerta */}
+              <polyline points="80,118 80,65 120,65" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
+
+              {/* Texto JW oculto detrás de la puerta */}
+              <text x="84" y="102" fontFamily="'Inter', sans-serif" fontSize="24" fill="#76989d" fontWeight="600">JW</text>
+
+              {/* Puerta animada (Bisagra en x=120) */}
+              <g style={{ 
+                transformOrigin: '120px 65px', 
+                transition: 'transform 1.8s ease-in-out',
+                transform: isDoorOpening ? 'perspective(400px) rotateY(-75deg)' : 'perspective(400px) rotateY(0deg)'
+              }}>
+                  <rect x="80" y="65" width="40" height="53" fill="#76989d" />
+                  {/* Pomo de la puerta */}
+                  <circle cx="86" cy="95" r="2.5" fill="#fff" />
+              </g>
+            </svg>
+          </div>
+
           <h2 className="fw-bold" style={{ color: '#334155' }}>Bienvenido</h2>
           <p className="text-muted">Por favor, inicia sesión para continuar</p>
         </div>
