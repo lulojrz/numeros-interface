@@ -25,17 +25,27 @@ const Login = () => {
               <polyline points="80,118 80,65 120,65" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
 
               {/* Texto JW oculto detrás de la puerta */}
-              <text x="84" y="102" fontFamily="'Inter', sans-serif" fontSize="24" fill="#76989d" fontWeight="600">JW</text>
+              <text x="84" y="102" fontFamily="'Inter', sans-serif" fontSize="24" fill="#76989d" fontWeight="600"
+                style={{
+                  transition: 'text-shadow 2s ease-in-out',
+                  textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.5)' : 'none'
+                }}
+              >JW</text>
 
               {/* Puerta animada (Bisagra en x=120) */}
               <g style={{ 
                 transformOrigin: '120px 65px', 
-                transition: 'transform 1.8s ease-in-out',
-                transform: isDoorOpening ? 'perspective(400px) rotateY(-75deg)' : 'perspective(400px) rotateY(0deg)'
+                transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: isDoorOpening ? 'perspective(600px) rotateY(105deg)' : 'perspective(600px) rotateY(0deg)',
+                transformStyle: 'preserve-3d'
               }}>
-                  <rect x="80" y="65" width="40" height="53" fill="#76989d" />
+                  {/* El rectángulo de la puerta cambia ligeramente a un tono más oscuro para simular sombra al abrirse */}
+                  <rect x="79" y="64.5" width="41.5" height="54" fill={isDoorOpening ? "#5a7a7e" : "#76989d"} style={{ transition: 'fill 2s' }} />
                   {/* Pomo de la puerta */}
-                  <circle cx="86" cy="95" r="2.5" fill="#fff" />
+                  <circle cx="86" cy="95" r="2.5" fill="#fff" style={{
+                    transition: 'opacity 2s',
+                    opacity: isDoorOpening ? 0.2 : 1
+                  }}/>
               </g>
             </svg>
           </div>
