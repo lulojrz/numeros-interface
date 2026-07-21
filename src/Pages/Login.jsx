@@ -2,6 +2,8 @@ import React from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 import { useContext } from 'react'
 import {AuthContext}  from '../context/AuthContext'
+import logoImg from '../assets/logo.jpg'
+import '../App.css'
 
 const Login = () => {
 
@@ -31,21 +33,11 @@ const Login = () => {
               backgroundColor: 'white', padding: '2rem', borderRadius: '50%',
               boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
             }}>
-               <img src="/src/assets/logo.jpg" alt="Logo JW" style={{width: '150px', height: '150px', objectFit: 'contain', borderRadius: '50%'}} onError={(e) => e.target.style.display = 'none'} />
-               {/* Si la imagen no se llama logo.jpg, el texto de abajo se mostrará como respaldo */}
+               <img src={logoImg} alt="Logo JW" style={{width: '150px', height: '150px', objectFit: 'contain', borderRadius: '50%'}} onError={(e) => e.target.style.display = 'none'} />
+               {/* Si la imagen falla, el texto de abajo se mostrará como respaldo */}
                <h1 className="fw-bold m-0" style={{color: '#76989d', textAlign: 'center'}}>JW</h1>
             </div>
           </div>
-          
-          <style>
-            {`
-              @keyframes abrirPuerta {
-                0% { transform: rotateY(0deg); opacity: 1; }
-                70% { transform: rotateY(-110deg); opacity: 1; }
-                100% { transform: rotateY(-110deg); opacity: 0; }
-              }
-            `}
-          </style>
         </div>
       )}
 
