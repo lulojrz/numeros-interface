@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState({})
+    const [isDoorOpening, setIsDoorOpening] = useState(false)
 
     useEffect(() => {
         const isAuthenticated = localStorage.getItem('isAuth') === 'true'
@@ -93,8 +94,12 @@ export const AuthProvider = ({ children }) => {
                     localStorage.setItem('usuario', user);
                     console.error("Error de red al buscar el privilegio:", fetchUserError);
                 } finally {
-                    // Navegamos al home una vez terminado el proceso
-                    navigate('/');
+                    // Iniciar animación de puerta
+                    setIsDoorOpening(true);
+                    setTimeout(() => {
+                        setIsDoorOpening(false);
+                        navigate('/');
+                    }, 1500);
                 }
             }
 
@@ -112,7 +117,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, password, setPassword, handleSubmit, errors, setErrors, isLoading }}>
+        <AuthContext.Provider value={{
+            user, setUser, 
+            password, setPassword,
+            errors, setErrors,
+            isLoading,
+            isDoorOpening,
+            handleSubmit
+        }}>
             {children}
         </AuthContext.Provider>
     );
