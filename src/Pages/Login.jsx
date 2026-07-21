@@ -15,35 +15,41 @@ const Login = () => {
           {/* Logo SVG Animado */}
           <div className="mb-3 d-flex justify-content-center">
             <svg viewBox="0 0 200 200" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
-              {/* Círculo exterior (Simétrico y centrado) */}
-              <path d="M 70 179.5 A 85 85 0 1 1 130 179.5" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="round" />
-              {/* Camino eliminado por petición del usuario */}
+              {/* Círculo exterior completamente cerrado */}
+              <circle cx="100" cy="100" r="85" fill="none" stroke="#76989d" strokeWidth="4" />
 
-              {/* Marco de la puerta (Más angosto y alto para mejor proporción) */}
-              <polyline points="82,120 82,65 118,65" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
+              {/* Sombra o Umbral en el piso (Aparece cuando la puerta se abre hacia afuera) */}
+              <polygon points="70,144 50,153 130,144" fill="#76989d" style={{
+                transition: 'opacity 2s',
+                opacity: isDoorOpening ? 1 : 0
+              }} />
 
-              {/* Texto JW centrado y ajustado al marco */}
-              <text x="100" y="98" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="20" fill="#76989d" fontWeight="700"
+              {/* Marco de la puerta (En forma de L invertida, como en la nueva imagen) */}
+              {/* Poste izquierdo */}
+              <rect x="70" y="45" width="10" height="100" fill="#76989d" />
+              {/* Viga superior */}
+              <rect x="70" y="45" width="60" height="10" fill="#76989d" />
+
+              {/* Texto JW centrado en el hueco de la puerta */}
+              <text x="105" y="110" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="32" fill="#76989d" fontWeight="700"
                 style={{
                   transition: 'text-shadow 2s ease-in-out',
                   textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.6)' : 'none'
                 }}
               >JW</text>
 
-              {/* Puerta animada (Bisagra en el poste derecho x=118) */}
+              {/* Puerta animada (Bisagra en x=130) */}
+              {/* Se abre hacia AFUERA (rotateY negativo) para coincidir con la perspectiva de la imagen */}
               <g style={{ 
-                transformOrigin: '118px 65px', 
+                transformOrigin: '130px 55px', 
                 transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)',
-                transform: isDoorOpening ? 'perspective(600px) rotateY(105deg)' : 'perspective(600px) rotateY(0deg)',
+                transform: isDoorOpening ? 'perspective(600px) rotateY(-65deg)' : 'perspective(600px) rotateY(0deg)',
                 transformStyle: 'preserve-3d'
               }}>
-                  {/* Rectángulo de la puerta (Cubre exactamente el marco) */}
-                  <rect x="80" y="63" width="40" height="59" fill={isDoorOpening ? "#5a7a7e" : "#76989d"} style={{ transition: 'fill 2s' }} />
+                  {/* Rectángulo de la puerta */}
+                  <rect x="79" y="55" width="51" height="90" fill={isDoorOpening ? "#6b8e93" : "#76989d"} style={{ transition: 'fill 2s' }} />
                   {/* Pomo de la puerta */}
-                  <circle cx="87" cy="94" r="2.5" fill="#fff" style={{
-                    transition: 'opacity 2s',
-                    opacity: isDoorOpening ? 0.2 : 1
-                  }}/>
+                  <circle cx="86" cy="100" r="3.5" fill="#fff" />
               </g>
             </svg>
           </div>
