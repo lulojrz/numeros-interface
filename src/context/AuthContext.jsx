@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
                     setTimeout(() => {
                         setIsDoorOpening(false);
                         navigate('/');
-                    }, 1500);
+                    }, 2500);
                 }
             }
 

@@ -24,7 +24,7 @@ const Login = () => {
             width: '100%', height: '100%',
             backgroundColor: '#76989d', // Color del logo aprox
             transformOrigin: 'left center',
-            animation: 'abrirPuerta 1.5s forwards ease-in-out',
+            animation: 'abrirPuerta 2.5s forwards ease-in-out',
             display: 'flex', justifyContent: 'center', alignItems: 'center',
             boxShadow: 'inset -10px 0 30px rgba(0,0,0,0.2)'
           }}>

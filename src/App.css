@@ -75,6 +75,7 @@ tr , th, td{
 
 @keyframes abrirPuerta {
   0% { transform: rotateY(0deg); opacity: 1; }
-  70% { transform: rotateY(-110deg); opacity: 1; }
+  25% { transform: rotateY(0deg); opacity: 1; }
+  75% { transform: rotateY(-110deg); opacity: 1; }
   100% { transform: rotateY(-110deg); opacity: 0; }
 }
