@@ -15,34 +15,34 @@ const Login = () => {
           {/* Logo SVG Animado */}
           <div className="mb-3 d-flex justify-content-center">
             <svg viewBox="0 0 200 200" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
-              {/* Círculo exterior roto abajo */}
-              <path d="M 70 174 A 85 85 0 1 1 120 182" fill="none" stroke="#76989d" strokeWidth="3" strokeLinecap="round" />
+              {/* Círculo exterior (Simétrico y centrado) */}
+              <path d="M 70 179.5 A 85 85 0 1 1 130 179.5" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="round" />
               
-              {/* Camino ondulado */}
-              <path d="M 68 156 C 130 145, 60 130, 105 118" fill="none" stroke="#76989d" strokeWidth="12" strokeLinecap="round"/>
+              {/* Camino (Efecto de carretera con perspectiva que se ensancha abajo) */}
+              <path d="M 65 185 Q 130 160 100 118 Q 80 150 50 178 Z" fill="#76989d" />
 
-              {/* Marco de la puerta */}
-              <polyline points="80,118 80,65 120,65" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
+              {/* Marco de la puerta (Perfectamente centrado en X=100) */}
+              <polyline points="75,118 75,60 125,60" fill="none" stroke="#76989d" strokeWidth="4" strokeLinecap="square"/>
 
-              {/* Texto JW oculto detrás de la puerta */}
-              <text x="84" y="102" fontFamily="'Inter', sans-serif" fontSize="24" fill="#76989d" fontWeight="600"
+              {/* Texto JW perfectamente centrado */}
+              <text x="100" y="98" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="24" fill="#76989d" fontWeight="700"
                 style={{
                   transition: 'text-shadow 2s ease-in-out',
-                  textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.5)' : 'none'
+                  textShadow: isDoorOpening ? '0 0 10px rgba(118,152,157,0.6)' : 'none'
                 }}
               >JW</text>
 
-              {/* Puerta animada (Bisagra en x=120) */}
+              {/* Puerta animada (Bisagra en el poste derecho x=125) */}
               <g style={{ 
-                transformOrigin: '120px 65px', 
+                transformOrigin: '125px 60px', 
                 transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)',
                 transform: isDoorOpening ? 'perspective(600px) rotateY(105deg)' : 'perspective(600px) rotateY(0deg)',
                 transformStyle: 'preserve-3d'
               }}>
-                  {/* El rectángulo de la puerta cambia ligeramente a un tono más oscuro para simular sombra al abrirse */}
-                  <rect x="79" y="64.5" width="41.5" height="54" fill={isDoorOpening ? "#5a7a7e" : "#76989d"} style={{ transition: 'fill 2s' }} />
-                  {/* Pomo de la puerta */}
-                  <circle cx="86" cy="95" r="2.5" fill="#fff" style={{
+                  {/* Rectángulo de la puerta (Ligeramente más grande para tapar bien el marco y el texto) */}
+                  <rect x="73" y="58" width="52" height="61" fill={isDoorOpening ? "#5a7a7e" : "#76989d"} style={{ transition: 'fill 2s' }} />
+                  {/* Pomo de la puerta (A la izquierda) */}
+                  <circle cx="82" cy="92" r="2.5" fill="#fff" style={{
                     transition: 'opacity 2s',
                     opacity: isDoorOpening ? 0.2 : 1
                   }}/>
