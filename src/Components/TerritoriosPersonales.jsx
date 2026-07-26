@@ -7,7 +7,45 @@ const TerritoriosPersonales = () => {
     const loggedInUsername = localStorage.getItem('usuario');
     const [mostrarMapa, setMostrarMapa] = useState(false);
 
-    const tieneReservas = numeros.some(n => n.reservado === true && n.reservadoA?.usuario === loggedInUsername);
+    const misReservas = numeros.filter(n => n.reservado === true && n.reservadoA?.usuario === loggedInUsername);
+    const tieneReservas = misReservas.length > 0;
+
+    let fechaAsignacion = null;
+    let diasRestantes = 0;
+    let progreso = 0;
+    let colorProgreso = 'bg-success';
+    const DIAS_TOTALES = 90; // Aprox 3 meses
+
+    if (tieneReservas) {
+        // Encontrar la fecha de reserva más antigua (fecha de asignación del territorio)
+        const fechasValidas = misReservas
+            .map(n => n.fechaReserva)
+            .filter(f => f != null)
+            .map(f => new Date(f).getTime());
+        
+        if (fechasValidas.length > 0) {
+            const fechaMinima = Math.min(...fechasValidas);
+            fechaAsignacion = new Date(fechaMinima);
+            
+            // Calcular fecha límite sumando los días totales
+            const fechaLimite = new Date(fechaAsignacion.getTime() + (DIAS_TOTALES * 24 * 60 * 60 * 1000));
+            
+            const hoy = new Date();
+            const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
+            diasRestantes = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+            
+            if (diasRestantes < 0) diasRestantes = 0;
+            
+            progreso = ((DIAS_TOTALES - diasRestantes) / DIAS_TOTALES) * 100;
+            if (progreso > 100) progreso = 100;
+            
+            if (diasRestantes <= 15) {
+                colorProgreso = 'bg-danger';
+            } else if (diasRestantes <= 30) {
+                colorProgreso = 'bg-warning';
+            }
+        }
+    }
 
     const enviarMensaje = (e) => {
         e.preventDefault();
@@ -21,6 +59,43 @@ const TerritoriosPersonales = () => {
         <div className="card shadow-sm p-4 border-0" style={{ borderRadius: '1rem' }}>
             {tieneReservas ? (
                 <div className="mt-2">
+                    {fechaAsignacion && (
+                        <div className="card shadow-sm mb-4 border-0" style={{ borderRadius: '0.75rem', backgroundColor: '#f8f9fa' }}>
+                            <div className="card-body p-4">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 className="card-title text-primary fw-bold mb-0">
+                                        <i className="bi bi-clock-history me-2"></i>
+                                        Progreso del Territorio
+                                    </h5>
+                                    <span className={`badge ${diasRestantes <= 15 ? 'bg-danger' : diasRestantes <= 30 ? 'bg-warning text-dark' : 'bg-success'} fs-6 px-3 py-2 shadow-sm rounded-pill`}>
+                                        {diasRestantes} días restantes
+                                    </span>
+                                </div>
+                                
+                                <div className="progress mb-3 shadow-sm" style={{ height: '1.5rem', borderRadius: '1rem', backgroundColor: '#e9ecef' }}>
+                                    <div 
+                                        className={`progress-bar progress-bar-striped progress-bar-animated ${colorProgreso}`} 
+                                        role="progressbar" 
+                                        style={{ width: `${progreso}%` }} 
+                                        aria-valuenow={progreso} 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100"
+                                    ></div>
+                                </div>
+                                
+                                <div className="d-flex justify-content-between text-muted small fw-semibold px-1">
+                                    <span>
+                                        <i className="bi bi-calendar-check me-1 text-primary"></i>
+                                        Asignado: {fechaAsignacion.toLocaleDateString()}
+                                    </span>
+                                    <span>
+                                        <i className="bi bi-calendar-x me-1 text-danger"></i>
+                                        Vence: {new Date(fechaAsignacion.getTime() + (DIAS_TOTALES * 24 * 60 * 60 * 1000)).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <MisReservas hideEmpty={false} />
                 </div>
             ) : (
