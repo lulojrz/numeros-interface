@@ -36,6 +36,8 @@ export const NumerosProvider = ({ children }) => {
     }, [])
 
     const actualizarNumero = async (objetoActualizado) => {
+        // Actualización optimista de la UI
+        setNumeros(prev => prev.map(n => n.id === objetoActualizado.id ? objetoActualizado : n));
 
         try {
             await fetch(`${api}/api/editar/${objetoActualizado.id}`, {
@@ -53,11 +55,12 @@ export const NumerosProvider = ({ children }) => {
             cargarProductos();
         }   
         catch (error) {
-
             Toast.fire({
                 icon: 'error',
                 title: 'Error al actualizar el número'
             });
+            // Revertir en caso de error
+            cargarProductos();
         }
 
     }
@@ -171,10 +174,19 @@ export const NumerosProvider = ({ children }) => {
 
         const actualizarReserva = async (filtrados, usuarioSeleccionado) => {
 
-
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            const seconds = String(d.getSeconds()).padStart(2, '0');
+            const currentDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+            
             let filtraditos = filtrados.map((num) => ({
                 ...num,
                 reservado: true,
+                fechaReserva: currentDate,
                 ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
                 reservadoA: usuarioSeleccionado ? { usuario: usuarioSeleccionado.usuario } : null,
                 tocar: num.tocar !== undefined ? num.tocar : true
@@ -217,6 +229,7 @@ export const NumerosProvider = ({ children }) => {
                 ...num,
                 reservado: false,
                 reservadoA: null,
+                fechaReserva: null,
                 ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
                 tocar: num.tocar !== undefined ? num.tocar : true
             }));

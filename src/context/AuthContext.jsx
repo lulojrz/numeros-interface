@@ -53,6 +53,15 @@ export const AuthProvider = ({ children }) => {
             });
 
             if (!res.ok) {
+                if (res.status === 502 || res.status === 503) {
+                    Swal.fire(
+                        'Servidor iniciando',
+                        'El servidor está despertando. Por favor, reintentá en 10 segundos.',
+                        'info'
+                    );
+                    return;
+                }
+
                 const errorMessage = await res.text();
                 Swal.fire({
                     icon: 'error',
@@ -105,12 +114,12 @@ export const AuthProvider = ({ children }) => {
 
         } catch (err) {
             console.error("Error crítico en el login:", err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Algo salió mal. Por favor, inténtalo de nuevo más tarde.',
-                confirmButtonColor: '#007bff'
-            });
+            // Si la API estaba dormida o tira error de red
+            Swal.fire(
+                'Servidor iniciando', 
+                'El servidor está despertando. Por favor, reintentá en 10 segundos.', 
+                'info'
+            );
         } finally {
             setIsLoading(false);
         }

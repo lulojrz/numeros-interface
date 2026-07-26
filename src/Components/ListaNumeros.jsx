@@ -152,7 +152,8 @@ const ListaNumeros = () => {
                                     <th scope="col" className="text-secondary fw-semibold">Última Fecha (Y-MM-DD)</th>
                                     <th scope="col" className="text-secondary fw-semibold">Último Usuario</th>
                                     <th scope="col" className="text-secondary fw-semibold">Reservado</th>
-                                    <th scope="col" className="text-secondary fw-semibold">ReservadoA</th>
+                                    <th scope="col" className="text-secondary fw-semibold">Reservado A</th>
+                                    <th scope="col" className="text-secondary fw-semibold">Fecha Reserva</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -168,6 +169,7 @@ const ListaNumeros = () => {
                                             <td><div className="skeleton skeleton-text w-75 my-1"></div></td>
                                             <td><div className="skeleton skeleton-text w-60 my-1"></div></td>
                                             <td><div className="skeleton skeleton-text w-50 my-1"></div></td>
+                                            <td><div className="skeleton skeleton-text w-60 my-1"></div></td>
                                             <td><div className="skeleton skeleton-text w-60 my-1"></div></td>
                                         </tr>
                                     ))
@@ -192,11 +194,12 @@ const ListaNumeros = () => {
                                                 {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}
                                             </td>
                                             <td className="text-muted fw-semibold">{num.reservadoA?.usuario || '-'}</td>
+                                            <td className="text-muted">{num.fechaReserva ? num.fechaReserva.slice(0, 10) : '-'}</td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="9" className="text-center py-4 text-muted">
+                                        <td colSpan="10" className="text-center py-4 text-muted">
                                             No se encontraron números disponibles.
                                         </td>
                                     </tr>
@@ -241,9 +244,10 @@ const ListaNumeros = () => {
                                             <span><strong>Últ. Fecha:</strong> {num.ultimaFecha ? num.ultimaFecha.slice(0, 10) : '-'}</span>
                                             <span><strong>Res:</strong> {num.reservado ? <span className="badge bg-success">Sí</span> : <span className="badge bg-secondary">No</span>}</span>
                                         </div>
-                                        <p className="card-text mb-0 text-muted small">
-                                            <strong>Reservado A:</strong> {num.reservadoA?.usuario || '-'}
-                                        </p>
+                                        <div className="d-flex justify-content-between mb-0 text-muted small">
+                                            <span><strong>Reservado A:</strong> {num.reservadoA?.usuario || '-'}</span>
+                                            <span><strong>Fecha Res:</strong> {num.fechaReserva ? num.fechaReserva.slice(0, 10) : '-'}</span>
+                                        </div>
                                     </div>
                                 </div>
                             ))

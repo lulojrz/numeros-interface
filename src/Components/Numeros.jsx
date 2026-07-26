@@ -13,8 +13,12 @@ const Numeros = () => {
     
     useEffect(()=>{
       if (filtrador.length > 0) {
-        setnumeroAzar(0);
-        setNumero(filtrador[0]?.numero);
+        // Seleccionar aleatoriamente entre los 15 más antiguos (o menos si no hay tantos)
+        const maxIndex = Math.min(15, filtrador.length) - 1;
+        const randomIndex = Math.floor(Math.random() * (maxIndex + 1));
+        
+        setnumeroAzar(randomIndex);
+        setNumero(filtrador[randomIndex]?.numero);
       }
      } ,[numeros])
 
