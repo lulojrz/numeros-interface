@@ -61,6 +61,9 @@ const ListaNumeros = () => {
         setSeleccionado(null);
     };
 
+    const hayFiltrosActivos = busqueda.trim() !== "" || filtroTerritorio !== "" || filtroEdificio !== "" || filtroReservado !== "";
+    const puedeModificarBloque = hayFiltrosActivos && productosFiltrados && productosFiltrados.length > 0;
+
     return (
         <>
             <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
@@ -123,10 +126,22 @@ const ListaNumeros = () => {
                                 }}>
                                     Limpiar Filtros
                                 </button>
-                                <button type="button" className="btn btn-success btn-sm px-3 shadow-sm" onClick={() => setMostrarModal(true)}>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-success btn-sm px-3 shadow-sm" 
+                                    onClick={() => setMostrarModal(true)}
+                                    disabled={!puedeModificarBloque}
+                                    title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para reservar" : ""}
+                                >
                                     Reservar Filtrados
                                 </button>
-                                <button type="button" className="btn btn-danger btn-sm px-3 shadow-sm" onClick={() => sacarReservados(productosFiltrados)}>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-danger btn-sm px-3 shadow-sm" 
+                                    onClick={() => sacarReservados(productosFiltrados)}
+                                    disabled={!puedeModificarBloque}
+                                    title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para liberar" : ""}
+                                >
                                     Liberar Filtrados
                                 </button>
                             </div>
