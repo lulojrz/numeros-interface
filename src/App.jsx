@@ -1,4 +1,4 @@
-import { useState, useContext, lazy, Suspense } from 'react' // 1. Importamos lazy y Suspense
+import { useState, useContext, lazy, Suspense, useEffect } from 'react' // 1. Importamos lazy y Suspense
 import { Routes, Route } from 'react-router-dom'
 import './App.css'
 
