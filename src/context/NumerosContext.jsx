@@ -17,6 +17,15 @@ export const NumerosProvider = ({ children }) => {
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
     const [filtroEdificio, setFiltroEdificio] = useState("")
     const [filtroReservado, setFiltroReservado] = useState("")
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    });
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
     const api = `${import.meta.env.VITE_API_URL}`
 
     const Toast = Swal.mixin({
@@ -267,9 +276,9 @@ export const NumerosProvider = ({ children }) => {
 
 
         return (
-            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, filtroReservado, setFiltroReservado, actualizarReserva, sacarReservados }}>
+            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, filtroReservado, setFiltroReservado, actualizarReserva, sacarReservados, theme, setTheme }}>
                 {children}
             </NumerosContext.Provider>
         )
 
-    } 
+    }

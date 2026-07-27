@@ -15,7 +15,7 @@ const MisReservas = ({ hideEmpty = false }) => {
         if (!reserva.ultimaFecha) return <span className="badge bg-secondary">Sin llamar</span>;
         if (reserva.tocar === false) return <span className="badge bg-danger">Fuera de Servicio</span>;
         if (reserva.contesta === true) return <span className="badge bg-success">Contesta</span>;
-        if (reserva.contesta === false) return <span className="badge bg-warning text-dark">No Contesta</span>;
+        if (reserva.contesta === false) return <span className="badge bg-warning text-body">No Contesta</span>;
         return <span className="badge bg-secondary">Sin estado</span>;
     };
 
@@ -113,7 +113,7 @@ const MisReservas = ({ hideEmpty = false }) => {
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <h5 className="card-title text-primary fw-bold mb-0">{reserva.numero}</h5>
-                                        <span className="badge bg-light text-dark border">Terr: {reserva.territorio}</span>
+                                        <span className="badge bg-body-tertiary text-body border">Terr: {reserva.territorio}</span>
                                     </div>
                                     <p className="card-text mb-1 text-muted small">
                                         <strong>Dirección:</strong> {reserva.direccion}
@@ -144,7 +144,7 @@ const MisReservas = ({ hideEmpty = false }) => {
                                 <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
                             </div>
                             <div className="modal-body text-center px-3 px-md-4">
-                                <h2 className="display-6 fw-bold mb-3 text-dark">{reservaSeleccionada.numero}</h2>
+                                <h2 className="display-6 fw-bold mb-3 text-body">{reservaSeleccionada.numero}</h2>
                                 <hr className="my-3" style={{ opacity: 0.1 }} />
                                 <div className="text-start ps-md-4">
                                     <p className="mb-2" style={{ fontSize: '1.1rem' }}>
@@ -166,7 +166,7 @@ const MisReservas = ({ hideEmpty = false }) => {
                                     <button className="btn btn-success py-2 fw-semibold shadow-sm" onClick={() => handleResultado(reservaSeleccionada, 'contesta')}>
                                         Contesta
                                     </button>
-                                    <button className="btn btn-warning py-2 fw-semibold text-dark shadow-sm" onClick={() => handleResultado(reservaSeleccionada, 'noContesta')}>
+                                    <button className="btn btn-warning py-2 fw-semibold text-body shadow-sm" onClick={() => handleResultado(reservaSeleccionada, 'noContesta')}>
                                         No Contesta
                                     </button>
                                     <button className="btn btn-danger py-2 fw-semibold shadow-sm" onClick={() => handleResultado(reservaSeleccionada, 'fueraServicio')}>

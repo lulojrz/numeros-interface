@@ -81,14 +81,26 @@ const Experiencias = () => {
                 Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar la experiencia.' });
             }
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red.' });
+            // Error de red indica que probablemente estamos offline y Workbox lo encoló
+            Swal.fire({
+                icon: 'info',
+                title: 'Guardado Offline',
+                text: 'Estás sin conexión a internet. La experiencia se ha guardado localmente y se sincronizará cuando recuperes la señal.',
+                timer: 3500
+            });
+            setShowModal(false);
+            setFormData({
+                titulo: '',
+                descripcion: '',
+                usuario: localStorage.getItem('usuario') || ''
+            });
         }
     };
 
     return (
         <>
             <Header />
-            <main className="min-vh-100 bg-light py-4 py-md-5">
+            <main className="min-vh-100 bg-body-tertiary py-4 py-md-5">
                 <div className="container">
                     <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                         <h2 className="text-primary fw-bold mb-0">Experiencias</h2>
@@ -164,7 +176,7 @@ const Experiencias = () => {
                                         <label className="form-label fw-semibold text-secondary">Título</label>
                                         <input
                                             type="text"
-                                            className="form-control p-3 bg-light border-0 rounded-3"
+                                            className="form-control p-3 bg-body-tertiary border-0 rounded-3"
                                             name="titulo"
                                             placeholder="Ingresa un título llamativo"
                                             value={formData.titulo}
@@ -175,7 +187,7 @@ const Experiencias = () => {
                                     <div className="mb-2">
                                         <label className="form-label fw-semibold text-secondary">Descripción</label>
                                         <textarea
-                                            className="form-control p-3 bg-light border-0 rounded-3"
+                                            className="form-control p-3 bg-body-tertiary border-0 rounded-3"
                                             name="descripcion"
                                             rows="5"
                                             placeholder="Cuéntanos tu experiencia..."

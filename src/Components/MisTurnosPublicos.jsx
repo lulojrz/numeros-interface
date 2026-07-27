@@ -126,7 +126,7 @@ const MisTurnosPublicos = () => {
             <div className="row g-3">
                 {turnos.map(turno => (
                     <div key={turno.id} className="col-12 col-md-6 col-lg-4">
-                        <div className={`card h-100 shadow-sm border-0 ${esPasado ? 'bg-light' : 'border-start border-primary border-4'}`}>
+                        <div className={`card h-100 shadow-sm border-0 ${esPasado ? 'bg-body-tertiary' : 'border-start border-primary border-4'}`}>
                             <div className="card-body p-4">
                                 <h5 className={`card-title fw-bold text-capitalize ${esPasado ? 'text-secondary' : 'text-primary'}`}>
                                     {formatearFecha(turno.fecha)}
@@ -143,13 +143,13 @@ const MisTurnosPublicos = () => {
                                 <div className="d-flex flex-column gap-2">
                                     <div className="d-flex align-items-center">
                                         <i className="bi bi-person-fill text-secondary me-2"></i>
-                                        <span className={turno.publicador1?.usuario === usuarioActual ? 'fw-bold text-dark' : 'text-muted'}>
+                                        <span className={turno.publicador1?.usuario === usuarioActual ? 'fw-bold text-body' : 'text-muted'}>
                                             {turno.publicador1 ? `${turno.publicador1.nombre} ${turno.publicador1.apellido || ''}` : 'Libre'}
                                         </span>
                                     </div>
                                     <div className="d-flex align-items-center">
                                         <i className="bi bi-person-fill text-secondary me-2"></i>
-                                        <span className={turno.publicador2?.usuario === usuarioActual ? 'fw-bold text-dark' : 'text-muted'}>
+                                        <span className={turno.publicador2?.usuario === usuarioActual ? 'fw-bold text-body' : 'text-muted'}>
                                             {turno.publicador2 ? `${turno.publicador2.nombre} ${turno.publicador2.apellido || ''}` : 'Libre'}
                                         </span>
                                     </div>

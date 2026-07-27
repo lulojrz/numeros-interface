@@ -215,7 +215,7 @@ const GestionPlantillas = () => {
             <div className="row g-4">
                 {/* Formulario de Creación */}
                 <div className="col-12 col-lg-4">
-                    <div className="card shadow-sm border-0 bg-light">
+                    <div className="card shadow-sm border-0 bg-body-tertiary">
                         <div className="card-body p-4">
                             <h4 className="card-title fw-bold text-primary mb-4">Crear Plantilla</h4>
                             <form onSubmit={handleSubmit}>

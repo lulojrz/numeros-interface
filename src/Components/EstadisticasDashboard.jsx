@@ -129,7 +129,7 @@ const EstadisticasDashboard = () => {
         <div className="container-fluid p-0 mt-4">
             
             <div className="d-flex justify-content-end mb-3">
-                <div className="d-flex align-items-center bg-white rounded-pill px-3 py-1 shadow-sm border">
+                <div className="d-flex align-items-center bg-body rounded-pill px-3 py-1 shadow-sm border">
                     <i className="bi bi-calendar-event text-primary me-2"></i>
                     <span className="text-secondary fw-semibold me-2">Año de Estadísticas:</span>
                     <select 

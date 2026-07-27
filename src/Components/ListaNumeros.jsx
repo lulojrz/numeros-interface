@@ -67,7 +67,7 @@ const ListaNumeros = () => {
     return (
         <>
             <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
-                <div className="card shadow-sm p-3 border-0 bg-light" style={{ borderRadius: '0.75rem' }}>
+                <div className="card shadow-sm p-3 border-0 bg-body-tertiary" style={{ borderRadius: '0.75rem' }}>
                     <h6 className="mb-3 text-secondary fw-bold">Filtros de Búsqueda</h6>
                     <div className="row g-3">
                         <div className="col-md-3">
@@ -246,7 +246,7 @@ const ListaNumeros = () => {
                                     <div className="card-body">
                                         <div className="d-flex justify-content-between align-items-center mb-2">
                                             <h5 className="card-title text-primary fw-bold mb-0">{num.numero}</h5>
-                                            <span className="badge bg-light text-dark border">Terr: {num.territorio}</span>
+                                            <span className="badge bg-body-tertiary text-body border">Terr: {num.territorio}</span>
                                         </div>
                                         <p className="card-text mb-2 text-muted small">
                                             <strong>Dirección:</strong> {num.direccion}
@@ -267,7 +267,7 @@ const ListaNumeros = () => {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-4 text-muted border rounded shadow-sm bg-white">
+                            <div className="text-center py-4 text-muted border rounded shadow-sm bg-body">
                                 No se encontraron números disponibles.
                             </div>
                         )}

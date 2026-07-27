@@ -67,7 +67,7 @@ const TerritoriosPersonales = () => {
                                         <i className="bi bi-clock-history me-2"></i>
                                         Progreso del Territorio
                                     </h5>
-                                    <span className={`badge ${diasRestantes <= 15 ? 'bg-danger' : diasRestantes <= 30 ? 'bg-warning text-dark' : 'bg-success'} fs-6 px-3 py-2 shadow-sm rounded-pill`}>
+                                    <span className={`badge ${diasRestantes <= 15 ? 'bg-danger' : diasRestantes <= 30 ? 'bg-warning text-body' : 'bg-success'} fs-6 px-3 py-2 shadow-sm rounded-pill`}>
                                         {diasRestantes} días restantes
                                     </span>
                                 </div>
@@ -115,14 +115,14 @@ const TerritoriosPersonales = () => {
                     </div>
 
                     <div className="mx-auto" style={{ maxWidth: '600px' }}>
-                        <form onSubmit={enviarMensaje} className="p-3 bg-white border rounded-3 shadow-sm">
+                        <form onSubmit={enviarMensaje} className="p-3 bg-body border rounded-3 shadow-sm">
                             <label htmlFor="territorio" className="form-label fw-semibold text-secondary mb-3">
                                 <i className="bi bi-whatsapp text-success me-2"></i>
                                 Solicita tu territorio por WhatsApp:
                             </label>
                             
                             <div className="input-group input-group-lg mb-2">
-                                <span className="input-group-text bg-light text-secondary">
+                                <span className="input-group-text bg-body-tertiary text-secondary">
                                     <i className="bi bi-search"></i>
                                 </span>
                                 <input 
@@ -175,7 +175,7 @@ const TerritoriosPersonales = () => {
                                     display: 'flex', 
                                     flexDirection: 'column' 
                                 }}>
-                                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-body-tertiary">
                                         <h5 className="m-0 fw-bold text-primary">
                                             <i className="bi bi-geo-alt-fill me-2"></i>
                                             Mapa de Territorios

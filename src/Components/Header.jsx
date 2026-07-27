@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { NumerosContext } from '../context/NumerosContext'
 
 const Header = () => {
-  const { isAuthenticated, setIsAuth } = useContext(NumerosContext);
+  const { isAuthenticated, setIsAuth, theme, setTheme } = useContext(NumerosContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,7 +14,7 @@ const Header = () => {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+      <nav className="navbar navbar-expand-lg bg-body-tertiary border-bottom">
         <div className="container-fluid px-4"> 
             <Link className="navbar-brand fw-bold text-primary" to={'/'} style={{ letterSpacing: '-0.5px' }}>
                 Colegiales CRM
@@ -38,24 +38,24 @@ const Header = () => {
                         <>
                             {localStorage.getItem('usuario') && (
                                 <li className="nav-item mb-3 mb-lg-0 me-lg-3">
-                                    <span className="badge bg-info text-dark rounded-pill px-3 py-2">
+                                    <span className="badge bg-primary text-white rounded-pill px-3 py-2">
                                         <i className="bi bi-person-badge me-1"></i>
                                         {localStorage.getItem('usuario')} [{localStorage.getItem('privilegio') || '...'}]
                                     </span>
                                 </li>
                             )}
                             <li className="nav-item mb-2 mb-lg-0 me-lg-2">
-                                <Link className="nav-link fw-semibold text-dark" to={'/experiencias'}>
+                                <Link className="nav-link fw-semibold text-body" to={'/experiencias'}>
                                     Experiencias
                                 </Link>
                             </li>
                             <li className="nav-item mb-2 mb-lg-0 me-lg-2">
-                                <Link className="nav-link fw-semibold text-dark" to={'/predicacion'}>
+                                <Link className="nav-link fw-semibold text-body" to={'/predicacion'}>
                                     Predicación
                                 </Link>
                             </li>
                             <li className="nav-item mb-4 mb-lg-0 me-lg-3">
-                                <Link className="nav-link fw-semibold text-dark" to={'/admin'}>
+                                <Link className="nav-link fw-semibold text-body" to={'/admin'}>
                                     Administración
                                 </Link>
                             </li>
@@ -72,6 +72,15 @@ const Header = () => {
                             </Link>
                         </li>
                     )}
+                    <li className="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        <button 
+                            className="btn btn-sm btn-outline-secondary rounded-circle" 
+                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                            title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                        >
+                            {theme === 'dark' ? <i className="bi bi-sun-fill"></i> : <i className="bi bi-moon-stars-fill"></i>}
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -50,7 +50,7 @@ const MisLlamados = () => {
                                             {llamado.contesta ? (
                                                 <span className="badge bg-success">Contesta</span>
                                             ) : (
-                                                <span className="badge bg-warning text-dark">No Contesta</span>
+                                                <span className="badge bg-warning text-body">No Contesta</span>
                                             )}
                                         </td>
                                     </tr>
@@ -69,7 +69,7 @@ const MisLlamados = () => {
                                         {llamado.contesta ? (
                                             <span className="badge bg-success">Contesta</span>
                                         ) : (
-                                            <span className="badge bg-warning text-dark">No Contesta</span>
+                                            <span className="badge bg-warning text-body">No Contesta</span>
                                         )}
                                     </div>
                                     <p className="card-text mb-1 text-muted small">

@@ -59,7 +59,7 @@ const Admin = () => {
             <h1 className="h2 mb-2 mb-md-0">Panel de Administracion</h1> 
             <div className="d-flex gap-2 align-items-center flex-wrap">
                 {isANC && (
-                    <Link to="/admin/usuarios" className="btn btn-info fw-semibold text-dark shadow-sm">
+                    <Link to="/admin/usuarios" className="btn btn-info fw-semibold text-body shadow-sm">
                         <i className="bi bi-people-fill me-2"></i>Gestión de Usuarios
                     </Link>
                 )}
@@ -128,7 +128,7 @@ const Admin = () => {
             </>
             )}
             <button 
-                className={`btn flex-fill fw-semibold ${clickllamados ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}`}
+                className={`btn flex-fill fw-semibold ${clickllamados ? 'btn-warning text-body' : 'btn-outline-warning text-body'}`}
                 onClick={()=>{setClickllamados(true); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false); setClickReservas(false);}}
             >
                 Mis Llamados

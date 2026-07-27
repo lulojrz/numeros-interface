@@ -160,7 +160,8 @@ const PredicacionPublica = () => {
         }
     };
 
-    const manejarTurno = async (idTurno, isDesanotando) => {
+    const manejarTurno = async (turno, isDesanotando) => {
+        const idTurno = turno.id;
         if (isDesanotando) {
             const result = await Swal.fire({
                 title: '¿Cancelar turno?',
@@ -188,7 +189,8 @@ const PredicacionPublica = () => {
                 
                 if (!isDesanotando) {
                     const numeroEncargado = "1139562904";
-                    const enlaceWpp = `https://wa.me/549${numeroEncargado}`;
+                    const mensaje = encodeURIComponent(`Hola Luca, te quería avisar que voy a sacar el carrito de ${turno.horaInicio} a ${turno.horaFin}.`);
+                    const enlaceWpp = `https://wa.me/549${numeroEncargado}?text=${mensaje}`;
                     Swal.fire({
                         title: '¡Anotado con éxito!',
                         html: `En el caso de querer participar con carrito acuérdate de avisarle al hermano que lo tiene en su casa.<br><br><a href="${enlaceWpp}" target="_blank" class="btn btn-success mt-3" style="text-decoration: none;"><i class="bi bi-whatsapp me-2"></i>Avisar por WhatsApp</a>`,
@@ -253,7 +255,7 @@ const PredicacionPublica = () => {
 
         if (estaAnotado) {
             return (
-                <button onClick={() => manejarTurno(turno.id, true)} className="btn btn-outline-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
+                <button onClick={() => manejarTurno(turno, true)} className="btn btn-outline-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
                     <i className="bi bi-x-circle me-2"></i>Desanotarme
                 </button>
             );
@@ -268,7 +270,7 @@ const PredicacionPublica = () => {
         }
 
         return (
-            <button onClick={() => manejarTurno(turno.id, false)} className="btn btn-primary w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
+            <button onClick={() => manejarTurno(turno, false)} className="btn btn-primary w-100 mt-3 fw-bold rounded-pill shadow-sm" style={{transition: 'transform 0.1s'}}>
                 <i className="bi bi-check-circle me-2"></i>Anotarme
             </button>
         );
@@ -302,7 +304,7 @@ const PredicacionPublica = () => {
                     <div className="row align-items-center g-4">
                         {/* Navegador de Semana */}
                         <div className="col-12 col-lg-5">
-                            <div className="d-flex justify-content-between align-items-center bg-light p-2 rounded-pill">
+                            <div className="d-flex justify-content-between align-items-center bg-body-tertiary p-2 rounded-pill">
                                 <button onClick={() => cambiarSemana(-7)} className="btn btn-sm btn-white rounded-circle shadow-sm" style={{width: '36px', height: '36px'}}>
                                     <i className="bi bi-chevron-left"></i>
                                 </button>
@@ -329,7 +331,7 @@ const PredicacionPublica = () => {
                             </div>
                             
                             <select 
-                                className="form-select form-select-sm shadow-sm border-0 bg-light fw-medium text-secondary" 
+                                className="form-select form-select-sm shadow-sm border-0 bg-body-tertiary fw-medium text-secondary" 
                                 value={filtroHorario} 
                                 onChange={(e) => setFiltroHorario(e.target.value)}
                                 style={{ width: 'auto', minWidth: '130px' }}
@@ -341,7 +343,7 @@ const PredicacionPublica = () => {
                             </select>
 
                             <select 
-                                className="form-select form-select-sm shadow-sm border-0 bg-light fw-medium text-secondary" 
+                                className="form-select form-select-sm shadow-sm border-0 bg-body-tertiary fw-medium text-secondary" 
                                 value={filtroPunto} 
                                 onChange={(e) => setFiltroPunto(e.target.value)}
                                 style={{ width: 'auto', minWidth: '140px' }}
@@ -364,7 +366,7 @@ const PredicacionPublica = () => {
                     return (
                         <li className="nav-item" key={index}>
                             <button
-                                className={`nav-link fw-bold px-4 rounded-pill ${isActivo ? 'active shadow' : 'bg-white text-secondary border'}`}
+                                className={`nav-link fw-bold px-4 rounded-pill ${isActivo ? 'active shadow' : 'bg-body text-secondary border'}`}
                                 onClick={() => setDiaActivo(fechaStr)}
                             >
                                 {diasSemanaNombres[dia.getDay()]} {dia.getDate()}
@@ -382,7 +384,7 @@ const PredicacionPublica = () => {
                     </div>
                 </div>
             ) : turnosFiltrados.length === 0 ? (
-                <div className="text-center py-5 bg-white shadow-sm rounded-4 border-0">
+                <div className="text-center py-5 bg-body shadow-sm rounded-4 border-0">
                     <i className="bi bi-inbox text-muted" style={{ fontSize: '3rem' }}></i>
                     <h5 className="mt-3 text-secondary">No hay turnos para mostrar</h5>
                     <p className="text-muted mb-0">Prueba cambiando de día o ajustando los filtros.</p>
@@ -410,7 +412,7 @@ const PredicacionPublica = () => {
                                                 <i className="bi bi-clock-fill fs-5"></i>
                                             </div>
                                             <div>
-                                                <h5 className="mb-0 fw-bold text-dark">
+                                                <h5 className="mb-0 fw-bold text-body">
                                                     {turno.horaInicio.slice(0, 5)} <span className="text-muted fw-normal mx-1">a</span> {turno.horaFin.slice(0, 5)}
                                                 </h5>
                                             </div>
@@ -434,11 +436,11 @@ const PredicacionPublica = () => {
 
                                         <div className="d-flex flex-column gap-2 mb-3">
                                             {/* Slot 1 */}
-                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light overflow-hidden">
+                                            <div className="d-flex align-items-center p-2 rounded-3 bg-body-tertiary overflow-hidden">
                                                 <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>1</div> 
                                                 <div className="text-truncate">
                                                     {turno.publicador1 ? (
-                                                        <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
+                                                        <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
                                                             {turno.publicador1.nombre} {turno.publicador1.apellido}
                                                         </span>
                                                     ) : (
@@ -448,11 +450,11 @@ const PredicacionPublica = () => {
                                             </div>
 
                                             {/* Slot 2 */}
-                                            <div className="d-flex align-items-center p-2 rounded-3 bg-light overflow-hidden">
+                                            <div className="d-flex align-items-center p-2 rounded-3 bg-body-tertiary overflow-hidden">
                                                 <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>2</div> 
                                                 <div className="text-truncate">
                                                     {turno.publicador2 ? (
-                                                        <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-dark'}`}>
+                                                        <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
                                                             {turno.publicador2.nombre} {turno.publicador2.apellido}
                                                         </span>
                                                     ) : (

@@ -58,7 +58,7 @@ const PorEliminar = () => {
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <h5 className="card-title text-danger fw-bold mb-0">{num.numero}</h5>
-                                        <span className="badge bg-light text-dark border">Terr: {num.territorio}</span>
+                                        <span className="badge bg-body-tertiary text-body border">Terr: {num.territorio}</span>
                                     </div>
                                     <p className="card-text mb-1 text-muted small">
                                         <strong>Dirección:</strong> {num.direccion}

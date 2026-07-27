@@ -2,8 +2,6 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #f4f7f6;
-    color: #334155;
 }
 
 main {
@@ -32,7 +30,7 @@ table{
     margin-top: 20px;
 }
 tr , th, td{
-    border: 1px solid black;
+    border: 1px solid var(--bs-border-color);
     padding: 10px;
     text-align: center;
 }

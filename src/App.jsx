@@ -18,12 +18,22 @@ const PredicacionPublica = lazy(() => import('./Pages/PredicacionPublica'))
 
 function App() {
   const { numero, numeros, error, loading, setNumero, isAuthenticated } = useContext(NumerosContext)
+  
+  // Theme state
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   return (
     <>
       {/* 4. Envolvemos las rutas en Suspense e inyectamos un spinner de Bootstrap como fallback temporal */}
       <Suspense fallback={
-        <div className="d-flex min-vh-100 justify-content-center align-items-center bg-light">
+        <div className="d-flex min-vh-100 justify-content-center align-items-center bg-body-tertiary">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Cargando sección...</span>
           </div>

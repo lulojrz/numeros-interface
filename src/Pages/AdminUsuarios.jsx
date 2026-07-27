@@ -366,7 +366,7 @@ const AdminUsuarios = () => {
                                         </div>
                                     ))}
                                     {usuariosFiltrados.length === 0 && (
-                                        <div className="text-center py-4 text-muted border rounded shadow-sm bg-white">
+                                        <div className="text-center py-4 text-muted border rounded shadow-sm bg-body">
                                             No se encontraron usuarios.
                                         </div>
                                     )}

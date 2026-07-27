@@ -15,7 +15,7 @@ const Home = () => {
   return (
     <>
       <Header></Header>
-      <main className="min-vh-100 bg-light pb-5">
+      <main className="min-vh-100 bg-body-tertiary pb-5">
         {!isAuthenticated ? (
             <div className="container py-5 mt-5 text-center">
                 <div className="row justify-content-center">

@@ -52,7 +52,7 @@ const PantallaNumero = ({ objeto }) => {
         <div className="container p-3">
 
             <div
-                className="card p-4 mb-4 bg-white"
+                className="card p-4 mb-4 bg-body"
                 style={{
                     maxWidth: '450px',
                     margin: '0 auto',
@@ -69,7 +69,7 @@ const PantallaNumero = ({ objeto }) => {
                     {objeto ? (
                         <>
 
-                            <h2 className="card-title text-dark mb-3 fw-bold" style={{ fontSize: '2.5rem', letterSpacing: '-0.5px' }}>
+                            <h2 className="card-title text-body mb-3 fw-bold" style={{ fontSize: '2.5rem', letterSpacing: '-0.5px' }}>
                                 {objeto.numero}
                             </h2>
 
@@ -77,15 +77,15 @@ const PantallaNumero = ({ objeto }) => {
 
 
                             <div className="text-start">
-                                <p className="mb-2 text-dark" style={{ fontSize: '1.1rem' }}>
+                                <p className="mb-2 text-body" style={{ fontSize: '1.1rem' }}>
                                     <span className="text-muted fw-semibold me-2">Dirección:</span> 
                                     {objeto.direccion}
                                 </p>
-                                <p className="mb-2 text-dark" style={{ fontSize: '1.1rem' }}>
+                                <p className="mb-2 text-body" style={{ fontSize: '1.1rem' }}>
                                     <span className="text-muted fw-semibold me-2">Territorio:</span> 
                                     {objeto.territorio} 
                                 </p>
-                                <p className="mb-0 text-dark" style={{ fontSize: '1.1rem' }}>
+                                <p className="mb-0 text-body" style={{ fontSize: '1.1rem' }}>
                                     <span className="text-muted fw-semibold me-2">Último llamado:</span> 
                                     {
                                         objeto.ultimaFecha 
@@ -117,7 +117,7 @@ const PantallaNumero = ({ objeto }) => {
                                 Contesta
                             </button>
                             <button
-                                className="btn btn-warning px-4 py-2 fw-semibold text-dark shadow-sm"
+                                className="btn btn-warning px-4 py-2 fw-semibold text-body shadow-sm"
                                 onClick={handleNoContestaClick}
                             >
                                 No Contesta
