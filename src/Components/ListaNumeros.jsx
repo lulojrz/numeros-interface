@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { NumerosContext } from '../context/NumerosContext';
 import FormularioEditar from './FormularioEditar';
+import Swal from 'sweetalert2';
 
 const ListaNumeros = () => {
     const {
@@ -19,6 +20,11 @@ const ListaNumeros = () => {
         setFiltroReservado,
         actualizarReserva,
         sacarReservados,
+        reiniciarContesta,
+        filtroFechaDesde,
+        setFiltroFechaDesde,
+        filtroFechaHasta,
+        setFiltroFechaHasta,
         loading // <-- Extraemos 'loading' que viene del contexto de números
     } = useContext(NumerosContext);
     
@@ -61,8 +67,25 @@ const ListaNumeros = () => {
         setSeleccionado(null);
     };
 
-    const hayFiltrosActivos = busqueda.trim() !== "" || filtroTerritorio !== "" || filtroEdificio !== "" || filtroReservado !== "";
+    const hayFiltrosActivos = busqueda.trim() !== "" || filtroTerritorio !== "" || filtroEdificio !== "" || filtroReservado !== "" || filtroFechaDesde !== "" || filtroFechaHasta !== "";
     const puedeModificarBloque = hayFiltrosActivos && productosFiltrados && productosFiltrados.length > 0;
+
+    const handleReiniciarContesta = async () => {
+        const result = await Swal.fire({
+            title: '¿Reiniciar llamadas?',
+            text: `Esto marcará a los ${productosFiltrados.length} números filtrados como "No contesta". ¿Deseas continuar?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, reiniciar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            reiniciarContesta(productosFiltrados);
+        }
+    };
 
     return (
         <>
@@ -118,11 +141,29 @@ const ListaNumeros = () => {
                                 <option value="no">Disponibles</option>
                             </select>
                         </div>
+                        <div className="col-md-3">
+                            <label className="form-label text-muted small fw-semibold mb-1">Fecha Desde</label>
+                            <input
+                                type="date"
+                                className="form-control form-control-sm"
+                                value={filtroFechaDesde}
+                                onChange={(e) => setFiltroFechaDesde(e.target.value)}
+                            />
+                        </div>
+                        <div className="col-md-3">
+                            <label className="form-label text-muted small fw-semibold mb-1">Fecha Hasta</label>
+                            <input
+                                type="date"
+                                className="form-control form-control-sm"
+                                value={filtroFechaHasta}
+                                onChange={(e) => setFiltroFechaHasta(e.target.value)}
+                            />
+                        </div>
 
                         <div className="col-12 mt-3 pt-3 border-top">
                             <div className="d-flex flex-wrap gap-2 justify-content-end">
                                 <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => {
-                                    setBusqueda(""); setFiltroTerritorio(""); setFiltroEdificio(""); setFiltroReservado("");
+                                    setBusqueda(""); setFiltroTerritorio(""); setFiltroEdificio(""); setFiltroReservado(""); setFiltroFechaDesde(""); setFiltroFechaHasta("");
                                 }}>
                                     Limpiar Filtros
                                 </button>
@@ -143,6 +184,15 @@ const ListaNumeros = () => {
                                     title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para liberar" : ""}
                                 >
                                     Liberar Filtrados
+                                </button>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-warning btn-sm px-3 shadow-sm text-dark" 
+                                    onClick={handleReiniciarContesta}
+                                    disabled={!puedeModificarBloque}
+                                    title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para reiniciar" : ""}
+                                >
+                                    Reiniciar Contesta
                                 </button>
                             </div>
                         </div>

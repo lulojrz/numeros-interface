@@ -17,6 +17,8 @@ export const NumerosProvider = ({ children }) => {
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
     const [filtroEdificio, setFiltroEdificio] = useState("")
     const [filtroReservado, setFiltroReservado] = useState("")
+    const [filtroFechaDesde, setFiltroFechaDesde] = useState("")
+    const [filtroFechaHasta, setFiltroFechaHasta] = useState("")
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     });
@@ -101,7 +103,18 @@ export const NumerosProvider = ({ children }) => {
             if (filtroReservado === "si") matchesReservado = num?.reservado === true;
             if (filtroReservado === "no") matchesReservado = num?.reservado === false;
 
-            return matchesDireccion && matchesTerritorio && matchesEdificio && matchesReservado;
+            let matchesFecha = true;
+            if (filtroFechaDesde || filtroFechaHasta) {
+                if (!num.ultimaFecha) {
+                    matchesFecha = false;
+                } else {
+                    const fechaNum = num.ultimaFecha.slice(0, 10);
+                    if (filtroFechaDesde && fechaNum < filtroFechaDesde) matchesFecha = false;
+                    if (filtroFechaHasta && fechaNum > filtroFechaHasta) matchesFecha = false;
+                }
+            }
+
+            return matchesDireccion && matchesTerritorio && matchesEdificio && matchesReservado && matchesFecha;
         }).sort((a, b) => {
             const terrA = String(a.territorio || '');
             const terrB = String(b.territorio || '');
@@ -274,9 +287,39 @@ export const NumerosProvider = ({ children }) => {
             }
         }
 
+        const reiniciarContesta = async (filtrados) => {
+            let reiniciados = filtrados.map((num) => ({
+                ...num,
+                contesta: false,
+                tocar: num.tocar !== undefined ? num.tocar : true,
+                ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
+                reservadoA: num.reservadoA && num.reservadoA.usuario ? { usuario: num.reservadoA.usuario } : null
+            }));
+
+            setNumeros(prev => prev.map(n => {
+                const updated = reiniciados.find(f => f.id === n.id);
+                return updated ? updated : n;
+            }));
+
+            try {
+                await Promise.all(reiniciados.map(num => 
+                    fetch(`${api}/api/editar/${num.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(num)
+                    })
+                ));
+                Toast.fire({ icon: 'success', title: 'Números marcados como "No contesta"' });
+            } catch (error) {
+                Toast.fire({ icon: 'error', title: 'Error al reiniciar contesta' });
+                cargarProductos();
+            }
+        }
+
 
         return (
-            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, filtroReservado, setFiltroReservado, actualizarReserva, sacarReservados, theme, setTheme }}>
+            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, filtroReservado, setFiltroReservado, filtroFechaDesde, setFiltroFechaDesde, filtroFechaHasta, setFiltroFechaHasta, actualizarReserva, sacarReservados, reiniciarContesta, theme, setTheme }}>
                 {children}
             </NumerosContext.Provider>
         )

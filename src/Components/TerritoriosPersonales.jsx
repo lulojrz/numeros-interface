@@ -6,6 +6,8 @@ const TerritoriosPersonales = () => {
     const { numeros } = useContext(NumerosContext);
     const loggedInUsername = localStorage.getItem('usuario');
     const [mostrarMapa, setMostrarMapa] = useState(false);
+    const [mostrarModalAyuda, setMostrarModalAyuda] = useState(false);
+    const [tabActiva, setTabActiva] = useState('telefonica');
 
     const misReservas = numeros.filter(n => n.reservado === true && n.reservadoA?.usuario === loggedInUsername);
     const tieneReservas = misReservas.length > 0;
@@ -62,14 +64,23 @@ const TerritoriosPersonales = () => {
                     {fechaAsignacion && (
                         <div className="card shadow-sm mb-4 border-0" style={{ borderRadius: '0.75rem', backgroundColor: '#f8f9fa' }}>
                             <div className="card-body p-4">
-                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                                     <h5 className="card-title text-primary fw-bold mb-0">
                                         <i className="bi bi-clock-history me-2"></i>
                                         Progreso del Territorio
                                     </h5>
-                                    <span className={`badge ${diasRestantes <= 15 ? 'bg-danger' : diasRestantes <= 30 ? 'bg-warning text-body' : 'bg-success'} fs-6 px-3 py-2 shadow-sm rounded-pill`}>
-                                        {diasRestantes} días restantes
-                                    </span>
+                                    <div>
+                                        <button 
+                                            className="btn btn-outline-primary btn-sm rounded-pill me-2 fw-semibold shadow-sm"
+                                            onClick={() => setMostrarModalAyuda(true)}
+                                        >
+                                            <i className="bi bi-question-circle me-1"></i>
+                                            ¿Cómo trabajarlo?
+                                        </button>
+                                        <span className={`badge ${diasRestantes <= 15 ? 'bg-danger' : diasRestantes <= 30 ? 'bg-warning text-body' : 'bg-success'} fs-6 px-3 py-2 shadow-sm rounded-pill`}>
+                                            {diasRestantes} días restantes
+                                        </span>
+                                    </div>
                                 </div>
                                 
                                 <div className="progress mb-3 shadow-sm" style={{ height: '1.5rem', borderRadius: '1rem', backgroundColor: '#e9ecef' }}>
@@ -200,6 +211,79 @@ const TerritoriosPersonales = () => {
                         )}
                     </div>
                 </>
+            )}
+
+            {mostrarModalAyuda && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999,
+                    display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem'
+                }}>
+                    <div className="card shadow-lg border-0" style={{ width: '100%', maxWidth: '600px', borderRadius: '1rem', overflow: 'hidden' }}>
+                        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+                            <h5 className="mb-0 fw-bold"><i className="bi bi-lightbulb me-2"></i>Formas de predicar</h5>
+                            <button type="button" className="btn-close btn-close-white" onClick={() => setMostrarModalAyuda(false)}></button>
+                        </div>
+                        <div className="card-body p-0">
+                            <ul className="nav nav-tabs nav-fill bg-light pt-2" style={{ borderBottom: '2px solid #dee2e6' }}>
+                                <li className="nav-item">
+                                    <button className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'telefonica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('telefonica')}>
+                                        <i className="bi bi-telephone-fill me-2"></i>Telefónica
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button className={`nav-link fw-bold ${tabActiva === 'cartas' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'cartas' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('cartas')}>
+                                        <i className="bi bi-envelope-paper-fill me-2"></i>Cartas
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'publica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('publica')}>
+                                        <i className="bi bi-signpost-split-fill me-2"></i>Pública
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <div className="p-4 bg-white" style={{ minHeight: '200px' }}>
+                                {tabActiva === 'telefonica' && (
+                                    <div className="animate__animated animate__fadeIn">
+                                        <h6 className="text-primary fw-bold mb-3">Predicación Telefónica</h6>
+                                        <p className="text-muted">Utiliza la lista de números que aparece abajo en <strong>"Mis Reservas"</strong>. Tienes los números telefónicos exclusivos de tu territorio.</p>
+                                        <ul className="text-muted small">
+                                            <li>Al llamar, anota si la persona contesta o no usando el botón correspondiente.</li>
+                                            <li>Puedes dejar una nota en el número si la persona pidió que no la llamen más.</li>
+                                            <li>Recuerda ser amable y breve en tu presentación.</li>
+                                        </ul>
+                                    </div>
+                                )}
+                                {tabActiva === 'cartas' && (
+                                    <div className="animate__animated animate__fadeIn">
+                                        <h6 className="text-primary fw-bold mb-3">Predicación por Cartas</h6>
+                                        <p className="text-muted">Junto a los números telefónicos, también puedes ver la <strong>dirección y edificio</strong>.</p>
+                                        <ul className="text-muted small mb-0">
+                                            <li>Usa estas direcciones postales para enviar cartas a los vecinos de tu territorio.</li>
+                                            <li>Es ideal para aquellos números que nunca contestan o donde es difícil encontrar gente en casa.</li>
+                                            <li>Recuerda incluir un folleto o tratado y usar remitentes adecuados.</li>
+                                        </ul>
+                                    </div>
+                                )}
+                                {tabActiva === 'publica' && (
+                                    <div className="animate__animated animate__fadeIn">
+                                        <h6 className="text-primary fw-bold mb-3">Predicación Pública (Carritos/Banners)</h6>
+                                        <p className="text-muted">Si las condiciones lo permiten, puedes organizar la predicación pública dentro de los límites de tu territorio.</p>
+                                        <ul className="text-muted small mb-0">
+                                            <li>Ponte de acuerdo con tu grupo para ubicar un exhibidor portátil (carrito) en una zona transitada de este territorio.</li>
+                                            <li>Asegúrate de no superponerte con territorios de otros grupos.</li>
+                                            <li>Es una excelente manera de abordar a las personas de esta zona de forma directa.</li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="card-footer bg-light text-end p-3">
+                            <button className="btn btn-secondary px-4 shadow-sm" onClick={() => setMostrarModalAyuda(false)}>Entendido</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
