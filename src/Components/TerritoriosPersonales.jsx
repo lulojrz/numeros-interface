@@ -62,7 +62,7 @@ const TerritoriosPersonales = () => {
             {tieneReservas ? (
                 <div className="mt-2">
                     {fechaAsignacion && (
-                        <div className="card shadow-sm mb-4 border-0" style={{ borderRadius: '0.75rem', backgroundColor: '#f8f9fa' }}>
+                        <div className="card shadow-sm mb-4 border-0 bg-body-tertiary" style={{ borderRadius: '0.75rem' }}>
                             <div className="card-body p-4">
                                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                                     <h5 className="card-title text-primary fw-bold mb-0">
@@ -83,7 +83,7 @@ const TerritoriosPersonales = () => {
                                     </div>
                                 </div>
                                 
-                                <div className="progress mb-3 shadow-sm" style={{ height: '1.5rem', borderRadius: '1rem', backgroundColor: '#e9ecef' }}>
+                                <div className="progress mb-3 shadow-sm bg-secondary-subtle" style={{ height: '1.5rem', borderRadius: '1rem' }}>
                                     <div 
                                         className={`progress-bar progress-bar-striped progress-bar-animated ${colorProgreso}`} 
                                         role="progressbar" 
@@ -176,11 +176,10 @@ const TerritoriosPersonales = () => {
                                 alignItems: 'center',
                                 padding: '1rem'
                             }}>
-                                <div className="shadow-lg" style={{ 
+                                <div className="shadow-lg bg-body" style={{ 
                                     width: '100%', 
                                     maxWidth: '1200px', 
                                     height: '90vh', 
-                                    backgroundColor: 'white', 
                                     borderRadius: '1rem', 
                                     overflow: 'hidden', 
                                     display: 'flex', 
@@ -225,7 +224,7 @@ const TerritoriosPersonales = () => {
                             <button type="button" className="btn-close btn-close-white" onClick={() => setMostrarModalAyuda(false)}></button>
                         </div>
                         <div className="card-body p-0">
-                            <ul className="nav nav-tabs nav-fill bg-light pt-2" style={{ borderBottom: '2px solid #dee2e6' }}>
+                            <ul className="nav nav-tabs nav-fill bg-body-secondary pt-2" style={{ borderBottom: '2px solid var(--bs-border-color)' }}>
                                 <li className="nav-item">
                                     <button className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'telefonica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('telefonica')}>
                                         <i className="bi bi-telephone-fill me-2"></i>Telefónica
@@ -243,7 +242,7 @@ const TerritoriosPersonales = () => {
                                 </li>
                             </ul>
                             
-                            <div className="p-4 bg-white" style={{ minHeight: '200px' }}>
+                            <div className="p-4 bg-body" style={{ minHeight: '200px' }}>
                                 {tabActiva === 'telefonica' && (
                                     <div className="animate__animated animate__fadeIn">
                                         <h6 className="text-primary fw-bold mb-3">Predicación Telefónica</h6>
@@ -279,7 +278,7 @@ const TerritoriosPersonales = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="card-footer bg-light text-end p-3">
+                        <div className="card-footer bg-body-tertiary text-end p-3">
                             <button className="btn btn-secondary px-4 shadow-sm" onClick={() => setMostrarModalAyuda(false)}>Entendido</button>
                         </div>
                     </div>
