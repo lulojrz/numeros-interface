@@ -92,6 +92,7 @@ export const AuthProvider = ({ children }) => {
                        
                         if (currentUser) {
                             localStorage.setItem('privilegio', currentUser.privilegio);
+                            localStorage.setItem('asignacion', currentUser.asignacion || '');
                             localStorage.setItem('usuario', currentUser.usuario);
                         } else {
                             localStorage.setItem('usuario', user);

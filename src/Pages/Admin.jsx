@@ -20,7 +20,9 @@ const Admin = () => {
   const [clickReservas, setClickReservas] = useState(false)
   const [clickPorEliminar,setClickPorEliminar]= useState(false)
   const [isANC, setIsANC] = useState(false)
-  const [isPrivileged, setIsPrivileged] = useState(false)
+  const [isFullAdmin, setIsFullAdmin] = useState(false)
+  const [isTelefonicaAdmin, setIsTelefonicaAdmin] = useState(false)
+  const [isPublicaAdmin, setIsPublicaAdmin] = useState(false)
   const [tabActiva, setTabActiva] = useState('telefonica')
   const [subTabPublica, setSubTabPublica] = useState('puntos')
 
@@ -34,11 +36,24 @@ const Admin = () => {
           const data = await response.json();
           const loggedInUsername = localStorage.getItem('usuario');
           const currentUser = data.find(u => u.usuario === loggedInUsername);
-          if (currentUser?.privilegio === 'ROLE_ANC') {
-            setIsANC(true);
-          }
-          if (currentUser?.privilegio === 'ROLE_ANC' || currentUser?.privilegio === 'ROLE_SM') {
-            setIsPrivileged(true);
+          if (currentUser) {
+            localStorage.setItem('asignacion', currentUser.asignacion || '');
+            const asig = currentUser.asignacion;
+            
+            if (asig === 'servicio y territorios') {
+                setIsFullAdmin(true);
+                setIsTelefonicaAdmin(true);
+                setIsPublicaAdmin(true);
+                setIsANC(true);
+            } else if (asig === 'territorios telefonicos/personales') {
+                setIsTelefonicaAdmin(true);
+            } else if (asig === 'publica') {
+                setIsPublicaAdmin(true);
+            }
+            
+            if (currentUser.privilegio === 'ROLE_ANC') {
+              setIsANC(true);
+            }
           }
         }
       } catch (error) {
@@ -92,7 +107,7 @@ const Admin = () => {
                     <i className="bi bi-geo-alt-fill me-2"></i>Predicación Pública
                 </button>
             </li>
-            {isPrivileged && (
+            {isFullAdmin && (
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'estadisticas' ? 'active' : 'text-secondary'}`} 
@@ -111,7 +126,7 @@ const Admin = () => {
 
        
         <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
-            {isPrivileged && (
+            {isTelefonicaAdmin && (
             <>
                 <button 
                     className={`btn flex-fill fw-semibold ${clickeditar ? 'btn-primary' : 'btn-outline-primary'}`} 
@@ -139,7 +154,7 @@ const Admin = () => {
             >
                 Territorios Personales
             </button>
-            {isPrivileged && (
+            {isTelefonicaAdmin && (
             <button 
                 className={`btn flex-fill fw-semibold ${clickPorEliminar ? 'btn-danger text-white' : 'btn-outline-danger'}`}
                 onClick={()=>{setClickPorEliminar(true); setClickeditar(false); setClickagregar(false); setClickllamados(false); setClickReservas(false);}}
@@ -148,7 +163,7 @@ const Admin = () => {
             </button>
             )}
         </div>
-        {clickeditar && isPrivileged && (
+        {clickeditar && isTelefonicaAdmin && (
             <div className="mb-4">
                 <h3 className="h4 text-primary">Progreso</h3>
                 <h5 className="text-secondary">Números contestados: {
@@ -160,15 +175,15 @@ const Admin = () => {
         )}
 
       
-        {clickPorEliminar && isPrivileged ? (
+        {clickPorEliminar && isTelefonicaAdmin ? (
             <PorEliminar />
         ) : clickllamados ? (
             <MisLlamados />
         ) : clickReservas ? (
             <TerritoriosPersonales />
-        ) : clickeditar && isPrivileged ? (
+        ) : clickeditar && isTelefonicaAdmin ? (
             <ListaNumeros />
-        ) : isPrivileged ? (
+        ) : isTelefonicaAdmin ? (
             <FormularioAgregar />
         ) : (
             <MisLlamados />
@@ -178,7 +193,7 @@ const Admin = () => {
 
         {tabActiva === 'publica' && (
             <>
-                {isPrivileged ? (
+                {isPublicaAdmin ? (
                     <>
                         <h3 className="h5">Elija una opcion (Pública)</h3>
                         <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
@@ -208,7 +223,7 @@ const Admin = () => {
             </>
         )}
 
-        {tabActiva === 'estadisticas' && isPrivileged && (
+        {tabActiva === 'estadisticas' && isFullAdmin && (
             <EstadisticasDashboard />
         )}
 

@@ -24,7 +24,8 @@ const PredicacionPublica = () => {
     // Auth info
     const usuarioActual = localStorage.getItem('usuario');
     const privilegio = localStorage.getItem('privilegio');
-    const isAdmin = privilegio === 'ROLE_ANC' || privilegio === 'ROLE_ADMIN'; 
+    const asignacion = localStorage.getItem('asignacion');
+    const puedeGenerarSemana = asignacion === 'publica' || asignacion === 'servicio y territorios';
     const api = import.meta.env.VITE_API_URL;
 
     const [turnos, setTurnos] = useState([]);
@@ -291,7 +292,7 @@ const PredicacionPublica = () => {
                         Predicación Pública
                     </h2>
                 </div>
-                {isAdmin && (
+                {puedeGenerarSemana && (
                     <button onClick={generarTurnos} className="btn btn-success shadow-sm rounded-pill px-4 fw-semibold">
                         <i className="bi bi-magic me-2"></i>Generar Semana
                     </button>
