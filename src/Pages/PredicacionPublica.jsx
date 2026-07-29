@@ -29,6 +29,7 @@ const PredicacionPublica = () => {
     const api = import.meta.env.VITE_API_URL;
 
     const [turnos, setTurnos] = useState([]);
+    const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingTurnoId, setLoadingTurnoId] = useState(null);
     
@@ -73,6 +74,14 @@ const PredicacionPublica = () => {
             } else {
                 Swal.fire('Error', 'No se pudieron cargar los turnos de la semana.', 'error');
             }
+            
+            // Cargar usuarios para ver banners
+            const resUsuarios = await fetch(`${api}/usuarios`, { credentials: 'include' });
+            if (resUsuarios.ok) {
+                const dataUsuarios = await resUsuarios.json();
+                setUsuarios(dataUsuarios);
+            }
+            
         } catch (error) {
             console.error(error);
             Swal.fire('Error', 'Hubo un problema de conexión al cargar los turnos.', 'error');
@@ -277,6 +286,7 @@ const PredicacionPublica = () => {
         );
     };
 
+    const hermanosConBanner = usuarios.filter(u => u.banner);
     const diasSemanaNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
     return (
@@ -359,6 +369,23 @@ const PredicacionPublica = () => {
                 </div>
             </div>
 
+            {/* Listado de Hermanos con Banner */}
+            {hermanosConBanner.length > 0 && (
+                <div className="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10" style={{ borderRadius: '1rem' }}>
+                    <div className="card-body p-3 d-flex align-items-center flex-wrap gap-2">
+                        <div className="d-flex align-items-center text-primary fw-bold me-3">
+                            <i className="bi bi-cart-fill fs-5 me-2"></i>
+                            Hermanos con Exhibidor:
+                        </div>
+                        {hermanosConBanner.map((h, i) => (
+                            <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
+                                {h.nombre} {h.apellido}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Pestañas de Días */}
             <ul className="nav nav-pills mb-4 flex-nowrap overflow-x-auto pb-2 gap-2" style={{ whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
                 {diasSemanaActual.map((dia, index) => {
@@ -397,9 +424,15 @@ const PredicacionPublica = () => {
                         const isLleno = cuposOcupados === 2;
                         const isAnotado = (turno.publicador1?.usuario === usuarioActual) || (turno.publicador2?.usuario === usuarioActual);
                         
+                        const pub1HasBanner = turno.publicador1 && usuarios.find(u => u.usuario === turno.publicador1.usuario)?.banner;
+                        const pub2HasBanner = turno.publicador2 && usuarios.find(u => u.usuario === turno.publicador2.usuario)?.banner;
+                        const hasAnyBanner = pub1HasBanner || pub2HasBanner;
+                        const needsBanner = cuposOcupados > 0 && !hasAnyBanner;
+
                         // Dynamic borders based on status
                         let cardBorderClass = "border-0";
                         if (isAnotado) cardBorderClass = "border border-primary border-2";
+                        else if (needsBanner) cardBorderClass = "border border-warning border-2";
                         else if (isLleno) cardBorderClass = "border border-secondary opacity-75";
 
                         return (
@@ -419,13 +452,20 @@ const PredicacionPublica = () => {
                                             </div>
                                         </div>
                                         {/* Badge de estado */}
-                                        {isLleno ? (
-                                            <span className="badge bg-secondary rounded-pill">Lleno</span>
-                                        ) : (
-                                            <span className="badge bg-success bg-opacity-10 text-success rounded-pill border border-success fw-semibold">
-                                                {2 - cuposOcupados} {2 - cuposOcupados === 1 ? 'Lugar' : 'Lugares'}
-                                            </span>
-                                        )}
+                                        <div className="d-flex align-items-center gap-2">
+                                            {needsBanner && (
+                                                <span className="badge bg-warning text-dark rounded-pill shadow-sm" title="Nadie anotado tiene exhibidor">
+                                                    <i className="bi bi-exclamation-triangle-fill me-1"></i> Falta Carrito
+                                                </span>
+                                            )}
+                                            {isLleno ? (
+                                                <span className="badge bg-secondary rounded-pill">Lleno</span>
+                                            ) : (
+                                                <span className="badge bg-success bg-opacity-10 text-success rounded-pill border border-success fw-semibold">
+                                                    {2 - cuposOcupados} {2 - cuposOcupados === 1 ? 'Lugar' : 'Lugares'}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Cuerpo de la Tarjeta */}
@@ -443,6 +483,7 @@ const PredicacionPublica = () => {
                                                     {turno.publicador1 ? (
                                                         <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
                                                             {turno.publicador1.nombre} {turno.publicador1.apellido}
+                                                            {pub1HasBanner && <i className="bi bi-cart-fill ms-2 text-primary" title="Tiene exhibidor"></i>}
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted fst-italic">Espacio libre</span>
@@ -457,6 +498,7 @@ const PredicacionPublica = () => {
                                                     {turno.publicador2 ? (
                                                         <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
                                                             {turno.publicador2.nombre} {turno.publicador2.apellido}
+                                                            {pub2HasBanner && <i className="bi bi-cart-fill ms-2 text-primary" title="Tiene exhibidor"></i>}
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted fst-italic">Espacio libre</span>
