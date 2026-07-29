@@ -24,8 +24,8 @@ const PredicacionPublica = () => {
     // Auth info
     const usuarioActual = localStorage.getItem('usuario');
     const privilegio = localStorage.getItem('privilegio');
-    const asignacion = localStorage.getItem('asignacion');
-    const puedeGenerarSemana = asignacion === 'publica' || asignacion === 'servicio y territorios';
+    const asignacion = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
+    const puedeGenerarSemana = asignacion === 'publica' || asignacion === 'pública' || asignacion === 'servicio y territorios';
     const api = import.meta.env.VITE_API_URL;
 
     const [turnos, setTurnos] = useState([]);

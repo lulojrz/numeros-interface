@@ -38,16 +38,16 @@ const Admin = () => {
           const currentUser = data.find(u => u.usuario === loggedInUsername);
           if (currentUser) {
             localStorage.setItem('asignacion', currentUser.asignacion || '');
-            const asig = currentUser.asignacion;
+            const asig = (currentUser.asignacion || '').trim().toLowerCase();
             
             if (asig === 'servicio y territorios') {
                 setIsFullAdmin(true);
                 setIsTelefonicaAdmin(true);
                 setIsPublicaAdmin(true);
                 setIsANC(true);
-            } else if (asig === 'territorios telefonicos/personales') {
+            } else if (asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales') {
                 setIsTelefonicaAdmin(true);
-            } else if (asig === 'publica') {
+            } else if (asig === 'publica' || asig === 'pública') {
                 setIsPublicaAdmin(true);
             }
             
