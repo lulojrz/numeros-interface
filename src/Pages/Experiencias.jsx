@@ -39,6 +39,28 @@ const Experiencias = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleReaccion = async (idExp, tipo) => {
+        const usuarioActual = localStorage.getItem('usuario');
+        
+        // Actualización optimista (UI primero)
+        setExperiencias(prev => prev.map(exp => {
+            if (exp.id === idExp) {
+                const reacts = exp.reacciones || { '👍': 0, '❤️': 0, '🙏': 0 };
+                return { ...exp, reacciones: { ...reacts, [tipo]: (reacts[tipo] || 0) + 1 } };
+            }
+            return exp;
+        }));
+
+        try {
+            await fetch(`${api}/api/experiencias/${idExp}/reaccionar?tipo=${encodeURIComponent(tipo)}&usuario=${encodeURIComponent(usuarioActual)}`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("Endpoint no listo aún:", error);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -150,7 +172,24 @@ const Experiencias = () => {
                                                     <i className="bi bi-person-fill me-1"></i>
                                                     Por: <span className="fw-semibold">{exp.usuario?.usuario || 'Anónimo'}</span>
                                                 </h6>
-                                                <p className="card-text text-secondary">{exp.descripcion}</p>
+                                                <p className="card-text text-secondary mb-4">{exp.descripcion}</p>
+                                                
+                                                {/* Reacciones */}
+                                                <div className="d-flex align-items-center gap-2 mt-auto border-top pt-3">
+                                                    {['👍', '❤️', '🙏'].map(emoji => (
+                                                        <button 
+                                                            key={emoji}
+                                                            onClick={() => handleReaccion(exp.id, emoji)}
+                                                            className="btn btn-sm btn-light rounded-pill border shadow-sm px-3 d-flex align-items-center gap-1"
+                                                            style={{ transition: 'transform 0.1s' }}
+                                                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                        >
+                                                            <span>{emoji}</span>
+                                                            <span className="fw-bold text-secondary">{exp.reacciones ? exp.reacciones[emoji] || 0 : 0}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
