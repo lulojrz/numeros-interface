@@ -40,7 +40,7 @@ const Admin = () => {
             localStorage.setItem('asignacion', currentUser.asignacion || '');
             const asig = (currentUser.asignacion || '').trim().toLowerCase();
             
-            if (asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios') {
+            if (asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios') {
                 setIsFullAdmin(true);
                 setIsTelefonicaAdmin(true);
                 setIsPublicaAdmin(true);
