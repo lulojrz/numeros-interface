@@ -295,14 +295,14 @@ const PredicacionPublica = () => {
         e.preventDefault();
         setEnviandoReporte(true);
         try {
-            const res = await fetch(`${api}/api/reportes-carrito`, {
+            const res = await fetch(`${api}/reporte/subir`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    usuario: usuarioActual,
+                    usuario: { usuario: usuarioActual },
                     fecha: new Date().toISOString(),
                     ...reporteForm
                 })
