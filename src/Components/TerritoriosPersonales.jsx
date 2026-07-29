@@ -5,9 +5,43 @@ import { NumerosContext } from '../context/NumerosContext';
 const TerritoriosPersonales = () => {
     const { numeros } = useContext(NumerosContext);
     const loggedInUsername = localStorage.getItem('usuario');
+    const privilegio = localStorage.getItem('privilegio');
+    const isAdmin = privilegio === 'ROLE_ANC' || privilegio === 'ROLE_SM';
     const [mostrarMapa, setMostrarMapa] = useState(false);
     const [mostrarModalAyuda, setMostrarModalAyuda] = useState(false);
     const [tabActiva, setTabActiva] = useState('telefonica');
+
+    let usuariosConTerritorios = [];
+    if (isAdmin) {
+        const numerosReservados = numeros.filter(n => n.reservado === true && n.reservadoA?.usuario);
+        const mapUsuarios = new Map();
+        
+        numerosReservados.forEach(n => {
+            const user = n.reservadoA.usuario;
+            if (!mapUsuarios.has(user)) {
+                mapUsuarios.set(user, {
+                    usuario: user,
+                    territorios: new Set([n.territorio]),
+                    fechaAsignacion: n.fechaReserva ? new Date(n.fechaReserva).getTime() : 0
+                });
+            } else {
+                const data = mapUsuarios.get(user);
+                data.territorios.add(n.territorio);
+                const nFecha = n.fechaReserva ? new Date(n.fechaReserva).getTime() : 0;
+                if (nFecha > 0 && (data.fechaAsignacion === 0 || nFecha < data.fechaAsignacion)) {
+                    data.fechaAsignacion = nFecha;
+                }
+            }
+        });
+        
+        mapUsuarios.forEach(data => {
+            usuariosConTerritorios.push({
+                usuario: data.usuario,
+                territorios: Array.from(data.territorios).join(', '),
+                fechaAsignacion: data.fechaAsignacion > 0 ? new Date(data.fechaAsignacion).toLocaleDateString() : 'Sin fecha'
+            });
+        });
+    }
 
     const misReservas = numeros.filter(n => n.reservado === true && n.reservadoA?.usuario === loggedInUsername);
     const tieneReservas = misReservas.length > 0;
@@ -282,6 +316,41 @@ const TerritoriosPersonales = () => {
                             <button className="btn btn-secondary px-4 shadow-sm" onClick={() => setMostrarModalAyuda(false)}>Entendido</button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {isAdmin && (
+                <div className="mt-5 border-top pt-4">
+                    <h4 className="text-primary fw-bold mb-3">
+                        <i className="bi bi-people-fill me-2"></i>
+                        Usuarios con Territorios Asignados
+                    </h4>
+                    {usuariosConTerritorios.length === 0 ? (
+                        <div className="alert alert-info shadow-sm border-0" style={{ borderRadius: '0.75rem' }}>
+                            <i className="bi bi-info-circle me-2"></i>No hay territorios asignados a ningún usuario actualmente.
+                        </div>
+                    ) : (
+                        <div className="table-responsive shadow-sm rounded-3">
+                            <table className="table table-hover table-striped align-middle mb-0 bg-white">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-secondary fw-semibold border-0 py-3 ps-4 rounded-start">Usuario</th>
+                                        <th className="text-secondary fw-semibold border-0 py-3">Territorios</th>
+                                        <th className="text-secondary fw-semibold border-0 py-3 pe-4 rounded-end">Fecha de Asignación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usuariosConTerritorios.map((u, idx) => (
+                                        <tr key={idx}>
+                                            <td className="fw-bold ps-4">{u.usuario}</td>
+                                            <td>{u.territorios}</td>
+                                            <td className="pe-4">{u.fechaAsignacion}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

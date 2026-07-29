@@ -3,8 +3,8 @@ import { NumerosContext } from '../context/NumerosContext'
 import FormularioAgregar from '../Components/FormularioAgregar.jsx'
 import ListaNumeros from '../Components/ListaNumeros.jsx'
 import MisLlamados from '../Components/MisLlamados.jsx'
-import MisReservas from '../Components/MisReservas.jsx'
 import PorEliminar from '../Components/PorEliminar.jsx'
+import TerritoriosPersonales from '../Components/TerritoriosPersonales.jsx'
 import GestionPuntos from '../Components/GestionPuntos.jsx'
 import GestionPlantillas from '../Components/GestionPlantillas.jsx'
 import MisTurnosPublicos from '../Components/MisTurnosPublicos.jsx'
@@ -137,7 +137,7 @@ const Admin = () => {
                 className={`btn flex-fill fw-semibold ${clickReservas ? 'btn-info text-white' : 'btn-outline-info'}`}
                 onClick={()=>{setClickReservas(true); setClickllamados(false); setClickeditar(false); setClickagregar(false); setClickPorEliminar(false);}}
             >
-                Mis Reservas
+                Territorios Personales
             </button>
             {isPrivileged && (
             <button 
@@ -165,7 +165,7 @@ const Admin = () => {
         ) : clickllamados ? (
             <MisLlamados />
         ) : clickReservas ? (
-            <MisReservas />
+            <TerritoriosPersonales />
         ) : clickeditar && isPrivileged ? (
             <ListaNumeros />
         ) : isPrivileged ? (
