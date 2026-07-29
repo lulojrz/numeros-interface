@@ -286,7 +286,7 @@ const PredicacionPublica = () => {
         );
     };
 
-    const hermanosConBanner = usuarios.filter(u => u.banner);
+    const hermanosConBanner = usuarios.filter(u => u.banner === true || u.banner === 'true' || u.banner === '1');
     const diasSemanaNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
     return (
@@ -370,21 +370,23 @@ const PredicacionPublica = () => {
             </div>
 
             {/* Listado de Hermanos con Banner */}
-            {hermanosConBanner.length > 0 && (
-                <div className="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10" style={{ borderRadius: '1rem' }}>
-                    <div className="card-body p-3 d-flex align-items-center flex-wrap gap-2">
-                        <div className="d-flex align-items-center text-primary fw-bold me-3">
-                            <i className="bi bi-cart-fill fs-5 me-2"></i>
-                            Hermanos con Exhibidor:
-                        </div>
-                        {hermanosConBanner.map((h, i) => (
+            <div className="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10" style={{ borderRadius: '1rem' }}>
+                <div className="card-body p-3 d-flex align-items-center flex-wrap gap-2">
+                    <div className="d-flex align-items-center text-primary fw-bold me-3">
+                        <i className="bi bi-cart-fill fs-5 me-2"></i>
+                        Hermanos con Exhibidor:
+                    </div>
+                    {hermanosConBanner.length > 0 ? (
+                        hermanosConBanner.map((h, i) => (
                             <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
                                 {h.nombre} {h.apellido}
                             </span>
-                        ))}
-                    </div>
+                        ))
+                    ) : (
+                        <span className="text-secondary fst-italic">No hay publicadores registrados con exhibidor.</span>
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* Pestañas de Días */}
             <ul className="nav nav-pills mb-4 flex-nowrap overflow-x-auto pb-2 gap-2" style={{ whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
@@ -426,13 +428,10 @@ const PredicacionPublica = () => {
                         
                         const pub1HasBanner = turno.publicador1 && usuarios.find(u => u.usuario === turno.publicador1.usuario)?.banner;
                         const pub2HasBanner = turno.publicador2 && usuarios.find(u => u.usuario === turno.publicador2.usuario)?.banner;
-                        const hasAnyBanner = pub1HasBanner || pub2HasBanner;
-                        const needsBanner = cuposOcupados > 0 && !hasAnyBanner;
 
                         // Dynamic borders based on status
                         let cardBorderClass = "border-0";
                         if (isAnotado) cardBorderClass = "border border-primary border-2";
-                        else if (needsBanner) cardBorderClass = "border border-warning border-2";
                         else if (isLleno) cardBorderClass = "border border-secondary opacity-75";
 
                         return (
@@ -453,11 +452,6 @@ const PredicacionPublica = () => {
                                         </div>
                                         {/* Badge de estado */}
                                         <div className="d-flex align-items-center gap-2">
-                                            {needsBanner && (
-                                                <span className="badge bg-warning text-dark rounded-pill shadow-sm" title="Nadie anotado tiene exhibidor">
-                                                    <i className="bi bi-exclamation-triangle-fill me-1"></i> Falta Carrito
-                                                </span>
-                                            )}
                                             {isLleno ? (
                                                 <span className="badge bg-secondary rounded-pill">Lleno</span>
                                             ) : (

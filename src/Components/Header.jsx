@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { NumerosContext } from '../context/NumerosContext'
 
@@ -11,6 +11,41 @@ const Header = () => {
     setIsAuth(false);
     navigate('/');
   };
+
+  const [usuarios, setUsuarios] = useState([]);
+  const [showContacto, setShowContacto] = useState(false);
+
+  useEffect(() => {
+    if (showContacto && usuarios.length === 0) {
+      const fetchUsuarios = async () => {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            setUsuarios(data);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchUsuarios();
+    }
+  }, [showContacto]);
+
+  const contactosServicio = usuarios.filter(u => {
+    const asig = (u.asignacion || '').trim().toLowerCase();
+    return asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios';
+  });
+  
+  const contactosTelefonica = usuarios.filter(u => {
+    const asig = (u.asignacion || '').trim().toLowerCase();
+    return asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales' || asig === 'territorios telefonicos' || asig === 'personales' || asig === 'territorios personales';
+  });
+
+  const contactosPublica = usuarios.filter(u => {
+    const asig = (u.asignacion || '').trim().toLowerCase();
+    return asig === 'publica' || asig === 'pública';
+  });
 
   return (
     <>
@@ -59,6 +94,11 @@ const Header = () => {
                                     Administración
                                 </Link>
                             </li>
+                            <li className="nav-item mb-2 mb-lg-0 me-lg-2">
+                                <button className="btn btn-outline-info px-3 fw-semibold" onClick={() => setShowContacto(true)}>
+                                    <i className="bi bi-person-lines-fill me-1"></i>Contacto
+                                </button>
+                            </li>
                             <li className="nav-item mb-2 mb-lg-0">
                                 <button className="btn btn-outline-danger px-4 fw-semibold" onClick={handleLogout}>
                                     Cerrar Sesión
@@ -85,6 +125,63 @@ const Header = () => {
             </div>
         </div>
       </nav>
+
+      {/* Modal de Contacto */}
+      {showContacto && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header bg-info bg-opacity-10 border-bottom-0">
+                <h5 className="modal-title fw-bold text-info-emphasis">
+                  <i className="bi bi-person-lines-fill me-2"></i>
+                  Directorio de Contacto
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setShowContacto(false)}></button>
+              </div>
+              <div className="modal-body px-4">
+                <p className="text-muted mb-4">¿Tienes alguna consulta? Comunícate con los encargados correspondientes según el área:</p>
+                
+                <div className="mb-4">
+                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Administración (Servicio y Territorios)</h6>
+                  {contactosServicio.length > 0 ? (
+                    <ul className="list-unstyled mb-0">
+                      {contactosServicio.map((c, i) => (
+                        <li key={i} className="mb-1"><i className="bi bi-person-fill me-2 text-primary"></i>{c.nombre} {c.apellido}</li>
+                      ))}
+                    </ul>
+                  ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
+                </div>
+
+                <div className="mb-4">
+                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Predicación Pública</h6>
+                  {contactosPublica.length > 0 ? (
+                    <ul className="list-unstyled mb-0">
+                      {contactosPublica.map((c, i) => (
+                        <li key={i} className="mb-1"><i className="bi bi-person-fill me-2 text-success"></i>{c.nombre} {c.apellido}</li>
+                      ))}
+                    </ul>
+                  ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
+                </div>
+
+                <div className="mb-2">
+                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Territorios Telefónicos / Personales</h6>
+                  {contactosTelefonica.length > 0 ? (
+                    <ul className="list-unstyled mb-0">
+                      {contactosTelefonica.map((c, i) => (
+                        <li key={i} className="mb-1"><i className="bi bi-person-fill me-2 text-info"></i>{c.nombre} {c.apellido}</li>
+                      ))}
+                    </ul>
+                  ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
+                </div>
+
+              </div>
+              <div className="modal-footer border-top-0">
+                <button type="button" className="btn btn-secondary rounded-pill px-4" onClick={() => setShowContacto(false)}>Cerrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
