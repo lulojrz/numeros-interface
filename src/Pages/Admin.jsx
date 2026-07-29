@@ -40,12 +40,12 @@ const Admin = () => {
             localStorage.setItem('asignacion', currentUser.asignacion || '');
             const asig = (currentUser.asignacion || '').trim().toLowerCase();
             
-            if (asig === 'servicio y territorios') {
+            if (asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios') {
                 setIsFullAdmin(true);
                 setIsTelefonicaAdmin(true);
                 setIsPublicaAdmin(true);
                 setIsANC(true);
-            } else if (asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales') {
+            } else if (asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales' || asig === 'territorios telefonicos' || asig === 'personales' || asig === 'territorios personales') {
                 setIsTelefonicaAdmin(true);
             } else if (asig === 'publica' || asig === 'pública') {
                 setIsPublicaAdmin(true);
