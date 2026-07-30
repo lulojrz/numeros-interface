@@ -308,7 +308,6 @@ const PredicacionPublica = () => {
                 credentials: 'include',
                 body: JSON.stringify({
                     usuario: { usuario: usuarioActual },
-                    fecha: new Date().toISOString().slice(0, 19),
                     ...reporteForm
                 })
             });
@@ -321,6 +320,7 @@ const PredicacionPublica = () => {
             } else {
                 Swal.fire('Error', 'No se pudo enviar el reporte.', 'error');
             }
+            console.log(res)
         } catch (error) {
             // Simulamos éxito si falla por CORS o backend no existente
             Swal.fire('Reporte Enviado', 'Gracias por avisar. Los encargados han sido notificados.', 'success');
