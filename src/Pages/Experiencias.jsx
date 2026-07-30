@@ -52,7 +52,7 @@ const Experiencias = () => {
         }));
 
         try {
-            await fetch(`${api}/api/experiencias/${idExp}/reaccionar?tipo=${encodeURIComponent(tipo)}&usuario=${encodeURIComponent(usuarioActual)}`, {
+            await fetch(`${api}/experiencias/${idExp}/reaccionar?tipo=${encodeURIComponent(tipo)}&usuario=${encodeURIComponent(usuarioActual)}`, {
                 method: 'POST',
                 credentials: 'include'
             });
