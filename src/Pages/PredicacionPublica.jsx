@@ -40,6 +40,11 @@ const PredicacionPublica = () => {
     const [reporteForm, setReporteForm] = useState({ faltaLiteratura: false, literaturaDetalle: '', necesitaLimpieza: false, observaciones: '' });
     const [enviandoReporte, setEnviandoReporte] = useState(false);
 
+    // Estados para ver reportes
+    const [reportes, setReportes] = useState([]);
+    const [showVerReportesModal, setShowVerReportesModal] = useState(false);
+    const puedeVerReportes = asignacion === 'publica' || asignacion === 'pública' || privilegio === 'Administrador';
+
     // Filtros y Pestañas
     const [diaActivo, setDiaActivo] = useState(formatearFecha(new Date()));
     const [filtroPunto, setFiltroPunto] = useState('todos');
@@ -303,7 +308,7 @@ const PredicacionPublica = () => {
                 credentials: 'include',
                 body: JSON.stringify({
                     usuario: { usuario: usuarioActual },
-                    fecha: new Date().toISOString(),
+                    fecha: new Date().toISOString().slice(0, 19),
                     ...reporteForm
                 })
             });
@@ -325,6 +330,23 @@ const PredicacionPublica = () => {
             setEnviandoReporte(false);
         }
     };
+
+    const cargarReportes = async () => {
+        if (!puedeVerReportes) return;
+        try {
+            const res = await fetch(`${api}/reporte/traer`, { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                setReportes(data);
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        cargarReportes();
+    }, [puedeVerReportes]);
 
     const hermanosConBanner = usuarios.filter(u => u.banner === true || u.banner === 'true' || u.banner === '1');
     const diasSemanaNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -632,6 +654,71 @@ const PredicacionPublica = () => {
                                         </button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Floating Action Button para VER Reportes */}
+            {puedeVerReportes && (
+                <button 
+                    onClick={() => setShowVerReportesModal(true)}
+                    className="btn btn-info shadow-lg rounded-circle d-flex justify-content-center align-items-center position-fixed"
+                    style={{ width: '60px', height: '60px', bottom: '100px', right: '30px', zIndex: 1000, transition: 'transform 0.2s' }}
+                    title="Ver reportes enviados"
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <i className="bi bi-clipboard2-data-fill fs-4 text-white"></i>
+                </button>
+            )}
+
+            {/* Modal para VER Reportes */}
+            {showVerReportesModal && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+                    <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable mx-3 mx-sm-auto">
+                        <div className="modal-content border-0 shadow-lg rounded-4">
+                            <div className="modal-header border-bottom-0 pb-0">
+                                <h5 className="modal-title fw-bold text-info px-2 pt-2">
+                                    <i className="bi bi-clipboard2-data-fill me-2"></i>Reportes de Exhibidores
+                                </h5>
+                                <button type="button" className="btn-close" onClick={() => setShowVerReportesModal(false)}></button>
+                            </div>
+                            <div className="modal-body p-4">
+                                {reportes.length === 0 ? (
+                                    <p className="text-muted text-center my-4">No hay reportes cargados.</p>
+                                ) : (
+                                    <div className="table-responsive">
+                                        <table className="table table-hover align-middle">
+                                            <thead className="table-light">
+                                                <tr>
+                                                    <th>Fecha</th>
+                                                    <th>Usuario</th>
+                                                    <th>¿Falta Lit?</th>
+                                                    <th>Detalle</th>
+                                                    <th>¿Limpieza?</th>
+                                                    <th>Observaciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {reportes.slice().reverse().map(r => (
+                                                    <tr key={r.id}>
+                                                        <td>{new Date(r.fecha).toLocaleDateString()}</td>
+                                                        <td>{r.usuario?.usuario || 'Desconocido'}</td>
+                                                        <td>{r.faltaLiteratura ? 'Sí' : 'No'}</td>
+                                                        <td>{r.literaturaDetalle || '-'}</td>
+                                                        <td>{r.necesitaLimpieza ? 'Sí' : 'No'}</td>
+                                                        <td>{r.observaciones || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
+                                <button type="button" className="btn btn-secondary rounded-pill px-4 fw-semibold" onClick={() => setShowVerReportesModal(false)}>Cerrar</button>
                             </div>
                         </div>
                     </div>
