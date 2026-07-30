@@ -174,6 +174,13 @@ const Header = () => {
                   ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
                 </div>
 
+                <div className="mb-2">
+                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Soporte Técnico de la App</h6>
+                  <ul className="list-unstyled mb-0">
+                    <li className="mb-1"><i className="bi bi-gear-fill me-2 text-warning"></i>Luca Jerez</li>
+                  </ul>
+                </div>
+
               </div>
               <div className="modal-footer border-top-0">
                 <button type="button" className="btn btn-secondary rounded-pill px-4" onClick={() => setShowContacto(false)}>Cerrar</button>
