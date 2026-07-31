@@ -299,6 +299,7 @@ const PredicacionPublica = () => {
     const enviarReporte = async (e) => {
         e.preventDefault();
         setEnviandoReporte(true);
+        
         try {
             const res = await fetch(`${api}/reporte/subir`, {
                 method: 'POST',
