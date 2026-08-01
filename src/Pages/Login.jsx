@@ -49,7 +49,7 @@ const Login = () => {
                 position: 'absolute', left: 79, top: 55, width: 51, height: 90,
                 transformOrigin: 'right center',
                 transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1), background-color 2s',
-                transform: isDoorOpening ? 'perspective(600px) rotateY(-65deg)' : 'perspective(600px) rotateY(0deg)',
+                transform: isDoorOpening ? 'perspective(600px) rotateY(-110deg)' : 'perspective(600px) rotateY(0deg)',
                 backgroundColor: isDoorOpening ? '#6b8e93' : '#76989d',
                 zIndex: 2,
                 transformStyle: 'preserve-3d'
