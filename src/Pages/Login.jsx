@@ -8,7 +8,7 @@ const Login = () => {
   const {user, setUser, password, setPassword, errors, setErrors, handleSubmit, isLoading, isDoorOpening} = useContext(AuthContext)
 
   return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100dvh', backgroundColor: '#f4f7f6' }}>
       
       <div className="card shadow-lg p-5" style={{ width: '100%', maxWidth: '420px', borderRadius: '1rem', border: 'none' }}>
         <div className="text-center mb-4">
