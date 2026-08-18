@@ -45,6 +45,9 @@ const PredicacionPublica = () => {
     const [showVerReportesModal, setShowVerReportesModal] = useState(false);
     const puedeVerReportes = asignacion === 'publica' || asignacion === 'pública' || privilegio === 'Administrador';
 
+    // Modal de Inventario de Hermanos
+    const [showInventarioModal, setShowInventarioModal] = useState(false);
+
     // Filtros y Pestañas
     const [diaActivo, setDiaActivo] = useState(formatearFecha(new Date()));
     const [filtroPunto, setFiltroPunto] = useState('todos');
@@ -432,42 +435,18 @@ const PredicacionPublica = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Listado de Hermanos con Carrito / Banner */}
-            <div className="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10" style={{ borderRadius: '1rem' }}>
-                <div className="card-body p-3 d-flex flex-column gap-3">
-                    <div className="d-flex align-items-center flex-wrap gap-2">
-                        <div className="d-flex align-items-center text-primary fw-bold me-3">
-                            <i className="bi bi-cart-fill fs-5 me-2"></i>
-                            Hermanos con Carrito:
-                        </div>
-                        {hermanosConCarrito.length > 0 ? (
-                            hermanosConCarrito.map((h, i) => (
-                                <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
-                                    {h.nombre} {h.apellido}
-                                </span>
-                            ))
-                        ) : (
-                            <span className="text-secondary fst-italic">No hay publicadores registrados con carrito.</span>
-                        )}
-                    </div>
-                    <div className="d-flex align-items-center flex-wrap gap-2">
-                        <div className="d-flex align-items-center text-primary fw-bold me-3">
-                            <i className="bi bi-flag-fill fs-5 me-2"></i>
-                            Hermanos con Banner:
-                        </div>
-                        {hermanosConBanner.length > 0 ? (
-                            hermanosConBanner.map((h, i) => (
-                                <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
-                                    {h.nombre} {h.apellido}
-                                </span>
-                            ))
-                        ) : (
-                            <span className="text-secondary fst-italic">No hay publicadores registrados con banner.</span>
-                        )}
-                    </div>
-                </div>
+            
+            {/* Botón para ver inventario (Carrito/Banner) */}
+            <div className="mb-4">
+                <button 
+                    className="btn btn-primary bg-gradient shadow-sm rounded-pill px-4 fw-semibold w-100 py-3 d-flex justify-content-center align-items-center"
+                    onClick={() => setShowInventarioModal(true)}
+                >
+                    <i className="bi bi-person-lines-fill me-2 fs-5"></i>
+                    Directorio de Carritos y Banners
+                </button>
             </div>
+
 
             {/* Pestañas de Días */}
             <ul className="nav nav-pills mb-4 flex-nowrap overflow-x-auto pb-2 gap-2" style={{ whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
@@ -742,6 +721,98 @@ const PredicacionPublica = () => {
                             </div>
                             <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
                                 <button type="button" className="btn btn-secondary rounded-pill px-4 fw-semibold" onClick={() => setShowVerReportesModal(false)}>Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Inventario (Carrito y Banner) */}
+            {showInventarioModal && (
+                <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)' }} tabIndex="-1">
+                    <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                        <div className="modal-content rounded-4 border-0 shadow-lg">
+                            <div className="modal-header border-bottom-0 pb-0 px-4 pt-4">
+                                <h5 className="modal-title fw-bold text-primary d-flex align-items-center">
+                                    <i className="bi bi-person-lines-fill me-2 fs-4"></i> Directorio de Carritos y Banners
+                                </h5>
+                                <button type="button" className="btn-close shadow-none" onClick={() => setShowInventarioModal(false)}></button>
+                            </div>
+                            <div className="modal-body px-4 py-3">
+                                
+                                {/* Sección Carritos */}
+                                <h6 className="text-secondary fw-bold mb-3 d-flex align-items-center border-bottom pb-2">
+                                    <i className="bi bi-cart-fill me-2 text-primary"></i> Hermanos con Carrito
+                                </h6>
+                                <div className="row g-3 mb-4">
+                                    {hermanosConCarrito.length > 0 ? (
+                                        hermanosConCarrito.map(h => {
+                                            const tieneNumero = h.telefono && h.telefono.trim() !== "";
+                                            const numLimpiado = tieneNumero ? h.telefono.replace(/\D/g, '') : '';
+                                            return (
+                                                <div key={h.id} className="col-12 col-md-6">
+                                                    <div className="card shadow-sm border-0 h-100 bg-light rounded-3">
+                                                        <div className="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                            <div className="fw-medium text-dark text-break">{h.nombre} {h.apellido}</div>
+                                                            {tieneNumero ? (
+                                                                <a 
+                                                                    href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${h.nombre}, ¿cómo estás? Te escribo por el carrito...`)}`}
+                                                                    target="_blank" rel="noopener noreferrer"
+                                                                    className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm"
+                                                                >
+                                                                    <i className="bi bi-whatsapp me-1"></i> WhatsApp
+                                                                </a>
+                                                            ) : (
+                                                                <span className="badge bg-secondary rounded-pill">Sin número</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="col-12 text-muted fst-italic">No hay publicadores registrados con carrito.</div>
+                                    )}
+                                </div>
+
+                                {/* Sección Banners */}
+                                <h6 className="text-secondary fw-bold mb-3 d-flex align-items-center border-bottom pb-2">
+                                    <i className="bi bi-flag-fill me-2 text-info"></i> Hermanos con Banner
+                                </h6>
+                                <div className="row g-3">
+                                    {hermanosConBanner.length > 0 ? (
+                                        hermanosConBanner.map(h => {
+                                            const tieneNumero = h.telefono && h.telefono.trim() !== "";
+                                            const numLimpiado = tieneNumero ? h.telefono.replace(/\D/g, '') : '';
+                                            return (
+                                                <div key={h.id} className="col-12 col-md-6">
+                                                    <div className="card shadow-sm border-0 h-100 bg-light rounded-3">
+                                                        <div className="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                            <div className="fw-medium text-dark text-break">{h.nombre} {h.apellido}</div>
+                                                            {tieneNumero ? (
+                                                                <a 
+                                                                    href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${h.nombre}, ¿cómo estás? Te escribo por el banner...`)}`}
+                                                                    target="_blank" rel="noopener noreferrer"
+                                                                    className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm"
+                                                                >
+                                                                    <i className="bi bi-whatsapp me-1"></i> WhatsApp
+                                                                </a>
+                                                            ) : (
+                                                                <span className="badge bg-secondary rounded-pill">Sin número</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="col-12 text-muted fst-italic">No hay publicadores registrados con banner.</div>
+                                    )}
+                                </div>
+
+                            </div>
+                            <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
+                                <button type="button" className="btn btn-secondary rounded-pill px-4 fw-semibold w-100 w-sm-auto" onClick={() => setShowInventarioModal(false)}>Cerrar</button>
                             </div>
                         </div>
                     </div>
