@@ -195,23 +195,21 @@ const CambiarContrasena = () => {
                             <form onSubmit={handleGuardarInventario} className="mb-4">
                                 <h5 className="mb-3">Mis Datos e Inventario</h5>
                                 
-                                <div className="mb-4">
-                                    <label className="form-label fw-medium">Privilegio</label>
-                                    <select
-                                        className="form-select"
-                                        value={userData.privilegio || 'ROLE_PUB'}
-                                        onChange={(e) => setUserData({...userData, privilegio: e.target.value})}
-                                    >
-                                        <option value="ROLE_PUB">Publicador (PUB)</option>
-                                        <option value="ROLE_PR">Precursor Regular (PR)</option>
-                                        <option value="ROLE_SM">Siervo Ministerial (SM)</option>
-                                        <option value="ROLE_ANC">Anciano (ANC)</option>
-                                    </select>
-                                    <div className="form-text text-warning small">
-                                        <i className="bi bi-exclamation-triangle me-1"></i>
-                                        Nota: Cambiar a ANC te dará permisos de administrador.
+                                {localStorage.getItem('privilegio') === 'ROLE_ANC' && (
+                                    <div className="mb-4">
+                                        <label className="form-label fw-medium">Privilegio</label>
+                                        <select
+                                            className="form-select"
+                                            value={userData.privilegio || 'ROLE_PUB'}
+                                            onChange={(e) => setUserData({...userData, privilegio: e.target.value})}
+                                        >
+                                            <option value="ROLE_PUB">Publicador (PUB)</option>
+                                            <option value="ROLE_PR">Precursor Regular (PR)</option>
+                                            <option value="ROLE_SM">Siervo Ministerial (SM)</option>
+                                            <option value="ROLE_ANC">Anciano (ANC)</option>
+                                        </select>
                                     </div>
-                                </div>
+                                )}
 
                                 <div className="mb-4 d-flex gap-4">
                                     <div className="form-check form-switch">
