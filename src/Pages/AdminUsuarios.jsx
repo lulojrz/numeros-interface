@@ -20,8 +20,11 @@ const AdminUsuarios = () => {
         usuario: '',
         telefono: '',
         contrasena: 'prueba123',
-        privilegio: 'ROLE_PUB'
+        privilegio: 'ROLE_PUB',
+        carrito: false,
+        banner: false
     });
+    const [filtroInventario, setFiltroInventario] = useState('todos');
 
     const api = import.meta.env.VITE_API_URL;
 
@@ -62,7 +65,9 @@ const AdminUsuarios = () => {
                         usuario: loggedUser.usuario || '',
                         telefono: loggedUser.telefono || '',
                         contrasena: '',
-                        privilegio: loggedUser.privilegio || 'ROLE_PUB'
+                        privilegio: loggedUser.privilegio || 'ROLE_PUB',
+                        carrito: loggedUser.carrito || false,
+                        banner: loggedUser.banner || false
                     });
                 }
             }
@@ -104,7 +109,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario agregado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
+                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false });
                 setClickAgregar(false);
                 cargarUsuarios();
             } else {
@@ -151,7 +156,7 @@ const AdminUsuarios = () => {
                 
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
                 if (isANC) {
-                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
+                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false });
                     setUsuarioEditando(null);
                 }
                 cargarUsuarios();
@@ -224,17 +229,22 @@ const AdminUsuarios = () => {
             usuario: user.usuario || '', 
             telefono: user.telefono || '',
             contrasena: '',
-            privilegio: user.privilegio || 'ROLE_PUB'
+            privilegio: user.privilegio || 'ROLE_PUB',
+            carrito: user.carrito || false,
+            banner: user.banner || false
         });
         setClickAgregar(false);
     };
 
     const cancelarEdicion = () => {
         setUsuarioEditando(null);
-        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' });
+        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false });
     };
 
     const usuariosFiltrados = usuarios.filter(u => {
+        if (filtroInventario === 'conCarrito' && !u.carrito) return false;
+        if (filtroInventario === 'conBanner' && !u.banner) return false;
+
         if (filtroReservas === 'todos') return true;
         
         const tieneReservas = numeros.some(n => n.reservado === true && n.reservadoA?.usuario === u.usuario);
@@ -258,13 +268,13 @@ const AdminUsuarios = () => {
                     <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
                         <button
                             className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false }); }}
                         >
                             Lista de Usuarios
                         </button>
                         <button
                             className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
-                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB' }); }}
+                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false }); }}
                         >
                             Agregar Nuevo
                         </button>
@@ -281,17 +291,31 @@ const AdminUsuarios = () => {
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                                     <h4 className="mb-0">Lista de Usuarios</h4>
-                                    <div className="mt-2 mt-md-0 d-flex align-items-center">
-                                        <label className="me-2 fw-semibold text-muted small">Filtrar:</label>
-                                        <select 
-                                            className="form-select form-select-sm w-auto" 
-                                            value={filtroReservas}
-                                            onChange={(e) => setFiltroReservas(e.target.value)}
-                                        >
-                                            <option value="todos">Todos los usuarios</option>
-                                            <option value="conReservas">Con números reservados</option>
-                                            <option value="sinReservas">Sin números reservados</option>
-                                        </select>
+                                    <div className="mt-2 mt-md-0 d-flex align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <label className="me-2 fw-semibold text-muted small">Reservas:</label>
+                                            <select 
+                                                className="form-select form-select-sm w-auto d-inline-block" 
+                                                value={filtroReservas}
+                                                onChange={(e) => setFiltroReservas(e.target.value)}
+                                            >
+                                                <option value="todos">Todos</option>
+                                                <option value="conReservas">Con reservas</option>
+                                                <option value="sinReservas">Sin reservas</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="me-2 fw-semibold text-muted small">Inventario:</label>
+                                            <select 
+                                                className="form-select form-select-sm w-auto d-inline-block" 
+                                                value={filtroInventario}
+                                                onChange={(e) => setFiltroInventario(e.target.value)}
+                                            >
+                                                <option value="todos">Todos</option>
+                                                <option value="conCarrito">Con Carrito 🛒</option>
+                                                <option value="conBanner">Con Banner 🏳️</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -304,6 +328,7 @@ const AdminUsuarios = () => {
                                                 <th className="text-secondary fw-semibold">Nombre</th>
                                                 <th className="text-secondary fw-semibold">Apellido</th>
                                                 <th className="text-secondary fw-semibold">Usuario</th>
+                                                <th className="text-secondary fw-semibold text-center">Inv.</th>
                                                 <th className="text-secondary fw-semibold">Privilegio</th>
                                                 <th className="text-secondary fw-semibold text-center">Acciones</th>
                                             </tr>
@@ -315,6 +340,10 @@ const AdminUsuarios = () => {
                                                     <td>{u.nombre}</td>
                                                     <td>{u.apellido}</td>
                                                     <td>{u.usuario}</td>
+                                                    <td className="text-center">
+                                                        {u.carrito && <span title="Tiene Carrito" className="me-1">🛒</span>}
+                                                        {u.banner && <span title="Tiene Banner">🏳️</span>}
+                                                    </td>
                                                     <td><span className="badge bg-secondary">{u.privilegio}</span></td>
                                                     <td className="text-center">
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
@@ -350,7 +379,7 @@ const AdminUsuarios = () => {
                                                     <strong>Nombre:</strong> {u.nombre} {u.apellido}
                                                 </p>
                                                 <p className="card-text mb-3 text-muted small">
-                                                    <strong>ID:</strong> {u.id}
+                                                    <strong>ID:</strong> {u.id} {u.carrito && '🛒'} {u.banner && '🏳️'}
                                                 </p>
                                                 <div className="d-flex gap-2">
                                                     <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
@@ -450,6 +479,16 @@ const AdminUsuarios = () => {
                                         <option value="ROLE_ANC">ANC</option>
                                         <option value="ROLE_PR">PR</option>
                                     </select>
+                                </div>
+                                <div className="mb-4 d-flex gap-4">
+                                    <div className="form-check form-switch">
+                                        <input className="form-check-input" type="checkbox" name="carrito" id="checkCarrito" checked={formData.carrito} onChange={(e) => setFormData({...formData, carrito: e.target.checked})} />
+                                        <label className="form-check-label" htmlFor="checkCarrito">Tiene Carrito 🛒</label>
+                                    </div>
+                                    <div className="form-check form-switch">
+                                        <input className="form-check-input" type="checkbox" name="banner" id="checkBanner" checked={formData.banner} onChange={(e) => setFormData({...formData, banner: e.target.checked})} />
+                                        <label className="form-check-label" htmlFor="checkBanner">Tiene Banner 🏳️</label>
+                                    </div>
                                 </div>
                                 <div className="d-flex gap-2">
                                     <button type="submit" className={`btn ${usuarioEditando ? 'btn-primary' : 'btn-success'}`} disabled={isSubmitting}>

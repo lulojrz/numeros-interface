@@ -350,6 +350,7 @@ const PredicacionPublica = () => {
     }, [puedeVerReportes]);
 
     const hermanosConBanner = usuarios.filter(u => u.banner === true || u.banner === 'true' || u.banner === '1');
+    const hermanosConCarrito = usuarios.filter(u => u.carrito === true || u.carrito === 'true' || u.carrito === '1');
     const diasSemanaNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
     return (
@@ -432,22 +433,39 @@ const PredicacionPublica = () => {
                 </div>
             </div>
 
-            {/* Listado de Hermanos con Banner */}
+            {/* Listado de Hermanos con Carrito / Banner */}
             <div className="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10" style={{ borderRadius: '1rem' }}>
-                <div className="card-body p-3 d-flex align-items-center flex-wrap gap-2">
-                    <div className="d-flex align-items-center text-primary fw-bold me-3">
-                        <i className="bi bi-cart-fill fs-5 me-2"></i>
-                        Hermanos con Exhibidor:
+                <div className="card-body p-3 d-flex flex-column gap-3">
+                    <div className="d-flex align-items-center flex-wrap gap-2">
+                        <div className="d-flex align-items-center text-primary fw-bold me-3">
+                            <i className="bi bi-cart-fill fs-5 me-2"></i>
+                            Hermanos con Carrito:
+                        </div>
+                        {hermanosConCarrito.length > 0 ? (
+                            hermanosConCarrito.map((h, i) => (
+                                <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
+                                    {h.nombre} {h.apellido}
+                                </span>
+                            ))
+                        ) : (
+                            <span className="text-secondary fst-italic">No hay publicadores registrados con carrito.</span>
+                        )}
                     </div>
-                    {hermanosConBanner.length > 0 ? (
-                        hermanosConBanner.map((h, i) => (
-                            <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
-                                {h.nombre} {h.apellido}
-                            </span>
-                        ))
-                    ) : (
-                        <span className="text-secondary fst-italic">No hay publicadores registrados con exhibidor.</span>
-                    )}
+                    <div className="d-flex align-items-center flex-wrap gap-2">
+                        <div className="d-flex align-items-center text-primary fw-bold me-3">
+                            <i className="bi bi-flag-fill fs-5 me-2"></i>
+                            Hermanos con Banner:
+                        </div>
+                        {hermanosConBanner.length > 0 ? (
+                            hermanosConBanner.map((h, i) => (
+                                <span key={i} className="badge bg-white text-primary border border-primary shadow-sm rounded-pill px-3 py-2 fw-medium">
+                                    {h.nombre} {h.apellido}
+                                </span>
+                            ))
+                        ) : (
+                            <span className="text-secondary fst-italic">No hay publicadores registrados con banner.</span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -491,6 +509,8 @@ const PredicacionPublica = () => {
                         
                         const pub1HasBanner = turno.publicador1 && usuarios.find(u => u.usuario === turno.publicador1.usuario)?.banner;
                         const pub2HasBanner = turno.publicador2 && usuarios.find(u => u.usuario === turno.publicador2.usuario)?.banner;
+                        const pub1HasCarrito = turno.publicador1 && usuarios.find(u => u.usuario === turno.publicador1.usuario)?.carrito;
+                        const pub2HasCarrito = turno.publicador2 && usuarios.find(u => u.usuario === turno.publicador2.usuario)?.carrito;
 
                         // Dynamic borders based on status
                         let cardBorderClass = "border-0";
@@ -540,7 +560,8 @@ const PredicacionPublica = () => {
                                                     {turno.publicador1 ? (
                                                         <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
                                                             {turno.publicador1.nombre} {turno.publicador1.apellido}
-                                                            {pub1HasBanner && <i className="bi bi-cart-fill ms-2 text-primary" title="Tiene exhibidor"></i>}
+                                                            {pub1HasCarrito && <i className="bi bi-cart-fill ms-2 text-primary" title="Tiene carrito"></i>}
+                                                            {pub1HasBanner && <i className="bi bi-flag-fill ms-2 text-info" title="Tiene banner"></i>}
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted fst-italic">Espacio libre</span>
@@ -555,7 +576,8 @@ const PredicacionPublica = () => {
                                                     {turno.publicador2 ? (
                                                         <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
                                                             {turno.publicador2.nombre} {turno.publicador2.apellido}
-                                                            {pub2HasBanner && <i className="bi bi-cart-fill ms-2 text-primary" title="Tiene exhibidor"></i>}
+                                                            {pub2HasCarrito && <i className="bi bi-cart-fill ms-2 text-primary" title="Tiene carrito"></i>}
+                                                            {pub2HasBanner && <i className="bi bi-flag-fill ms-2 text-info" title="Tiene banner"></i>}
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted fst-italic">Espacio libre</span>
