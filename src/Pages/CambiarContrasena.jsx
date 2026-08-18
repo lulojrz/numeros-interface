@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
@@ -9,9 +9,56 @@ const CambiarContrasena = () => {
         confirmarContrasena: ''
     });
     const [loading, setLoading] = useState(false);
+    const [userData, setUserData] = useState(null);
+    const [loadingInventario, setLoadingInventario] = useState(false);
 
     const api = import.meta.env.VITE_API_URL;
     const usuarioLogueado = localStorage.getItem('usuario'); // Tomamos el usuario del localStorage
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await fetch(`${api}/usuarios`, { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const loggedIn = data.find(u => u.usuario === usuarioLogueado);
+                    if (loggedIn) {
+                        setUserData(loggedIn);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user data', error);
+            }
+        };
+        fetchUserData();
+    }, [api, usuarioLogueado]);
+
+    const handleGuardarInventario = async (e) => {
+        e.preventDefault();
+        setLoadingInventario(true);
+        try {
+            const response = await fetch(`${api}/usuarios/editar/${userData.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(userData)
+            });
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'Tu inventario ha sido actualizado.',
+                    confirmButtonColor: '#007bff'
+                });
+            } else {
+                Swal.fire('Error', 'No se pudo actualizar el inventario.', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'Error de conexión', 'error');
+        } finally {
+            setLoadingInventario(false);
+        }
+    };
 
     const Toast = Swal.mixin({
         toast: true,
@@ -143,6 +190,35 @@ const CambiarContrasena = () => {
                         <hr />
                         
                         <p className="text-muted mb-4">Usuario: <strong>{usuarioLogueado}</strong></p>
+
+                        {userData && (
+                            <form onSubmit={handleGuardarInventario} className="mb-4">
+                                <h5 className="mb-3">Mi Inventario</h5>
+                                <div className="mb-4 d-flex gap-4">
+                                    <div className="form-check form-switch">
+                                        <input className="form-check-input" type="checkbox" id="checkCarritoUser" 
+                                            checked={userData.carrito || false} 
+                                            onChange={(e) => setUserData({...userData, carrito: e.target.checked})} 
+                                        />
+                                        <label className="form-check-label" htmlFor="checkCarritoUser">Tengo Carrito 🛒</label>
+                                    </div>
+                                    <div className="form-check form-switch">
+                                        <input className="form-check-input" type="checkbox" id="checkBannerUser" 
+                                            checked={userData.banner || false} 
+                                            onChange={(e) => setUserData({...userData, banner: e.target.checked})} 
+                                        />
+                                        <label className="form-check-label" htmlFor="checkBannerUser">Tengo Banner 🏳️</label>
+                                    </div>
+                                </div>
+                                <div className="d-grid">
+                                    <button type="submit" className="btn btn-success" disabled={loadingInventario}>
+                                        {loadingInventario ? 'Guardando...' : 'Guardar Inventario'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                        
+                        {userData && <hr className="mb-4" />}
 
                         <form onSubmit={handleSubmit}>
                             <h5 className="mb-3">Cambiar Contraseña</h5>
