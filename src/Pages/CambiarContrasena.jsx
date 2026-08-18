@@ -196,19 +196,35 @@ const CambiarContrasena = () => {
                                 <h5 className="mb-3">Mis Datos e Inventario</h5>
                                 
                                 {localStorage.getItem('privilegio') === 'ROLE_ANC' && (
-                                    <div className="mb-4">
-                                        <label className="form-label fw-medium">Privilegio</label>
-                                        <select
-                                            className="form-select"
-                                            value={userData.privilegio || 'ROLE_PUB'}
-                                            onChange={(e) => setUserData({...userData, privilegio: e.target.value})}
-                                        >
-                                            <option value="ROLE_PUB">Publicador (PUB)</option>
-                                            <option value="ROLE_PR">Precursor Regular (PR)</option>
-                                            <option value="ROLE_SM">Siervo Ministerial (SM)</option>
-                                            <option value="ROLE_ANC">Anciano (ANC)</option>
-                                        </select>
-                                    </div>
+                                    <>
+                                        <div className="mb-4">
+                                            <label className="form-label fw-medium">Privilegio</label>
+                                            <select
+                                                className="form-select"
+                                                value={userData.privilegio || 'ROLE_PUB'}
+                                                onChange={(e) => setUserData({...userData, privilegio: e.target.value})}
+                                            >
+                                                <option value="ROLE_PUB">Publicador (PUB)</option>
+                                                <option value="ROLE_PR">Precursor Regular (PR)</option>
+                                                <option value="ROLE_SM">Siervo Ministerial (SM)</option>
+                                                <option value="ROLE_ANC">Anciano (ANC)</option>
+                                            </select>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label className="form-label fw-medium">Asignación</label>
+                                            <select
+                                                className="form-select"
+                                                value={userData.asignacion || ''}
+                                                onChange={(e) => setUserData({...userData, asignacion: e.target.value})}
+                                            >
+                                                <option value="">Ninguna</option>
+                                                <option value="soporte">Soporte</option>
+                                                <option value="publica">Pública</option>
+                                                <option value="territorios">Territorios</option>
+                                                <option value="servicio y territorios">Servicio y Territorios</option>
+                                            </select>
+                                        </div>
+                                    </>
                                 )}
 
                                 <div className="mb-4 d-flex gap-4">

@@ -21,6 +21,7 @@ const AdminUsuarios = () => {
         telefono: '',
         contrasena: 'prueba123',
         privilegio: 'ROLE_PUB',
+        asignacion: '',
         carrito: false,
         banner: false
     });
@@ -66,6 +67,7 @@ const AdminUsuarios = () => {
                         telefono: loggedUser.telefono || '',
                         contrasena: '',
                         privilegio: loggedUser.privilegio || 'ROLE_PUB',
+                        asignacion: loggedUser.asignacion || '',
                         carrito: loggedUser.carrito || false,
                         banner: loggedUser.banner || false
                     });
@@ -109,7 +111,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario agregado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false });
+                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false });
                 setClickAgregar(false);
                 cargarUsuarios();
             } else {
@@ -156,7 +158,7 @@ const AdminUsuarios = () => {
                 
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
                 if (isANC) {
-                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false });
+                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false });
                     setUsuarioEditando(null);
                 }
                 cargarUsuarios();
@@ -230,6 +232,7 @@ const AdminUsuarios = () => {
             telefono: user.telefono || '',
             contrasena: '',
             privilegio: user.privilegio || 'ROLE_PUB',
+            asignacion: user.asignacion || '',
             carrito: user.carrito || false,
             banner: user.banner || false
         });
@@ -238,7 +241,7 @@ const AdminUsuarios = () => {
 
     const cancelarEdicion = () => {
         setUsuarioEditando(null);
-        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false });
+        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false });
     };
 
     const usuariosFiltrados = usuarios.filter(u => {
@@ -268,7 +271,7 @@ const AdminUsuarios = () => {
                     <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
                         <button
                             className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false }); }}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false }); }}
                         >
                             Lista de Usuarios
                         </button>
@@ -478,6 +481,22 @@ const AdminUsuarios = () => {
                                         <option value="ROLE_SM">SM</option>
                                         <option value="ROLE_ANC">ANC</option>
                                         <option value="ROLE_PR">PR</option>
+                                    </select>
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Asignación</label>
+                                    <select
+                                        className="form-select"
+                                        name="asignacion"
+                                        value={formData.asignacion}
+                                        onChange={handleInputChange}
+                                        disabled={!isANC}
+                                    >
+                                        <option value="">Ninguna</option>
+                                        <option value="soporte">Soporte</option>
+                                        <option value="publica">Pública</option>
+                                        <option value="territorios">Territorios</option>
+                                        <option value="servicio y territorios">Servicio y Territorios</option>
                                     </select>
                                 </div>
                                 <div className="mb-4 d-flex gap-4">
