@@ -167,8 +167,8 @@ const EstadisticasDashboard = () => {
                                 Progreso Telefónico
                             </h5>
                             
-                            <div style={{ height: '300px', width: '100%' }}>
-                                <ResponsiveContainer>
+                            <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
+                                <ResponsiveContainer width="99%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={dataPie}
@@ -209,12 +209,12 @@ const EstadisticasDashboard = () => {
                             </h5>
                             <p className="text-muted small mb-4">Cantidad de cupos de turnos cubiertos.</p>
                             
-                            <div style={{ height: '300px', width: '100%' }}>
-                                <ResponsiveContainer>
+                            <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
+                                <ResponsiveContainer width="99%" height="100%">
                                     <BarChart data={dataMensual} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                        <YAxis axisLine={false} tickLine={false} />
+                                        <YAxis axisLine={false} tickLine={false} width={30} />
                                         <RechartsTooltip cursor={{fill: '#f8f9fa'}} />
                                         <Bar dataKey="Turnos Cubiertos" fill="#10b981" radius={[4, 4, 0, 0]} barSize={50} />
                                     </BarChart>

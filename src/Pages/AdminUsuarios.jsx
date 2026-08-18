@@ -294,11 +294,11 @@ const AdminUsuarios = () => {
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                                     <h4 className="mb-0">Lista de Usuarios</h4>
-                                    <div className="mt-2 mt-md-0 d-flex align-items-center flex-wrap gap-2">
-                                        <div>
-                                            <label className="me-2 fw-semibold text-muted small">Reservas:</label>
+                                    <div className="mt-2 mt-md-0 d-flex flex-column flex-sm-row align-items-start align-items-sm-center flex-wrap gap-2 w-100 w-md-auto">
+                                        <div className="w-100 w-sm-auto">
+                                            <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Reservas:</label>
                                             <select 
-                                                className="form-select form-select-sm w-auto d-inline-block" 
+                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block" 
                                                 value={filtroReservas}
                                                 onChange={(e) => setFiltroReservas(e.target.value)}
                                             >
@@ -307,10 +307,10 @@ const AdminUsuarios = () => {
                                                 <option value="sinReservas">Sin reservas</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="me-2 fw-semibold text-muted small">Inventario:</label>
+                                        <div className="w-100 w-sm-auto mt-2 mt-sm-0">
+                                            <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Inventario:</label>
                                             <select 
-                                                className="form-select form-select-sm w-auto d-inline-block" 
+                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block" 
                                                 value={filtroInventario}
                                                 onChange={(e) => setFiltroInventario(e.target.value)}
                                             >
@@ -376,10 +376,10 @@ const AdminUsuarios = () => {
                                     {usuariosFiltrados.map(u => (
                                         <div key={u.id} className="card shadow-sm mb-3">
                                             <div className="card-body">
-                                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h5 className="card-title mb-0 text-primary fw-bold">{u.usuario}</h5>
-                                                    <div>
-                                                        <span className="badge bg-secondary me-1">{u.privilegio}</span>
+                                                <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                                                    <h5 className="card-title mb-0 text-primary fw-bold text-break" style={{maxWidth: '100%'}}>{u.usuario}</h5>
+                                                    <div className="d-flex flex-wrap gap-1">
+                                                        <span className="badge bg-secondary">{u.privilegio}</span>
                                                         {u.asignacion && <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span>}
                                                     </div>
                                                 </div>
