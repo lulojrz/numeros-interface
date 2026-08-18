@@ -333,6 +333,7 @@ const AdminUsuarios = () => {
                                                 <th className="text-secondary fw-semibold">Usuario</th>
                                                 <th className="text-secondary fw-semibold text-center">Inv.</th>
                                                 <th className="text-secondary fw-semibold">Privilegio</th>
+                                                <th className="text-secondary fw-semibold">Asignación</th>
                                                 <th className="text-secondary fw-semibold text-center">Acciones</th>
                                             </tr>
                                         </thead>
@@ -348,6 +349,7 @@ const AdminUsuarios = () => {
                                                         {u.banner && <span title="Tiene Banner">🏳️</span>}
                                                     </td>
                                                     <td><span className="badge bg-secondary">{u.privilegio}</span></td>
+                                                    <td>{u.asignacion ? <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
                                                     <td className="text-center">
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
                                                             <i className="bi bi-pencil"></i> Editar
@@ -372,11 +374,14 @@ const AdminUsuarios = () => {
                                 {/* Vista Mobile */}
                                 <div className="d-md-none">
                                     {usuariosFiltrados.map(u => (
-                                        <div key={u.id} className="card shadow-sm mb-3 border-0 rounded-3">
+                                        <div key={u.id} className="card shadow-sm mb-3">
                                             <div className="card-body">
                                                 <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h5 className="card-title text-primary fw-bold mb-0">{u.usuario}</h5>
-                                                    <span className="badge bg-secondary">{u.privilegio}</span>
+                                                    <h5 className="card-title mb-0 text-primary fw-bold">{u.usuario}</h5>
+                                                    <div>
+                                                        <span className="badge bg-secondary me-1">{u.privilegio}</span>
+                                                        {u.asignacion && <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span>}
+                                                    </div>
                                                 </div>
                                                 <p className="card-text mb-1 text-muted small">
                                                     <strong>Nombre:</strong> {u.nombre} {u.apellido}
