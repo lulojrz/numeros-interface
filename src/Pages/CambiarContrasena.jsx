@@ -198,7 +198,7 @@ const CambiarContrasena = () => {
                                         <div className="mb-4">
                                             <label className="form-label fw-medium">Privilegio</label>
                                             <select
-                                                className="form-select bg-light"
+                                                className="form-select bg-dark"
                                                 value={userData.privilegio || 'ROLE_PUB'}
                                                 disabled
                                             >
@@ -211,15 +211,16 @@ const CambiarContrasena = () => {
                                         <div className="mb-4">
                                             <label className="form-label fw-medium">Asignación</label>
                                             <select
-                                                className="form-select bg-light"
+                                                className="form-select bg-dark"
                                                 value={userData.asignacion || ''}
                                                 disabled
                                             >
-                                                <option value="">Ninguna</option>
+                                                <option value="">-</option>
                                                 <option value="soporte">Soporte</option>
                                                 <option value="publica">Pública</option>
                                                 <option value="territorios">Territorios</option>
-                                                <option value="servicio y territorios">Servicio y Territorios</option>
+                                                <option value="territorios telefonicos/personales">territorios telefonicos/personales</option>
+                                                <option value="servicio">Servicio</option>
                                             </select>
                                         </div>
 
