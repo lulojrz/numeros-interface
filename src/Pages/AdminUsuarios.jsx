@@ -30,8 +30,7 @@ const AdminUsuarios = () => {
     const api = import.meta.env.VITE_API_URL;
 
     const loggedInUsername = localStorage.getItem('usuario');
-    const currentUser = usuarios.find(u => u.usuario === loggedInUsername);
-    const isANC = currentUser?.privilegio === 'ROLE_ANC';
+    const isANC = localStorage.getItem('privilegio') === 'ROLE_ANC';
 
     const Toast = Swal.mixin({
         toast: true,

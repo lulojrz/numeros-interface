@@ -19,10 +19,19 @@ const Admin = () => {
   const [clickllamados,setClickllamados]= useState(false)
   const [clickReservas, setClickReservas] = useState(false)
   const [clickPorEliminar,setClickPorEliminar]= useState(false)
-  const [isANC, setIsANC] = useState(false)
-  const [isFullAdmin, setIsFullAdmin] = useState(false)
-  const [isTelefonicaAdmin, setIsTelefonicaAdmin] = useState(false)
-  const [isPublicaAdmin, setIsPublicaAdmin] = useState(false)
+  const [isANC, setIsANC] = useState(() => localStorage.getItem('privilegio') === 'ROLE_ANC')
+  const [isFullAdmin, setIsFullAdmin] = useState(() => {
+    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
+    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios';
+  })
+  const [isTelefonicaAdmin, setIsTelefonicaAdmin] = useState(() => {
+    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
+    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales' || asig === 'territorios telefonicos' || asig === 'personales' || asig === 'territorios personales';
+  })
+  const [isPublicaAdmin, setIsPublicaAdmin] = useState(() => {
+    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
+    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'publica' || asig === 'pública';
+  })
   const [tabActiva, setTabActiva] = useState('telefonica')
   const [subTabPublica, setSubTabPublica] = useState('puntos')
 
@@ -38,6 +47,7 @@ const Admin = () => {
           const currentUser = data.find(u => u.usuario === loggedInUsername);
           if (currentUser) {
             localStorage.setItem('asignacion', currentUser.asignacion || '');
+            localStorage.setItem('privilegio', currentUser.privilegio || '');
             const asig = (currentUser.asignacion || '').trim().toLowerCase();
             
             if (asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios') {
