@@ -7,6 +7,7 @@ import PorEliminar from '../Components/PorEliminar.jsx'
 import TerritoriosPersonales from '../Components/TerritoriosPersonales.jsx'
 import GestionPuntos from '../Components/GestionPuntos.jsx'
 import GestionPlantillas from '../Components/GestionPlantillas.jsx'
+import GestionReportes from '../Components/GestionReportes.jsx'
 import MisTurnosPublicos from '../Components/MisTurnosPublicos.jsx'
 import EstadisticasDashboard from '../Components/EstadisticasDashboard.jsx'
 import { Link } from 'react-router-dom'
@@ -219,12 +220,20 @@ const Admin = () => {
                             >
                                 Plantillas de Turnos
                             </button>
+                            <button 
+                                className={`btn flex-fill fw-semibold ${subTabPublica === 'reportes' ? 'btn-warning' : 'btn-outline-warning'}`}
+                                onClick={() => setSubTabPublica('reportes')}
+                            >
+                                <i className="bi bi-list-task me-1"></i> To-Do Reportes
+                            </button>
                         </div>
                         
                         {subTabPublica === 'puntos' ? (
                             <GestionPuntos />
-                        ) : (
+                        ) : subTabPublica === 'plantillas' ? (
                             <GestionPlantillas />
+                        ) : (
+                            <GestionReportes />
                         )}
                     </>
                 ) : (
