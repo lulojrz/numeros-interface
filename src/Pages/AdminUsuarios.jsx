@@ -330,6 +330,7 @@ const AdminUsuarios = () => {
                                                 <th className="text-secondary fw-semibold">Nombre</th>
                                                 <th className="text-secondary fw-semibold">Apellido</th>
                                                 <th className="text-secondary fw-semibold">Usuario</th>
+                                                <th className="text-secondary fw-semibold">Teléfono</th>
                                                 <th className="text-secondary fw-semibold text-center">Inv.</th>
                                                 <th className="text-secondary fw-semibold">Privilegio</th>
                                                 <th className="text-secondary fw-semibold">Asignación</th>
@@ -337,12 +338,29 @@ const AdminUsuarios = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {usuariosFiltrados.map(u => (
+                                            {usuariosFiltrados.map(u => {
+                                                const tieneNumero = u.telefono && u.telefono.trim() !== "";
+                                                const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
+                                                return (
                                                 <tr key={u.id}>
                                                     <td className="fw-bold">{u.id}</td>
                                                     <td>{u.nombre}</td>
                                                     <td>{u.apellido}</td>
                                                     <td>{u.usuario}</td>
+                                                    <td>
+                                                        {tieneNumero ? (
+                                                            <a 
+                                                                href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${u.nombre}, `)}`}
+                                                                target="_blank" rel="noopener noreferrer"
+                                                                className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-2 py-0"
+                                                                title={u.telefono}
+                                                            >
+                                                                <i className="bi bi-whatsapp"></i>
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-muted small fst-italic">Sin tel</span>
+                                                        )}
+                                                    </td>
                                                     <td className="text-center">
                                                         {u.carrito && <span title="Tiene Carrito" className="me-1">🛒</span>}
                                                         {u.banner && <span title="Tiene Banner">🏳️</span>}
@@ -360,10 +378,11 @@ const AdminUsuarios = () => {
                                                         )}
                                                     </td>
                                                 </tr>
-                                            ))}
+                                                );
+                                            })}
                                             {usuariosFiltrados.length === 0 && (
                                                 <tr>
-                                                    <td colSpan="6" className="text-center py-4 text-muted">No se encontraron usuarios.</td>
+                                                    <td colSpan="9" className="text-center py-4 text-muted">No se encontraron usuarios.</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -372,7 +391,10 @@ const AdminUsuarios = () => {
 
                                 {/* Vista Mobile */}
                                 <div className="d-md-none">
-                                    {usuariosFiltrados.map(u => (
+                                    {usuariosFiltrados.map(u => {
+                                        const tieneNumero = u.telefono && u.telefono.trim() !== "";
+                                        const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
+                                        return (
                                         <div key={u.id} className="card shadow-sm mb-3">
                                             <div className="card-body">
                                                 <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
@@ -385,9 +407,21 @@ const AdminUsuarios = () => {
                                                 <p className="card-text mb-1 text-muted small">
                                                     <strong>Nombre:</strong> {u.nombre} {u.apellido}
                                                 </p>
-                                                <p className="card-text mb-3 text-muted small">
-                                                    <strong>ID:</strong> {u.id} {u.carrito && '🛒'} {u.banner && '🏳️'}
-                                                </p>
+                                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                                    <p className="card-text mb-0 text-muted small">
+                                                        <strong>ID:</strong> {u.id} {u.carrito && '🛒'} {u.banner && '🏳️'}
+                                                    </p>
+                                                    {tieneNumero && (
+                                                        <a 
+                                                            href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${u.nombre}, `)}`}
+                                                            target="_blank" rel="noopener noreferrer"
+                                                            className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-2 py-0"
+                                                            title={u.telefono}
+                                                        >
+                                                            <i className="bi bi-whatsapp"></i> Wpp
+                                                        </a>
+                                                    )}
+                                                </div>
                                                 <div className="d-flex gap-2">
                                                     <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
                                                         <i className="bi bi-pencil"></i> Editar
@@ -400,7 +434,8 @@ const AdminUsuarios = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                     {usuariosFiltrados.length === 0 && (
                                         <div className="text-center py-4 text-muted border rounded shadow-sm bg-body">
                                             No se encontraron usuarios.
