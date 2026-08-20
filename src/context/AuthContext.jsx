@@ -72,45 +72,28 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
-            const responseText = await res.text();
+            const responseData = await res.json();
 
-            if (responseText === "correcto") {
+            // As we return the user object, it should have the 'usuario' field if successful
+            if (responseData && responseData.usuario) {
                 setErrors({});
                 setIsAuth(true);
                 localStorage.setItem('isAuth', 'true');
-
-                try {
-                    const userRes = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { 
-                        credentials: 'include',
-                        cache: 'no-store'
-                    });
-                    
-                    if (userRes.ok) {
-                        const data = await userRes.json();
-                        
-                        const currentUser = data.find(u => u.usuario.trim().toLowerCase() === user.trim().toLowerCase());
-                       
-                        if (currentUser) {
-                            localStorage.setItem('privilegio', currentUser.privilegio);
-                            localStorage.setItem('asignacion', currentUser.asignacion || '');
-                            localStorage.setItem('usuario', currentUser.usuario);
-                        } else {
-                            localStorage.setItem('usuario', user);
-                        }
-                    } else {
-                        localStorage.setItem('usuario', user);
-                    }
-                } catch (fetchUserError) {
-                    localStorage.setItem('usuario', user);
-                    console.error("Error de red al buscar el privilegio:", fetchUserError);
-                } finally {
-                    // Iniciar animación de puerta
-                    setIsDoorOpening(true);
-                    setTimeout(() => {
-                        setIsDoorOpening(false);
-                        navigate('/');
-                    }, 2500);
+                localStorage.setItem('usuario', responseData.usuario);
+                
+                if (responseData.privilegio) {
+                    localStorage.setItem('privilegio', responseData.privilegio);
                 }
+                if (responseData.asignacion) {
+                    localStorage.setItem('asignacion', responseData.asignacion);
+                }
+
+                // Iniciar animación de puerta
+                setIsDoorOpening(true);
+                setTimeout(() => {
+                    setIsDoorOpening(false);
+                    navigate('/');
+                }, 2500);
             }
 
         } catch (err) {
