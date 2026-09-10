@@ -49,14 +49,14 @@ const Header = () => {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm mx-auto mt-3 px-2 border-0" style={{ maxWidth: '900px', borderRadius: '1rem' }}>
         <div className="container-fluid px-4"> 
-            <Link className="navbar-brand fw-bold text-primary" to={'/'} style={{ letterSpacing: '-0.5px' }}>
-                Colegiales CRM
+            <Link className="navbar-brand fw-bold text-primary d-lg-none" to={'/'} style={{ letterSpacing: '-0.5px' }}>
+                CRM
             </Link>
 
             <button
-                className="navbar-toggler"
+                className="navbar-toggler border-0 shadow-none"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent"
@@ -67,42 +67,35 @@ const Header = () => {
                 <span className="navbar-toggler-icon"></span>
             </button>
 
-            <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center text-center text-lg-start mt-3 mt-lg-0">
+            <div className="collapse navbar-collapse justify-content-center" id="navbarSupportedContent">
+                <ul className="navbar-nav mb-2 mb-lg-0 align-items-lg-center text-center mt-3 mt-lg-0 gap-lg-4">
                     {isAuthenticated ? (
                         <>
-                            {localStorage.getItem('usuario') && (
-                                <li className="nav-item mb-3 mb-lg-0 me-lg-3">
-                                    <span className="badge bg-primary text-white rounded-pill px-3 py-2">
-                                        <i className="bi bi-person-badge me-1"></i>
-                                        {localStorage.getItem('usuario')} [{localStorage.getItem('privilegio') || '...'}]
-                                    </span>
-                                </li>
-                            )}
-                            <li className="nav-item mb-2 mb-lg-0 me-lg-2">
-                                <Link className="nav-link fw-semibold text-body" to={'/experiencias'}>
-                                    Experiencias
+                            <li className="nav-item">
+                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/'}>
+                                    <i className="bi bi-house text-primary"></i> Inicio
                                 </Link>
                             </li>
-                            <li className="nav-item mb-2 mb-lg-0 me-lg-2">
-                                <Link className="nav-link fw-semibold text-body" to={'/predicacion'}>
-                                    Predicación
+                            <li className="nav-item">
+                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/predicacion'}>
+                                    <i className="bi bi-calendar3 text-primary"></i> Turnos
                                 </Link>
                             </li>
-                            <li className="nav-item mb-4 mb-lg-0 me-lg-3">
-                                <Link className="nav-link fw-semibold text-body" to={'/admin'}>
-                                    Administración
-                                </Link>
-                            </li>
-                            <li className="nav-item mb-2 mb-lg-0 me-lg-2">
-                                <button className="btn btn-outline-info px-3 fw-semibold" onClick={() => setShowContacto(true)}>
-                                    <i className="bi bi-person-lines-fill me-1"></i>Contacto
+                            <li className="nav-item">
+                                <button className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2 border-0 bg-transparent w-100" onClick={() => setShowContacto(true)}>
+                                    <i className="bi bi-bell text-primary"></i> Notificaciones
                                 </button>
                             </li>
-                            <li className="nav-item mb-2 mb-lg-0">
-                                <button className="btn btn-outline-danger px-4 fw-semibold" onClick={handleLogout}>
-                                    Cerrar Sesión
-                                </button>
+                            <li className="nav-item dropdown">
+                                <a className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i className="bi bi-person text-primary"></i> Perfil
+                                </a>
+                                <ul className="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3 mt-2">
+                                    <li><Link className="dropdown-item fw-medium py-2" to={'/admin/perfil'}><i className="bi bi-person-badge me-2 text-primary"></i>Mi Perfil</Link></li>
+                                    <li><Link className="dropdown-item fw-medium py-2" to={'/admin'}><i className="bi bi-gear-fill me-2 text-primary"></i>Administración</Link></li>
+                                    <li><hr className="dropdown-divider" /></li>
+                                    <li><button className="dropdown-item fw-medium py-2 text-danger" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</button></li>
+                                </ul>
                             </li>
                         </>
                     ) : (
