@@ -87,6 +87,9 @@ export const AuthProvider = ({ children }) => {
                 if (responseData.asignacion) {
                     localStorage.setItem('asignacion', responseData.asignacion);
                 }
+                if (responseData.habilitacionPublica !== undefined) {
+                    localStorage.setItem('habilitacionPublica', responseData.habilitacionPublica);
+                }
 
                 // Iniciar animación de puerta
                 setIsDoorOpening(true);

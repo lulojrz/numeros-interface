@@ -23,7 +23,8 @@ const AdminUsuarios = () => {
         privilegio: 'ROLE_PUB',
         asignacion: '',
         carrito: false,
-        banner: false
+        banner: false,
+        habilitacionPublica: false
     });
     const [filtroInventario, setFiltroInventario] = useState('todos');
 
@@ -68,7 +69,8 @@ const AdminUsuarios = () => {
                         privilegio: loggedUser.privilegio || 'ROLE_PUB',
                         asignacion: loggedUser.asignacion || '',
                         carrito: loggedUser.carrito || false,
-                        banner: loggedUser.banner || false
+                        banner: loggedUser.banner || false,
+                        habilitacionPublica: loggedUser.habilitacionPublica || false
                     });
                 }
             }
@@ -546,6 +548,18 @@ const AdminUsuarios = () => {
                                     <div className="form-check form-switch">
                                         <input className="form-check-input" type="checkbox" name="banner" id="checkBanner" checked={formData.banner} onChange={(e) => setFormData({...formData, banner: e.target.checked})} />
                                         <label className="form-check-label" htmlFor="checkBanner">Tiene Banner 🏳️</label>
+                                    </div>
+                                    <div className="form-check form-switch">
+                                        <input 
+                                            className="form-check-input border-primary" 
+                                            type="checkbox" 
+                                            name="habilitacionPublica" 
+                                            id="checkHabilitacion" 
+                                            checked={formData.habilitacionPublica} 
+                                            onChange={(e) => setFormData({...formData, habilitacionPublica: e.target.checked})} 
+                                            disabled={!isANC}
+                                        />
+                                        <label className="form-check-label fw-semibold text-primary" htmlFor="checkHabilitacion">Apto Pública 🌟</label>
                                     </div>
                                 </div>
                                 <div className="d-flex gap-2">

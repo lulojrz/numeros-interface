@@ -355,6 +355,32 @@ const PredicacionPublica = () => {
     const hermanosConBanner = usuarios.filter(u => u.banner === true || u.banner === 'true' || u.banner === '1');
     const hermanosConCarrito = usuarios.filter(u => u.carrito === true || u.carrito === 'true' || u.carrito === '1');
     const diasSemanaNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    
+    // Convertir de localStorage a booleano real
+    const isHabilitadoPublica = localStorage.getItem('habilitacionPublica') === 'true' || localStorage.getItem('habilitacionPublica') === true;
+
+    if (!isHabilitadoPublica && privilegio !== 'ROLE_ANC' && asignacion !== 'soporte') {
+        return (
+            <div className="container py-5 mt-5 text-center" style={{ maxWidth: '600px' }}>
+                <div className="card shadow-lg border-0 p-5 rounded-4">
+                    <div className="text-warning mb-4">
+                        <i className="bi bi-shield-lock-fill" style={{ fontSize: '5rem' }}></i>
+                    </div>
+                    <h2 className="fw-bold text-dark mb-3">Acceso Restringido</h2>
+                    <p className="text-secondary fs-5 mb-4">
+                        Actualmente no cuentas con la habilitación para participar en la Predicación Pública.
+                    </p>
+                    <div className="alert alert-info border-0 rounded-3 mb-4">
+                        <i className="bi bi-info-circle-fill me-2"></i>
+                        Si deseas participar, te invitamos a hablar con el <strong>Comité de Servicio</strong> de la congregación para que te habiliten desde el sistema.
+                    </div>
+                    <Link to="/" className="btn btn-primary rounded-pill px-5 py-2 fw-semibold shadow-sm">
+                        Volver al Inicio
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container py-5" style={{ maxWidth: '1200px' }}>
