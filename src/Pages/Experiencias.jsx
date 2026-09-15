@@ -12,6 +12,7 @@ const Experiencias = () => {
     const [formData, setFormData] = useState({
         titulo: '',
         descripcion: '',
+        categoria: '',
         usuario: localStorage.getItem('usuario') || ''
     });
 
@@ -47,6 +48,7 @@ const Experiencias = () => {
             const payload = {
                 titulo: formData.titulo,
                 descripcion: formData.descripcion,
+                categoria: formData.categoria,
                 fecha: new Date().toISOString(), // Inyectamos la fecha formateada de forma nativa
                 usuario: {
                     usuario: formData.usuario // Metemos el string adentro del objeto esperado
@@ -67,6 +69,7 @@ const Experiencias = () => {
                 setFormData({
                     titulo: '',
                     descripcion: '',
+                    categoria: '',
                     usuario: localStorage.getItem('usuario') || ''
                 });
                 Swal.fire({
@@ -95,6 +98,37 @@ const Experiencias = () => {
                 descripcion: '',
                 usuario: localStorage.getItem('usuario') || ''
             });
+        }
+    };
+
+    const eliminarExperiencia = async (id) => {
+        const confirmar = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás revertir esta acción",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, borrar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (confirmar.isConfirmed) {
+            try {
+                const response = await fetch(`${api}/experiencias/borrar/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    setExperiencias(experiencias.filter(exp => exp.id !== id));
+                    Swal.fire({ icon: 'success', title: 'Borrado', text: 'La experiencia ha sido eliminada.', timer: 2000, showConfirmButton: false });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar la experiencia' });
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red al intentar eliminar' });
+            }
         }
     };
 
@@ -146,10 +180,22 @@ const Experiencias = () => {
                                     <div className="col-md-6 col-lg-4" key={exp.id || index}>
                                         <div className="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
                                             <div className="card-body p-4">
-                                                <h5 className="card-title text-primary fw-bold mb-1">{exp.titulo || 'Sin Título'}</h5>
+                                                <div className="d-flex justify-content-between align-items-start mb-1">
+                                                    <h5 className="card-title text-primary fw-bold">{exp.titulo || 'Sin Título'}</h5>
+                                                    {(localStorage.getItem('privilegio') === 'ROLE_ANC' || localStorage.getItem('privilegio') === 'ROLE_SM') && (
+                                                        <button 
+                                                            className="btn btn-sm btn-outline-danger" 
+                                                            onClick={() => eliminarExperiencia(exp.id)}
+                                                            title="Eliminar experiencia"
+                                                        >
+                                                            <i className="bi bi-trash"></i>
+                                                        </button>
+                                                    )}
+                                                </div>
                                                 <h6 className="card-subtitle mb-3 text-muted small">
                                                     <i className="bi bi-person-fill me-1"></i>
                                                     Por: <span className="fw-semibold">{exp.usuario?.usuario || 'Anónimo'}</span>
+                                                    {exp.categoria && <span className="badge bg-info text-dark ms-2">{exp.categoria}</span>}
                                                 </h6>
                                                 <p className="card-text text-secondary mb-4">{exp.descripcion}</p>
 
@@ -185,6 +231,21 @@ const Experiencias = () => {
                                             onChange={handleChange}
                                             required
                                         />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label className="form-label fw-semibold text-secondary">Categoría</label>
+                                        <select
+                                            className="form-select p-3 bg-body-tertiary border-0 rounded-3"
+                                            name="categoria"
+                                            value={formData.categoria}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="" disabled>Seleccione una categoría</option>
+                                            <option value="Publica">Publica</option>
+                                            <option value="Telefonica">Telefonica</option>
+                                            <option value="Edificios">Edificios</option>
+                                        </select>
                                     </div>
                                     <div className="mb-2">
                                         <label className="form-label fw-semibold text-secondary">Descripción</label>
