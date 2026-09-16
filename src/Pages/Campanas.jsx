@@ -223,86 +223,84 @@ const Campanas = () => {
             {showModal && (
                 <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
                     <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-3 mx-sm-auto">
-                        <div className="modal-content border-0 shadow-lg rounded-4">
+                        <form onSubmit={handleSubmit} className="modal-content border-0 shadow-lg rounded-4">
                             <div className="modal-header border-bottom-0 pb-0">
                                 <h5 className="modal-title fw-bold text-primary px-2 pt-2">Crear Campaña</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                             </div>
-                            <form onSubmit={handleSubmit}>
-                                <div className="modal-body p-4">
-                                    <div className="mb-3">
-                                        <label className="form-label fw-semibold text-secondary">Título</label>
+                            <div className="modal-body p-4">
+                                <div className="mb-3">
+                                    <label className="form-label fw-semibold text-secondary">Título</label>
+                                    <input
+                                        type="text"
+                                        className="form-control p-3 bg-body-tertiary border-0 rounded-3"
+                                        name="titulo"
+                                        value={formData.titulo}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                
+                                <div className="row mb-3">
+                                    <div className="col-6">
+                                        <label className="form-label fw-semibold text-secondary">Fecha Inicio</label>
                                         <input
-                                            type="text"
+                                            type="date"
                                             className="form-control p-3 bg-body-tertiary border-0 rounded-3"
-                                            name="titulo"
-                                            value={formData.titulo}
+                                            name="fechaInicio"
+                                            value={formData.fechaInicio}
                                             onChange={handleChange}
                                             required
                                         />
                                     </div>
-                                    
-                                    <div className="row mb-3">
-                                        <div className="col-6">
-                                            <label className="form-label fw-semibold text-secondary">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                className="form-control p-3 bg-body-tertiary border-0 rounded-3"
-                                                name="fechaInicio"
-                                                value={formData.fechaInicio}
-                                                onChange={handleChange}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="col-6">
-                                            <label className="form-label fw-semibold text-secondary">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                className="form-control p-3 bg-body-tertiary border-0 rounded-3"
-                                                name="fechaFin"
-                                                value={formData.fechaFin}
-                                                onChange={handleChange}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-3">
-                                        <label className="form-label fw-semibold text-secondary">Estado</label>
-                                        <select
-                                            className="form-select p-3 bg-body-tertiary border-0 rounded-3"
-                                            name="estado"
-                                            value={formData.estado}
+                                    <div className="col-6">
+                                        <label className="form-label fw-semibold text-secondary">Fecha Fin</label>
+                                        <input
+                                            type="date"
+                                            className="form-control p-3 bg-body-tertiary border-0 rounded-3"
+                                            name="fechaFin"
+                                            value={formData.fechaFin}
                                             onChange={handleChange}
                                             required
-                                        >
-                                            <option value="Próxima">Próxima</option>
-                                            <option value="Activa">Activa</option>
-                                            <option value="Finalizada">Finalizada</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="mb-2">
-                                        <label className="form-label fw-semibold text-secondary">Imagen (Banner)</label>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="form-control p-3 bg-body-tertiary border-0 rounded-3"
-                                            onChange={handleImageChange}
                                         />
-                                        {formData.imagen && (
-                                            <div className="mt-3 text-center">
-                                                <img src={formData.imagen} alt="Preview" className="img-thumbnail rounded-3" style={{ maxHeight: '150px' }} />
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                                <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
-                                    <button type="button" className="btn btn-light rounded-pill px-4 fw-semibold" onClick={() => setShowModal(false)}>Cancelar</button>
-                                    <button type="submit" className="btn btn-primary rounded-pill px-5 fw-semibold shadow-sm">Guardar</button>
+
+                                <div className="mb-3">
+                                    <label className="form-label fw-semibold text-secondary">Estado</label>
+                                    <select
+                                        className="form-select p-3 bg-body-tertiary border-0 rounded-3"
+                                        name="estado"
+                                        value={formData.estado}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="Próxima">Próxima</option>
+                                        <option value="Activa">Activa</option>
+                                        <option value="Finalizada">Finalizada</option>
+                                    </select>
                                 </div>
-                            </form>
-                        </div>
+
+                                <div className="mb-2">
+                                    <label className="form-label fw-semibold text-secondary">Imagen (Banner)</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="form-control p-3 bg-body-tertiary border-0 rounded-3"
+                                        onChange={handleImageChange}
+                                    />
+                                    {formData.imagen && (
+                                        <div className="mt-3 text-center">
+                                            <img src={formData.imagen} alt="Preview" className="img-thumbnail rounded-3" style={{ maxHeight: '150px' }} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
+                                <button type="button" className="btn btn-light rounded-pill px-4 fw-semibold" onClick={() => setShowModal(false)}>Cancelar</button>
+                                <button type="submit" className="btn btn-primary rounded-pill px-5 fw-semibold shadow-sm">Guardar</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
