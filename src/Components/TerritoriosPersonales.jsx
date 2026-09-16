@@ -83,11 +83,40 @@ const TerritoriosPersonales = () => {
         }
     }
 
+    const [encargado, setEncargado] = useState(null);
+
+    useEffect(() => {
+        const fetchUsuarios = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    const encargadoEncontrado = data.find(u => {
+                        const asig = (u.asignacion || '').trim().toLowerCase();
+                        return asig.includes('personales') || asig.includes('telefónicos') || asig.includes('telefonicos');
+                    });
+                    if (encargadoEncontrado) {
+                        setEncargado(encargadoEncontrado);
+                    }
+                }
+            } catch (e) {
+                console.error("Error al cargar encargado", e);
+            }
+        };
+        fetchUsuarios();
+    }, []);
+
     const enviarMensaje = (e) => {
         e.preventDefault();
         const especificacion = e.target.querySelector('input[type="text"]').value;
         const mensaje = encodeURIComponent(`Hola! Me gustaria pedir un territorio personal en la zona de ${especificacion}`);
-        const url = `https://api.whatsapp.com/send?phone=5491151030168&text=${mensaje}`;
+        
+        let telefono = '5491151030168'; // fallback
+        if (encargado && encargado.telefono) {
+            telefono = encargado.telefono.replace(/\D/g, ''); // Limpiar caracteres no numéricos
+        }
+        
+        const url = `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`;
         window.open(url, '_blank');
     }
 
@@ -163,7 +192,7 @@ const TerritoriosPersonales = () => {
                         <form onSubmit={enviarMensaje} className="p-3 bg-body border rounded-3 shadow-sm">
                             <label htmlFor="territorio" className="form-label fw-semibold text-secondary mb-3">
                                 <i className="bi bi-whatsapp text-success me-2"></i>
-                                Solicita tu territorio por WhatsApp:
+                                Solicita tu territorio a {encargado ? `${encargado.nombre} ${encargado.apellido}` : 'tu encargado'}:
                             </label>
                             
                             <div className="input-group input-group-lg mb-2">

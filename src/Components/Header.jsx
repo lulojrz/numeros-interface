@@ -144,7 +144,12 @@ const Header = () => {
                   {contactosServicio.length > 0 ? (
                     <ul className="list-unstyled mb-0">
                       {contactosServicio.map((c, i) => (
-                        <li key={i} className="mb-1"><i className="bi bi-person-fill me-2 text-primary"></i>{c.nombre} {c.apellido}</li>
+                        <li key={i} className="mb-2 d-flex justify-content-between align-items-center border-bottom pb-1">
+                          <span><i className="bi bi-person-fill me-2 text-primary"></i>{c.nombre} {c.apellido}</span>
+                          {c.telefono && (
+                            <a href={`https://wa.me/${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${c.nombre}, te escribo por una consulta sobre Administración/Servicio`)}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-success rounded-pill px-3"><i className="bi bi-whatsapp"></i></a>
+                          )}
+                        </li>
                       ))}
                     </ul>
                   ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
@@ -155,18 +160,28 @@ const Header = () => {
                   {contactosPublica.length > 0 ? (
                     <ul className="list-unstyled mb-0">
                       {contactosPublica.map((c, i) => (
-                        <li key={i} className="mb-1"><i className="bi bi-person-fill me-2 text-success"></i>{c.nombre} {c.apellido}</li>
+                        <li key={i} className="mb-2 d-flex justify-content-between align-items-center border-bottom pb-1">
+                          <span><i className="bi bi-person-fill me-2 text-success"></i>{c.nombre} {c.apellido}</span>
+                          {c.telefono && (
+                            <a href={`https://wa.me/${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${c.nombre}, te escribo por una consulta sobre Predicación Pública`)}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-success rounded-pill px-3"><i className="bi bi-whatsapp"></i></a>
+                          )}
+                        </li>
                       ))}
                     </ul>
                   ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
                 </div>
 
-                <div className="mb-2">
+                <div className="mb-4">
                   <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Territorios Telefónicos / Personales</h6>
                   {contactosTelefonica.length > 0 ? (
                     <ul className="list-unstyled mb-0">
                       {contactosTelefonica.map((c, i) => (
-                        <li key={i} className="mb-1"><i className="bi bi-person-fill me-2 text-info"></i>{c.nombre} {c.apellido}</li>
+                        <li key={i} className="mb-2 d-flex justify-content-between align-items-center border-bottom pb-1">
+                          <span><i className="bi bi-person-fill me-2 text-info"></i>{c.nombre} {c.apellido}</span>
+                          {c.telefono && (
+                            <a href={`https://wa.me/${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${c.nombre}, te escribo por una consulta sobre Territorios Telefónicos o Personales`)}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-success rounded-pill px-3"><i className="bi bi-whatsapp"></i></a>
+                          )}
+                        </li>
                       ))}
                     </ul>
                   ) : <span className="text-muted fst-italic">No hay encargados registrados.</span>}
@@ -175,7 +190,10 @@ const Header = () => {
                 <div className="mb-2">
                   <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Soporte Técnico de la App</h6>
                   <ul className="list-unstyled mb-0">
-                    <li className="mb-1"><i className="bi bi-gear-fill me-2 text-warning"></i>Luca Jerez</li>
+                    <li className="mb-2 d-flex justify-content-between align-items-center border-bottom pb-1">
+                      <span><i className="bi bi-gear-fill me-2 text-warning"></i>Luca Jerez</span>
+                      <a href={`https://wa.me/5491151030168?text=${encodeURIComponent(`Hola Luca, te escribo por una consulta de Soporte Técnico de la App Colegiales`)}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-success rounded-pill px-3"><i className="bi bi-whatsapp"></i></a>
+                    </li>
                   </ul>
                 </div>
 
