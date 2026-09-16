@@ -82,6 +82,11 @@ const Header = () => {
                                 </Link>
                             </li>
                             <li className="nav-item">
+                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/campanas'}>
+                                    <i className="bi bi-megaphone-fill text-primary"></i> Campañas
+                                </Link>
+                            </li>
+                            <li className="nav-item">
                                 <button className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2 border-0 bg-transparent w-100" onClick={() => setShowContacto(true)}>
                                     <i className="bi bi-bell text-primary"></i> Notificaciones
                                 </button>

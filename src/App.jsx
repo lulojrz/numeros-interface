@@ -14,6 +14,7 @@ const Admin = lazy(() => import('./Pages/Admin'))
 const AdminUsuarios = lazy(() => import('./Pages/AdminUsuarios'))
 const CambiarContrasena = lazy(() => import('./Pages/CambiarContrasena'))
 const Experiencias = lazy(() => import('./Pages/Experiencias'))
+const Campanas = lazy(() => import('./Pages/Campanas'))
 const PredicacionPublica = lazy(() => import('./Pages/PredicacionPublica'))
 const PredicacionEdificios = lazy(() => import('./Pages/PredicacionEdificios'))
 
@@ -58,6 +59,10 @@ function App() {
           
           <Route path='/experiencias' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><Experiencias /></RutasProtegidas>
+          } />
+
+          <Route path='/campanas' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><Campanas /></RutasProtegidas>
           } />
 
           <Route path='/predicacion' element={
