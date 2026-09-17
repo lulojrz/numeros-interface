@@ -10,6 +10,7 @@ import GestionPlantillas from '../Components/GestionPlantillas.jsx'
 import GestionReportes from '../Components/GestionReportes.jsx'
 import MisTurnosPublicos from '../Components/MisTurnosPublicos.jsx'
 import EstadisticasDashboard from '../Components/EstadisticasDashboard.jsx'
+import GestionEdificios from '../Components/GestionEdificios.jsx'
 import { Link } from 'react-router-dom'
 
 const Admin = () => {
@@ -33,6 +34,10 @@ const Admin = () => {
     const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
     return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'publica' || asig === 'pública';
   })
+  const [isEdificiosAdmin, setIsEdificiosAdmin] = useState(() => {
+    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
+    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'edificios' || asig === 'territorios edificios';
+  })
   const [tabActiva, setTabActiva] = useState('telefonica')
   const [subTabPublica, setSubTabPublica] = useState('puntos')
 
@@ -55,11 +60,14 @@ const Admin = () => {
                 setIsFullAdmin(true);
                 setIsTelefonicaAdmin(true);
                 setIsPublicaAdmin(true);
+                setIsEdificiosAdmin(true);
                 setIsANC(true);
             } else if (asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales' || asig === 'territorios telefonicos' || asig === 'personales' || asig === 'territorios personales') {
                 setIsTelefonicaAdmin(true);
             } else if (asig === 'publica' || asig === 'pública') {
                 setIsPublicaAdmin(true);
+            } else if (asig === 'territorios edificios' || asig === 'edificios') {
+                setIsEdificiosAdmin(true);
             }
             
             if (currentUser.privilegio === 'ROLE_ANC') {
@@ -118,6 +126,17 @@ const Admin = () => {
                     <i className="bi bi-geo-alt-fill me-2"></i>Predicación Pública
                 </button>
             </li>
+            {isEdificiosAdmin && (
+            <li className="nav-item">
+                <button 
+                    className={`nav-link fw-bold ${tabActiva === 'edificios' ? 'active' : 'text-secondary'}`} 
+                    onClick={() => setTabActiva('edificios')}
+                    style={tabActiva === 'edificios' ? { color: '#fd7e14' } : {}}
+                >
+                    <i className="bi bi-building me-2"></i>Predicación de Edificios
+                </button>
+            </li>
+            )}
             {isFullAdmin && (
             <li className="nav-item">
                 <button 
@@ -244,6 +263,10 @@ const Admin = () => {
 
         {tabActiva === 'estadisticas' && isFullAdmin && (
             <EstadisticasDashboard />
+        )}
+
+        {tabActiva === 'edificios' && isEdificiosAdmin && (
+            <GestionEdificios />
         )}
 
     </div> 
