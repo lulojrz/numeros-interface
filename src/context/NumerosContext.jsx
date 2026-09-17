@@ -77,17 +77,23 @@ export const NumerosProvider = ({ children }) => {
     }
 
 
-    const cargarProductos = async () => {
+        const cargarProductos = async () => {
             setLoading(true)
             try {
                 const response = await fetch(api + '/api/numeros', { credentials: 'include' })
-                const data = await response.json()
-               
-
-                setNumeros(data)
+                if (response.ok) {
+                    const data = await response.json()
+                    if (Array.isArray(data)) {
+                        setNumeros(data)
+                    } else {
+                        setNumeros([])
+                    }
+                } else {
+                    setNumeros([])
+                }
             }
             catch (error) {
-    
+                setNumeros([])
             } finally {
                 setLoading(false)
             }

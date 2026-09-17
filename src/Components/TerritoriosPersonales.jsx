@@ -91,12 +91,14 @@ const TerritoriosPersonales = () => {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
-                    const encargadoEncontrado = data.find(u => {
-                        const asig = (u.asignacion || '').trim().toLowerCase();
-                        return asig.includes('personales') || asig.includes('telefónicos') || asig.includes('telefonicos');
-                    });
-                    if (encargadoEncontrado) {
-                        setEncargado(encargadoEncontrado);
+                    if (Array.isArray(data)) {
+                        const encargadoEncontrado = data.find(u => {
+                            const asig = (u.asignacion || '').trim().toLowerCase();
+                            return asig.includes('personales') || asig.includes('telefónicos') || asig.includes('telefonicos');
+                        });
+                        if (encargadoEncontrado) {
+                            setEncargado(encargadoEncontrado);
+                        }
                     }
                 }
             } catch (e) {
