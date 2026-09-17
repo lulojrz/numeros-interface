@@ -7,6 +7,7 @@ const GestionEdificios = () => {
     const [loading, setLoading] = useState(true);
     
     const [territorioSeleccionado, setTerritorioSeleccionado] = useState(null);
+    const [mapaViewer, setMapaViewer] = useState(null);
     
     const api = import.meta.env.VITE_API_URL;
     const Toast = Swal.mixin({
@@ -16,10 +17,11 @@ const GestionEdificios = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const resTerr = await fetch(`${api}/territorios/traer`, { credentials: 'include' });
+            const timestamp = new Date().getTime();
+            const resTerr = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
             if (resTerr.ok) setTerritorios(await resTerr.json());
 
-            const resUsu = await fetch(`${api}/usuarios`, { credentials: 'include' });
+            const resUsu = await fetch(`${api}/usuarios?t=${timestamp}`, { credentials: 'include' });
             if (resUsu.ok) setUsuarios(await resUsu.json());
         } catch (error) {
             console.error("Error cargando datos:", error);
@@ -281,9 +283,9 @@ const GestionEdificios = () => {
                                     </div>
                                     <div className="col-12 col-md-6">
                                         {currentTerritorioFull.imagen && (
-                                            <a href={currentTerritorioFull.imagen} target="_blank" rel="noreferrer" className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-white">
-                                                <i className="bi bi-image me-2"></i> Ver Mapa del Territorio
-                                            </a>
+                                            <button onClick={() => setMapaViewer(currentTerritorioFull.imagen)} className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-white p-3">
+                                                <i className="bi bi-image fs-4 me-2"></i> <span className="fw-semibold">Ver Mapa del Territorio</span>
+                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -337,6 +339,18 @@ const GestionEdificios = () => {
                     )}
                 </div>
             </div>
+
+            {/* Modal para ver la imagen en grande */}
+            {mapaViewer && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
+                        <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <i className="bi bi-x-lg"></i>
+                        </button>
+                        <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
