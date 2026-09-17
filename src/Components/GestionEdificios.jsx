@@ -37,16 +37,45 @@ const GestionEdificios = () => {
             title: 'Nuevo Territorio (Edificios)',
             html: `
                 <input id="swal-num" class="swal2-input" placeholder="Número o Nombre (Ej: 15)">
-                <input id="swal-img" class="swal2-input" placeholder="Enlace de imagen (Opcional)">
+                <div class="mt-3 text-start" style="width: 80%; margin: 0 auto;">
+                    <label class="form-label text-muted small mb-1">Imagen del mapa (Opcional)</label>
+                    <input type="file" id="swal-img-file" class="form-control" accept="image/*">
+                </div>
             `,
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Crear',
             preConfirm: () => {
-                return {
-                    numero: document.getElementById('swal-num').value,
-                    imagen: document.getElementById('swal-img').value
+                const numero = document.getElementById('swal-num').value;
+                const fileInput = document.getElementById('swal-img-file');
+                
+                if (!numero) {
+                    Swal.showValidationMessage('El número de territorio es obligatorio');
+                    return false;
                 }
+                
+                return new Promise((resolve) => {
+                    if (fileInput.files.length > 0) {
+                        const file = fileInput.files[0];
+                        // Comprobar tamaño (opcional, ej: max 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            Swal.showValidationMessage('La imagen es muy pesada (Máximo 5MB)');
+                            resolve(false);
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            resolve({ numero: numero, imagen: e.target.result });
+                        };
+                        reader.onerror = () => {
+                            Swal.showValidationMessage('Error al leer la imagen');
+                            resolve(false);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        resolve({ numero: numero, imagen: null });
+                    }
+                });
             }
         });
 
