@@ -207,7 +207,9 @@ const PredicacionEdificios = () => {
                         mActual.edificios.map(e => {
                             const total = e.departamentos?.length || 0;
                             const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
+                            const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
                             const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
+                            const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
                             
                             return (
                                 <div className="col-12 col-lg-6" key={e.id}>
@@ -223,7 +225,10 @@ const PredicacionEdificios = () => {
                                             <div className="progress" style={{height: '8px'}}>
                                                 <div className="progress-bar bg-success" style={{width: `${progreso}%`}}></div>
                                             </div>
-                                            <div className="text-end text-success small fw-bold mt-1">{progreso}% completado</div>
+                                            <div className="d-flex justify-content-between small fw-bold mt-2">
+                                                <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
+                                                <span className="text-success">{progreso}% Cubierto</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
