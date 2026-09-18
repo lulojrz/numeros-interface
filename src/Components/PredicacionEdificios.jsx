@@ -196,7 +196,10 @@ const PredicacionEdificios = () => {
                                 <div className="card h-100 border-0 shadow-sm" onClick={() => irAEdificios(m)} style={{cursor: 'pointer'}}>
                                     <div className="card-body">
                                         <div className="d-flex justify-content-between">
-                                            <h5 className="fw-bold text-primary">{m.nombre}</h5>
+                                            <h5 className="fw-bold text-primary">
+                                                {m.nombre} 
+                                                {m.completada && <span className="ms-2 badge bg-success align-middle" style={{fontSize: '0.6rem'}}>COMPLETADA</span>}
+                                            </h5>
                                             <i className="bi bi-chevron-right text-muted"></i>
                                         </div>
                                         <div className="text-muted small mt-2">
@@ -217,6 +220,47 @@ const PredicacionEdificios = () => {
             {/* VISTA 3: EDIFICIOS */}
             {vistaActual === 'edificios' && mActual && (
                 <div className="row g-3">
+                    <div className="col-12 mb-3 d-flex justify-content-end">
+                        <button 
+                            className={`btn ${mActual.completada ? 'btn-outline-success bg-white' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
+                            onClick={async () => {
+                                const nuevoEstado = !mActual.completada;
+                                try {
+                                    const res = await fetch(`${api}/manzanas/editar/${mActual.id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                            ...mActual,
+                                            completada: nuevoEstado,
+                                            ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
+                                        })
+                                    });
+                                    if (res.ok) {
+                                        Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
+                                        const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
+                                        if (resTerr.ok) {
+                                            const terrs = await resTerr.json();
+                                            setTerritorios(terrs);
+                                            const tNew = terrs.find(t => t.id === tActual.id);
+                                            if (tNew) {
+                                                const mNew = tNew.manzanas.find(m => m.id === mActual.id);
+                                                if (mNew) setManzanaSel(mNew);
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
+                                }
+                            }}
+                        >
+                            {mActual.completada ? (
+                                <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
+                            ) : (
+                                <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
+                            )}
+                        </button>
+                    </div>
                     {(!mActual.edificios || mActual.edificios.length === 0) ? (
                         <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
                     ) : (
