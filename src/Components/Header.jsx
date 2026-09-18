@@ -77,29 +77,9 @@ const Header = () => {
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/predicacion'}>
-                                    <i className="bi bi-calendar3 text-primary"></i> Turnos
+                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/admin'}>
+                                    <i className="bi bi-gear-fill text-primary"></i> Administración
                                 </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/campanas'}>
-                                    <i className="bi bi-megaphone-fill text-primary"></i> Campañas
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/edificios'}>
-                                    <i className="bi bi-buildings-fill text-primary"></i> Edificios
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/revisitas'}>
-                                    <i className="bi bi-star-fill text-primary"></i> Mis Revisitas
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <button className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2 border-0 bg-transparent w-100" onClick={() => setShowContacto(true)}>
-                                    <i className="bi bi-bell text-primary"></i> Notificaciones
-                                </button>
                             </li>
                             <li className="nav-item dropdown">
                                 <a className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -107,7 +87,6 @@ const Header = () => {
                                 </a>
                                 <ul className="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3 mt-2">
                                     <li><Link className="dropdown-item fw-medium py-2" to={'/admin/perfil'}><i className="bi bi-person-badge me-2 text-primary"></i>Mi Perfil</Link></li>
-                                    <li><Link className="dropdown-item fw-medium py-2" to={'/admin'}><i className="bi bi-gear-fill me-2 text-primary"></i>Administración</Link></li>
                                     <li><hr className="dropdown-divider" /></li>
                                     <li><button className="dropdown-item fw-medium py-2 text-danger" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</button></li>
                                 </ul>
