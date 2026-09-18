@@ -272,6 +272,11 @@ const PredicacionEdificios = () => {
                                             {dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
                                                 <span style={{fontSize: '0.65rem'}} className="mt-1 text-truncate w-100">{dpto.estado}</span>
                                             )}
+                                            {dpto.ultimaFechaTrabajada && (
+                                                <span style={{fontSize: '0.55rem', opacity: 0.8}} className="text-truncate w-100">
+                                                    {new Date(dpto.ultimaFechaTrabajada).toLocaleDateString()}
+                                                </span>
+                                            )}
                                         </button>
                                     </div>
                                 );
