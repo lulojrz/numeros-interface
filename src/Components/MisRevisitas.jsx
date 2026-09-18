@@ -15,9 +15,26 @@ const MisRevisitas = () => {
         }
         try {
             const timestamp = new Date().getTime();
-            const res = await fetch(`${api}/departamentos/revisitas/${usuarioId}?t=${timestamp}`, { credentials: 'include' });
+            const res = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
             if (res.ok) {
-                setRevisitas(await res.json());
+                const territorios = await res.json();
+                let misRev = [];
+                territorios.forEach(t => {
+                    t.manzanas?.forEach(m => {
+                        m.edificios?.forEach(e => {
+                            e.departamentos?.forEach(d => {
+                                // Asegurarse que es una revisita y pertenece al usuario actual
+                                if (d.estado === 'Revisita' && String(d.idPublicador) === String(usuarioId)) {
+                                    misRev.push({
+                                        ...d,
+                                        direccionEdificio: e.direccion || 'Edificio sin dirección'
+                                    });
+                                }
+                            });
+                        });
+                    });
+                });
+                setRevisitas(misRev);
             }
         } catch (error) {
             console.error(error);
@@ -117,10 +134,15 @@ const MisRevisitas = () => {
                         <div className="col-12 col-md-6 col-lg-4" key={r.id}>
                             <div className="card h-100 border-0 shadow-sm rounded-4">
                                 <div className="card-header bg-info bg-opacity-10 border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center rounded-top-4">
-                                    <h5 className="fw-bold m-0 text-dark">
-                                        <i className="bi bi-door-closed me-2"></i>
-                                        Piso {r.piso} - {r.letra}
-                                    </h5>
+                                    <div>
+                                        <h5 className="fw-bold m-0 text-dark">
+                                            <i className="bi bi-building me-2"></i>
+                                            {r.direccionEdificio}
+                                        </h5>
+                                        <div className="text-muted small mt-1">
+                                            <i className="bi bi-door-closed me-1"></i> Piso {r.piso} - Dpto {r.letra}
+                                        </div>
+                                    </div>
                                     <span className="badge bg-white text-dark border shadow-sm">
                                         {new Date(r.ultimaFechaTrabajada).toLocaleDateString()}
                                     </span>
