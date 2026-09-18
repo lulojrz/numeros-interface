@@ -47,11 +47,11 @@ const Header = () => {
     return asig === 'publica' || asig === 'pública';
   });
 
-  return (
+    return (
     <>
-      <nav className="navbar navbar-expand-lg bg-white shadow-sm mx-auto mt-3 px-2 border-0" style={{ maxWidth: '900px', borderRadius: '1rem' }}>
-        <div className="container-fluid px-4"> 
-            <Link className="navbar-brand fw-bold text-primary d-lg-none" to={'/'} style={{ letterSpacing: '-0.5px' }}>
+      <nav className="navbar navbar-expand-lg bg-body shadow-sm mx-auto mt-3 px-3 py-2 border-0" style={{ maxWidth: '900px', borderRadius: '1rem', transition: 'background-color 0.3s ease' }}>
+        <div className="container-fluid px-2"> 
+            <Link className="navbar-brand fw-bold text-primary" to={'/'} style={{ letterSpacing: '-0.5px' }}>
                 CRM
             </Link>
 
@@ -72,37 +72,37 @@ const Header = () => {
                     {isAuthenticated ? (
                         <>
                             <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/'}>
+                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/'}>
                                     <i className="bi bi-house text-primary"></i> Inicio
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/predicacion'}>
+                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/predicacion'}>
                                     <i className="bi bi-calendar3 text-primary"></i> Turnos
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/campanas'}>
+                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/campanas'}>
                                     <i className="bi bi-megaphone-fill text-primary"></i> Campañas
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/edificios'}>
+                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/edificios'}>
                                     <i className="bi bi-buildings-fill text-primary"></i> Edificios
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" to={'/revisitas'}>
+                                <Link className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2" to={'/revisitas'}>
                                     <i className="bi bi-star-fill text-primary"></i> Mis Revisitas
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <button className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2 border-0 bg-transparent w-100" onClick={() => setShowContacto(true)}>
+                                <button className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2 border-0 bg-transparent w-100" onClick={() => setShowContacto(true)}>
                                     <i className="bi bi-bell text-primary"></i> Notificaciones
                                 </button>
                             </li>
                             <li className="nav-item dropdown">
-                                <a className="nav-link fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a className="nav-link fw-semibold text-body d-flex align-items-center justify-content-center gap-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i className="bi bi-person text-primary"></i> Perfil
                                 </a>
                                 <ul className="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3 mt-2">
