@@ -47,13 +47,30 @@ const PredicacionEdificios = () => {
     };
 
     // Actualizar un departamento
-    const actualizarDpto = async (dpto, nuevoEstado, nuevoTocar) => {
+    const actualizarDpto = async (dpto, nuevoEstado, nuevoTocar, observacionesExtra = null) => {
+        const fechaStr = new Date().toLocaleDateString();
+        let nuevoHistorial = dpto.historial || '';
+        // Agregar al historial si cambió el estado o es un registro explícito
+        if (nuevoEstado !== 'No visitado') {
+            const entry = `${fechaStr}: ${nuevoEstado}`;
+            let lineas = nuevoHistorial.split('\n').filter(l => l.trim() !== '');
+            // Evitar duplicados del mismo día con el mismo estado
+            if (lineas.length === 0 || lineas[lineas.length - 1] !== entry) {
+                lineas.push(entry);
+                if (lineas.length > 6) lineas = lineas.slice(lineas.length - 6); // Mantener últimos 6
+                nuevoHistorial = lineas.join('\n');
+            }
+        }
+
         const updated = {
             ...dpto,
             estado: nuevoEstado,
             tocar: nuevoTocar,
-            ultimaFechaTrabajada: new Date().toISOString()
+            ultimaFechaTrabajada: new Date().toISOString(),
+            historial: nuevoHistorial
         };
+        if (observacionesExtra !== null) updated.observaciones = observacionesExtra;
+
         try {
             const res = await fetch(`${api}/departamentos/editar/${dpto.id}`, {
                 method: 'PUT',
@@ -73,9 +90,17 @@ const PredicacionEdificios = () => {
     };
 
     const abrirMenuDpto = (dpto) => {
+        const historialHtml = dpto.historial 
+            ? dpto.historial.split('\n').map(l => `<div><i class="bi bi-clock-history me-1"></i> ${l}</div>`).join('') 
+            : '<em>No hay visitas previas.</em>';
+
         Swal.fire({
             title: `Timbre ${dpto.piso}-${dpto.letra}`,
             html: `
+                <div class="mb-3 text-start small text-secondary p-2 bg-light rounded border" style="max-height: 100px; overflow-y: auto;">
+                    <strong class="text-dark">Historial de Visitas:</strong><br/>
+                    ${historialHtml}
+                </div>
                 <div class="d-grid gap-2">
                     <button id="btn-revisita" class="btn btn-info text-white fw-bold"><i class="bi bi-star-fill text-warning me-1"></i>Revisita</button>
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
@@ -92,7 +117,7 @@ const PredicacionEdificios = () => {
             didOpen: () => {
                 document.getElementById('btn-revisita').addEventListener('click', async () => {
                     Swal.close();
-                    const { value: observaciones } = await Swal.fire({
+                    const { value: obs } = await Swal.fire({
                         title: 'Observaciones de la Revisita',
                         input: 'textarea',
                         inputPlaceholder: 'Ej: Se llama Juan, dejamos la Atalaya...',
@@ -100,9 +125,11 @@ const PredicacionEdificios = () => {
                         confirmButtonText: 'Guardar',
                         cancelButtonText: 'Cancelar'
                     });
-                    if (observaciones !== undefined) {
-                        const usuarioId = localStorage.getItem('usuarioId'); // Necesitamos sacar el ID del usuario
-                        actualizarDpto({...dpto, observaciones, publicador: { id: usuarioId }}, 'Revisita', dpto.tocar);
+                    if (obs !== undefined) {
+                        const usuarioId = localStorage.getItem('usuarioId');
+                        // Para revisita pasamos también publicador
+                        const updated = {...dpto, publicador: { id: usuarioId }};
+                        actualizarDpto(updated, 'Revisita', dpto.tocar, obs);
                     }
                 });
                 document.getElementById('btn-atendio').addEventListener('click', () => {
@@ -160,8 +187,12 @@ const PredicacionEdificios = () => {
                                     <div className="card-body d-flex justify-content-between align-items-center">
                                         <div>
                                             <h5 className="fw-bold mb-1">Territorio {t.numero}</h5>
-                                            <div className="text-muted small">
+                                            <div className="text-muted small mt-1">
                                                 <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
+                                            </div>
+                                            <div className="text-muted small mt-1">
+                                                <i className="bi bi-calendar-check me-1"></i> 
+                                                Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
                                             </div>
                                             {t.asignadoA && (
                                                 <div className="badge bg-light text-dark border mt-2">
@@ -214,6 +245,33 @@ const PredicacionEdificios = () => {
                             </div>
                         ))
                     )}
+                    <div className="col-12 mt-4 text-center">
+                        <button 
+                            className="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
+                            onClick={async () => {
+                                try {
+                                    const res = await fetch(`${api}/territorios/editar/${tActual.id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                            ...tActual,
+                                            ultimaFechaTrabajada: new Date().toISOString()
+                                        })
+                                    });
+                                    if (res.ok) {
+                                        Toast.fire({ icon: 'success', title: 'Territorio actualizado' });
+                                        const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
+                                        if (resTerr.ok) setTerritorios(await resTerr.json());
+                                    }
+                                } catch (e) {
+                                    Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
+                                }
+                            }}
+                        >
+                            <i className="bi bi-calendar-check me-2"></i>Marcar Territorio como Trabajado Hoy
+                        </button>
+                    </div>
                 </div>
             )}
 
