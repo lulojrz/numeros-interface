@@ -80,6 +80,9 @@ export const AuthProvider = ({ children }) => {
                 setIsAuth(true);
                 localStorage.setItem('isAuth', 'true');
                 localStorage.setItem('usuario', responseData.usuario);
+                if (responseData.id) {
+                    localStorage.setItem('usuarioId', responseData.id);
+                }
                 
                 if (responseData.privilegio) {
                     localStorage.setItem('privilegio', responseData.privilegio);

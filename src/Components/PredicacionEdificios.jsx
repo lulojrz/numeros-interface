@@ -77,6 +77,7 @@ const PredicacionEdificios = () => {
             title: `Timbre ${dpto.piso}-${dpto.letra}`,
             html: `
                 <div class="d-grid gap-2">
+                    <button id="btn-revisita" class="btn btn-info text-white fw-bold"><i class="bi bi-star-fill text-warning me-1"></i>Revisita</button>
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
                     <button id="btn-noencasa" class="btn btn-warning fw-bold text-dark">No en casa</button>
                     <button id="btn-ocupado" class="btn btn-secondary fw-bold">Ocupado / Vuelvo Luego</button>
@@ -89,6 +90,21 @@ const PredicacionEdificios = () => {
             showConfirmButton: false,
             showCloseButton: true,
             didOpen: () => {
+                document.getElementById('btn-revisita').addEventListener('click', async () => {
+                    Swal.close();
+                    const { value: observaciones } = await Swal.fire({
+                        title: 'Observaciones de la Revisita',
+                        input: 'textarea',
+                        inputPlaceholder: 'Ej: Se llama Juan, dejamos la Atalaya...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Guardar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    if (observaciones !== undefined) {
+                        const usuarioId = localStorage.getItem('usuarioId'); // Necesitamos sacar el ID del usuario
+                        actualizarDpto({...dpto, observaciones, publicador: { id: usuarioId }}, 'Revisita', dpto.tocar);
+                    }
+                });
                 document.getElementById('btn-atendio').addEventListener('click', () => {
                     Swal.close(); actualizarDpto(dpto, 'Atendió', dpto.tocar);
                 });
