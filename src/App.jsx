@@ -18,6 +18,8 @@ const Campanas = lazy(() => import('./Pages/Campanas'))
 const PredicacionPublica = lazy(() => import('./Pages/PredicacionPublica'))
 const PredicacionEdificios = lazy(() => import('./Pages/PredicacionEdificios'))
 const MisRevisitas = lazy(() => import('./Pages/MisRevisitas'))
+const MisDisponibilidades = lazy(() => import('./Components/MisDisponibilidades'))
+const ProgramaPredicacion = lazy(() => import('./Components/ProgramaPredicacion'))
 
 function App() {
   const { numero, numeros, error, loading, setNumero, isAuthenticated } = useContext(NumerosContext)
@@ -76,6 +78,14 @@ function App() {
 
           <Route path='/revisitas' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><MisRevisitas /></RutasProtegidas>
+          } />
+
+          <Route path='/programa' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><ProgramaPredicacion /></RutasProtegidas>
+          } />
+
+          <Route path='/admin/disponibilidad' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><MisDisponibilidades /></RutasProtegidas>
           } />
         </Routes>
       </Suspense>

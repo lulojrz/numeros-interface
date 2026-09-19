@@ -11,6 +11,7 @@ import GestionReportes from '../Components/GestionReportes.jsx'
 import MisTurnosPublicos from '../Components/MisTurnosPublicos.jsx'
 import EstadisticasDashboard from '../Components/EstadisticasDashboard.jsx'
 import GestionEdificios from '../Components/GestionEdificios.jsx'
+import AdminSalidas from '../Components/AdminSalidas.jsx'
 import { Link } from 'react-router-dom'
 
 const Admin = () => {
@@ -134,6 +135,17 @@ const Admin = () => {
                     style={tabActiva === 'edificios' ? { color: '#fd7e14' } : {}}
                 >
                     <i className="bi bi-building me-2"></i>Predicación de Edificios
+                </button>
+            </li>
+            )}
+            {isFullAdmin && (
+            <li className="nav-item">
+                <button 
+                    className={`nav-link fw-bold ${tabActiva === 'salidas' ? 'active' : 'text-secondary'}`} 
+                    onClick={() => setTabActiva('salidas')}
+                    style={tabActiva === 'salidas' ? { color: '#0dcaf0' } : {}}
+                >
+                    <i className="bi bi-calendar-range me-2"></i>Salidas de Predicación
                 </button>
             </li>
             )}
@@ -267,6 +279,10 @@ const Admin = () => {
 
         {tabActiva === 'edificios' && isEdificiosAdmin && (
             <GestionEdificios />
+        )}
+
+        {tabActiva === 'salidas' && isFullAdmin && (
+            <AdminSalidas />
         )}
 
     </div> 
