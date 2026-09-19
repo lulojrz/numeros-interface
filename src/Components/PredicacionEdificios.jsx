@@ -161,6 +161,15 @@ const PredicacionEdificios = () => {
                 <h2 className="h4 text-primary fw-bold m-0">
                     <i className="bi bi-buildings me-2"></i>Predicación de Edificios
                 </h2>
+                {vistaActual === 'territorios' ? (
+                    <button className="btn btn-outline-primary btn-sm fw-bold shadow-sm" onClick={() => setVistaActual('estadisticas')}>
+                        <i className="bi bi-bar-chart-fill me-1"></i> Estadísticas
+                    </button>
+                ) : (
+                    <button className="btn btn-outline-secondary btn-sm shadow-sm" onClick={() => setVistaActual('territorios')}>
+                        <i className="bi bi-house-door-fill me-1"></i> Inicio
+                    </button>
+                )}
             </div>
 
             {/* BREADCRUMBS */}
@@ -250,13 +259,17 @@ const PredicacionEdificios = () => {
                             className="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
                             onClick={async () => {
                                 try {
+                                    const nuevaFecha = new Date().toISOString();
+                                    const nuevasFechas = tActual.fechasTrabajado ? [...tActual.fechasTrabajado, nuevaFecha] : [nuevaFecha];
+                                    
                                     const res = await fetch(`${api}/territorios/editar/${tActual.id}`, {
                                         method: 'PUT',
                                         headers: { 'Content-Type': 'application/json' },
                                         credentials: 'include',
                                         body: JSON.stringify({
                                             ...tActual,
-                                            ultimaFechaTrabajada: new Date().toISOString()
+                                            ultimaFechaTrabajada: nuevaFecha,
+                                            fechasTrabajado: nuevasFechas
                                         })
                                     });
                                     if (res.ok) {
@@ -404,6 +417,72 @@ const PredicacionEdificios = () => {
                                     </div>
                                 );
                             })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* VISTA 5: ESTADISTICAS */}
+            {vistaActual === 'estadisticas' && (
+                <div className="card border-0 shadow-sm mb-4">
+                    <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 className="m-0 fw-bold"><i className="bi bi-graph-up me-2"></i>Cobertura por Territorios</h5>
+                    </div>
+                    <div className="card-body p-0">
+                        <div className="table-responsive">
+                            <table className="table table-hover align-middle m-0">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="fw-bold text-secondary">Territorio</th>
+                                        <th className="fw-bold text-secondary">Manzanas Completadas</th>
+                                        <th className="fw-bold text-secondary">Última vez trabajado</th>
+                                        <th className="fw-bold text-secondary">Historial de fechas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {territorios.sort((a,b) => parseInt(a.numero || 0) - parseInt(b.numero || 0)).map(t => {
+                                        const totalManzanas = t.manzanas?.length || 0;
+                                        const completadas = t.manzanas?.filter(m => m.completada).length || 0;
+                                        const progreso = totalManzanas === 0 ? 0 : Math.round((completadas / totalManzanas) * 100);
+                                        
+                                        // Últimas 3 fechas
+                                        const historial = t.fechasTrabajado ? [...t.fechasTrabajado].sort((a,b) => new Date(b) - new Date(a)).slice(0,3) : [];
+
+                                        return (
+                                            <tr key={t.id}>
+                                                <td className="fw-bold text-primary">Territorio {t.numero}</td>
+                                                <td>
+                                                    <div className="d-flex align-items-center">
+                                                        <span className="me-2 fw-semibold" style={{minWidth: '40px'}}>{completadas}/{totalManzanas}</span>
+                                                        <div className="progress flex-grow-1" style={{height: '8px', maxWidth: '100px'}}>
+                                                            <div className={`progress-bar ${progreso === 100 ? 'bg-success' : 'bg-primary'}`} style={{width: `${progreso}%`}}></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {t.ultimaFechaTrabajada ? (
+                                                        <span className="badge bg-light text-dark border">
+                                                            <i className="bi bi-calendar-check me-1"></i>
+                                                            {new Date(t.ultimaFechaTrabajada).toLocaleDateString()}
+                                                        </span>
+                                                    ) : <span className="text-muted small">Nunca</span>}
+                                                </td>
+                                                <td>
+                                                    {historial.length > 0 ? (
+                                                        <div className="d-flex flex-wrap gap-1">
+                                                            {historial.map((f, i) => (
+                                                                <span key={i} className="badge bg-secondary" style={{fontSize: '0.7rem'}}>
+                                                                    {new Date(f).toLocaleDateString()}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : <span className="text-muted small">-</span>}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
