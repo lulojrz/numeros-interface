@@ -288,6 +288,23 @@ const Home = () => {
                         </Link>
                     </div>
 
+                    {/* Botón Campañas */}
+                    <div className="col-12 col-md-6">
+                        <Link 
+                            to="/campanas" 
+                            className="btn w-100 text-start shadow-sm d-flex justify-content-between align-items-center text-decoration-none"
+                            style={{ backgroundColor: '#4b6cb7', color: 'white', borderRadius: '12px', padding: '24px 20px', border: 'none', transition: 'transform 0.2s' }}
+                            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <div className="d-flex align-items-center fw-bold fs-5">
+                                <i className="bi bi-megaphone-fill me-3 fs-4"></i>
+                                Campañas
+                            </div>
+                            <i className="bi bi-chevron-right fs-5 fw-bold"></i>
+                        </Link>
+                    </div>
+
                     {/* Botón Administración */}
                     <div className="col-12 col-md-6">
                         <Link 
