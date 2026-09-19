@@ -57,6 +57,60 @@ const CampanasBanners = () => {
   );
 };
 
+const MisSalidasBanner = () => {
+  const [misSalidas, setMisSalidas] = useState([]);
+  const api = import.meta.env.VITE_API_URL;
+  const usuarioId = localStorage.getItem('usuarioId');
+
+  useEffect(() => {
+    if (!usuarioId) return;
+    const fetchSalidas = async () => {
+      try {
+        const res = await fetch(`${api}/salidas/traer`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          const hoy = new Date().toISOString().split('T')[0];
+          
+          // Filtrar salidas del usuario logueado que sean desde hoy en adelante
+          const salidasFuturas = data.filter(s => s.conductor?.id.toString() === usuarioId && s.fecha >= hoy)
+                                     .sort((a,b) => a.fecha.localeCompare(b.fecha));
+          
+          // Mostrar solo la próxima (o todas si queremos, pero la más urgente es mejor)
+          if (salidasFuturas.length > 0) {
+            setMisSalidas([salidasFuturas[0]]); // Mostramos solo la más próxima
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchSalidas();
+  }, [api, usuarioId]);
+
+  if (misSalidas.length === 0) return null;
+  const s = misSalidas[0];
+  const d = new Date(s.fecha + 'T12:00:00');
+  const diaStr = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric' });
+  const esHoy = s.fecha === new Date().toISOString().split('T')[0];
+
+  return (
+    <div className="alert alert-info border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-4" style={{backgroundColor: '#e0f2fe', color: '#0369a1'}}>
+      <div>
+        <h4 className="fw-bold mb-1">
+          <i className="bi bi-bell-fill text-warning me-2"></i>
+          {esHoy ? '¡Hoy tienes una salida programada!' : 'Próxima salida a tu cargo'}
+        </h4>
+        <p className="m-0 mb-2">Has sido asignado para conducir el grupo de predicación.</p>
+        <div className="d-flex gap-3 flex-wrap">
+          <span className="badge bg-white text-dark border shadow-sm px-3 py-2"><i className="bi bi-calendar3 me-2 text-primary"></i>{diaStr} - {s.hora} hs</span>
+          <span className="badge bg-white text-dark border shadow-sm px-3 py-2"><i className="bi bi-geo-alt-fill me-2 text-danger"></i>{s.puntoEncuentro}</span>
+          {s.territorio && <span className="badge bg-success text-white shadow-sm px-3 py-2"><i className="bi bi-map-fill me-2"></i>Territorio {s.territorio.numero}</span>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Home = () => {
   const {numero,numeros,error,loading,setNumero, isAuthenticated} = useContext(NumerosContext)
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -90,6 +144,9 @@ const Home = () => {
                         ¡Hola, {localStorage.getItem('usuario') || 'Usuario'}!
                     </h1>
                 </div>
+
+                {/* Banner de Salidas Propias (Si es conductor) */}
+                <MisSalidasBanner />
 
                 {/* Banner de Campañas Activas */}
                 <CampanasBanners />

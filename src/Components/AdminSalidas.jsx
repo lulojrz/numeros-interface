@@ -5,12 +5,14 @@ const AdminSalidas = () => {
     const api = import.meta.env.VITE_API_URL;
     const [disponibilidades, setDisponibilidades] = useState([]);
     const [salidas, setSalidas] = useState([]);
+    const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [fecha, setFecha] = useState('');
     const [hora, setHora] = useState('');
     const [puntoEncuentro, setPuntoEncuentro] = useState('');
     const [conductorId, setConductorId] = useState('');
+    const [territorioId, setTerritorioId] = useState('');
 
     const Toast = Swal.mixin({
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
@@ -19,12 +21,14 @@ const AdminSalidas = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [resDisp, resSalidas] = await Promise.all([
+            const [resDisp, resSalidas, resTerr] = await Promise.all([
                 fetch(`${api}/disponibilidades/traer`, { credentials: 'include' }),
-                fetch(`${api}/salidas/traer`, { credentials: 'include' })
+                fetch(`${api}/salidas/traer`, { credentials: 'include' }),
+                fetch(`${api}/territorios/traer`, { credentials: 'include' })
             ]);
             if (resDisp.ok) setDisponibilidades(await resDisp.json());
             if (resSalidas.ok) setSalidas(await resSalidas.json());
+            if (resTerr.ok) setTerritorios(await resTerr.json());
         } catch (e) {
             console.error(e);
         } finally {
@@ -39,20 +43,23 @@ const AdminSalidas = () => {
     const crearSalida = async (e) => {
         e.preventDefault();
         try {
+            const body = {
+                fecha,
+                hora,
+                puntoEncuentro,
+                conductor: { id: conductorId }
+            };
+            if (territorioId) body.territorio = { id: territorioId };
+
             const res = await fetch(`${api}/salidas/agregar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    fecha,
-                    hora,
-                    puntoEncuentro,
-                    conductor: { id: conductorId }
-                })
+                body: JSON.stringify(body)
             });
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Salida programada' });
-                setFecha(''); setHora(''); setPuntoEncuentro(''); setConductorId('');
+                setFecha(''); setHora(''); setPuntoEncuentro(''); setConductorId(''); setTerritorioId('');
                 fetchData();
             }
         } catch (e) {
@@ -145,15 +152,24 @@ const AdminSalidas = () => {
                                     <input type="time" className="form-control" required value={hora} onChange={e => setHora(e.target.value)} />
                                 </div>
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-bold">Punto de Encuentro / Territorio</label>
+                                    <label className="form-label small fw-bold">Punto de Encuentro</label>
                                     <input type="text" className="form-control" required value={puntoEncuentro} onChange={e => setPuntoEncuentro(e.target.value)} placeholder="Ej: Salón, Casa hno Juan..." />
                                 </div>
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-bold">Conductor (Seleccionar de Disponibles)</label>
+                                    <label className="form-label small fw-bold">Conductor</label>
                                     <select className="form-select" required value={conductorId} onChange={e => setConductorId(e.target.value)}>
                                         <option value="">Seleccione...</option>
                                         {disponibilidades.map(d => (
                                             <option key={d.id} value={d.usuario?.id}>{d.usuario?.nombre} {d.usuario?.apellido} ({d.diaSemana} {d.hora}hs)</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-md-12">
+                                    <label className="form-label small fw-bold text-success"><i className="bi bi-map-fill me-1"></i> Territorio Asignado (Opcional)</label>
+                                    <select className="form-select" value={territorioId} onChange={e => setTerritorioId(e.target.value)}>
+                                        <option value="">Ninguno específico...</option>
+                                        {territorios.map(t => (
+                                            <option key={t.id} value={t.id}>Territorio {t.numero} - {t.manzanas?.length || 0} manzanas</option>
                                         ))}
                                     </select>
                                 </div>
@@ -172,8 +188,11 @@ const AdminSalidas = () => {
                             salidas.sort((a,b) => a.fecha.localeCompare(b.fecha)).map(s => (
                                 <div key={s.id} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 className="fw-bold mb-1">{new Date(s.fecha).toLocaleDateString()} a las {s.hora} hs</h6>
-                                        <div className="small text-muted"><i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}</div>
+                                        <h6 className="fw-bold mb-1">{new Date(s.fecha + 'T12:00:00').toLocaleDateString()} a las {s.hora} hs</h6>
+                                        <div className="small text-muted">
+                                            <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
+                                            {s.territorio && <span className="ms-2 badge bg-success"><i className="bi bi-map-fill me-1"></i>Territorio {s.territorio.numero}</span>}
+                                        </div>
                                         <div className="small text-muted mt-1"><i className="bi bi-person-fill text-primary me-1"></i> Conduce: {s.conductor?.nombre} {s.conductor?.apellido}</div>
                                     </div>
                                     <button className="btn btn-sm btn-outline-danger" onClick={() => borrarSalida(s.id)}>

@@ -51,18 +51,18 @@ const ProgramaPredicacion = () => {
                                         </div>
                                         <hr className="my-2 opacity-25" />
                                         <div className="row g-2 align-items-center">
-                                            <div className="col-12 col-md-6">
+                                            <div className="col-12 col-md-4">
                                                 <div className="d-flex align-items-center text-muted">
                                                     <div className="bg-light rounded-circle p-2 me-3 text-danger">
                                                         <i className="bi bi-geo-alt-fill fs-5"></i>
                                                     </div>
                                                     <div>
-                                                        <div className="small fw-bold text-uppercase">Punto de Encuentro</div>
+                                                        <div className="small fw-bold text-uppercase">Encuentro</div>
                                                         <div className="text-dark">{s.puntoEncuentro}</div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="col-12 col-md-6">
+                                            <div className="col-12 col-md-4">
                                                 <div className="d-flex align-items-center text-muted">
                                                     <div className="bg-light rounded-circle p-2 me-3 text-info">
                                                         <i className="bi bi-person-fill fs-5"></i>
@@ -72,6 +72,29 @@ const ProgramaPredicacion = () => {
                                                         <div className="text-dark">{s.conductor?.nombre} {s.conductor?.apellido}</div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div className="col-12 col-md-4">
+                                                {s.territorio ? (
+                                                    <div className="d-flex align-items-center text-muted">
+                                                        <div className="bg-success bg-opacity-10 rounded-circle p-2 me-3 text-success">
+                                                            <i className="bi bi-map-fill fs-5"></i>
+                                                        </div>
+                                                        <div>
+                                                            <div className="small fw-bold text-uppercase text-success">Territorio</div>
+                                                            <div className="text-dark fw-bold">N° {s.territorio.numero}</div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="d-flex align-items-center text-muted opacity-50">
+                                                        <div className="bg-light rounded-circle p-2 me-3">
+                                                            <i className="bi bi-map fs-5"></i>
+                                                        </div>
+                                                        <div>
+                                                            <div className="small fw-bold text-uppercase">Territorio</div>
+                                                            <div className="small">A designar</div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
