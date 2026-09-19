@@ -7,6 +7,7 @@ const AdminSalidas = () => {
     const [salidas, setSalidas] = useState([]);
     const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [mapaViewer, setMapaViewer] = useState(false);
 
     const [fecha, setFecha] = useState('');
     const [hora, setHora] = useState('');
@@ -165,7 +166,12 @@ const AdminSalidas = () => {
                                     </select>
                                 </div>
                                 <div className="col-md-12">
-                                    <label className="form-label small fw-bold text-success"><i className="bi bi-map-fill me-1"></i> Territorio Asignado (Opcional)</label>
+                                    <div className="d-flex justify-content-between align-items-center mb-1">
+                                        <label className="form-label small fw-bold text-success m-0"><i className="bi bi-map-fill me-1"></i> Territorio Asignado (Opcional)</label>
+                                        <button type="button" className="btn btn-sm btn-outline-success fw-bold py-0" onClick={() => setMapaViewer(true)}>
+                                            <i className="bi bi-eye me-1"></i> Ver Mapa General
+                                        </button>
+                                    </div>
                                     <select className="form-select" value={territorioId} onChange={e => setTerritorioId(e.target.value)}>
                                         <option value="">Ninguno específico...</option>
                                         {territorios.map(t => (
@@ -204,6 +210,18 @@ const AdminSalidas = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal Visor de Mapa */}
+            {mapaViewer && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
+                        <button onClick={() => setMapaViewer(false)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}>
+                            <i className="bi bi-x-lg"></i>
+                        </button>
+                        <img src="/mapa_general.jpg" alt="Mapa General de la Congregación" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
