@@ -22,6 +22,7 @@ const AdminUsuarios = () => {
         contrasena: 'prueba123',
         privilegio: 'ROLE_PUB',
         asignacion: '',
+        grupo: '',
         carrito: false,
         banner: false,
         habilitacionPublica: false
@@ -68,6 +69,7 @@ const AdminUsuarios = () => {
                         contrasena: '',
                         privilegio: loggedUser.privilegio || 'ROLE_PUB',
                         asignacion: loggedUser.asignacion || '',
+                        grupo: loggedUser.grupo || '',
                         carrito: loggedUser.carrito || false,
                         banner: loggedUser.banner || false,
                         habilitacionPublica: loggedUser.habilitacionPublica || false
@@ -336,6 +338,7 @@ const AdminUsuarios = () => {
                                                 <th className="text-secondary fw-semibold text-center">Inv.</th>
                                                 <th className="text-secondary fw-semibold">Privilegio</th>
                                                 <th className="text-secondary fw-semibold">Asignación</th>
+                                                <th className="text-secondary fw-semibold">Grupo</th>
                                                 <th className="text-secondary fw-semibold text-center">Acciones</th>
                                             </tr>
                                         </thead>
@@ -369,6 +372,7 @@ const AdminUsuarios = () => {
                                                     </td>
                                                     <td><span className="badge bg-secondary">{u.privilegio}</span></td>
                                                     <td>{u.asignacion ? <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
+                                                    <td>{u.grupo ? <span className="badge border border-primary text-primary">{u.grupo}</span> : <span className="text-muted small">-</span>}</td>
                                                     <td className="text-center">
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
                                                             <i className="bi bi-pencil"></i> Editar
@@ -404,6 +408,7 @@ const AdminUsuarios = () => {
                                                     <div className="d-flex flex-wrap gap-1">
                                                         <span className="badge bg-secondary">{u.privilegio}</span>
                                                         {u.asignacion && <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span>}
+                                                        {u.grupo && <span className="badge border border-primary text-primary">{u.grupo}</span>}
                                                     </div>
                                                 </div>
                                                 <p className="card-text mb-1 text-muted small">
@@ -538,6 +543,23 @@ const AdminUsuarios = () => {
                                         <option value="publica">Pública</option>
                                         <option value="territorios">Territorios</option>
                                         <option value="servicio y territorios">Servicio y Territorios</option>
+                                    </select>
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Grupo de Servicio</label>
+                                    <select
+                                        className="form-select"
+                                        name="grupo"
+                                        value={formData.grupo}
+                                        onChange={handleInputChange}
+                                        disabled={!isANC}
+                                    >
+                                        <option value="">Ninguno</option>
+                                        <option value="Grupo 1">Grupo 1</option>
+                                        <option value="Grupo 2">Grupo 2</option>
+                                        <option value="Grupo 3">Grupo 3</option>
+                                        <option value="Grupo 4">Grupo 4</option>
+                                        <option value="Grupo 5">Grupo 5</option>
                                     </select>
                                 </div>
                                 <div className="mb-4 d-flex gap-4">

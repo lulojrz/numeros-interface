@@ -14,6 +14,7 @@ const AdminSalidas = () => {
     const [puntoEncuentro, setPuntoEncuentro] = useState('');
     const [conductorId, setConductorId] = useState('');
     const [territorioId, setTerritorioId] = useState('');
+    const [grupos, setGrupos] = useState('Toda la congregación');
 
     const Toast = Swal.mixin({
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
@@ -48,6 +49,7 @@ const AdminSalidas = () => {
                 fecha,
                 hora,
                 puntoEncuentro,
+                grupos,
                 conductor: { id: conductorId }
             };
             if (territorioId) body.territorio = { id: territorioId };
@@ -60,7 +62,7 @@ const AdminSalidas = () => {
             });
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Salida programada' });
-                setFecha(''); setHora(''); setPuntoEncuentro(''); setConductorId(''); setTerritorioId('');
+                setFecha(''); setHora(''); setPuntoEncuentro(''); setConductorId(''); setTerritorioId(''); setGrupos('Toda la congregación');
                 fetchData();
             }
         } catch (e) {
@@ -157,6 +159,10 @@ const AdminSalidas = () => {
                                     <input type="text" className="form-control" required value={puntoEncuentro} onChange={e => setPuntoEncuentro(e.target.value)} placeholder="Ej: Salón, Casa hno Juan..." />
                                 </div>
                                 <div className="col-md-6">
+                                    <label className="form-label small fw-bold text-primary">Grupo(s) Destinatario(s)</label>
+                                    <input type="text" className="form-control border-primary" required value={grupos} onChange={e => setGrupos(e.target.value)} placeholder="Ej: Toda la congregación, Grupo 1 y 2..." />
+                                </div>
+                                <div className="col-md-12">
                                     <label className="form-label small fw-bold">Conductor</label>
                                     <select className="form-select" required value={conductorId} onChange={e => setConductorId(e.target.value)}>
                                         <option value="">Seleccione...</option>
@@ -194,7 +200,7 @@ const AdminSalidas = () => {
                             salidas.sort((a,b) => a.fecha.localeCompare(b.fecha)).map(s => (
                                 <div key={s.id} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 className="fw-bold mb-1">{new Date(s.fecha + 'T12:00:00').toLocaleDateString()} a las {s.hora} hs</h6>
+                                        <h6 className="fw-bold mb-1">{new Date(s.fecha + 'T12:00:00').toLocaleDateString()} a las {s.hora} hs <span className="badge bg-primary ms-2">{s.grupos || 'Toda la congregación'}</span></h6>
                                         <div className="small text-muted">
                                             <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
                                             {s.territorio && <span className="ms-2 badge bg-success"><i className="bi bi-map-fill me-1"></i>Territorio {s.territorio.numero}</span>}

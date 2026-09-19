@@ -47,7 +47,10 @@ const ProgramaPredicacion = () => {
                                     <div className="card-body py-3">
                                         <div className="d-flex justify-content-between align-items-center mb-2">
                                             <h5 className="fw-bold m-0 text-dark text-capitalize">{diaStr}</h5>
-                                            <span className="badge bg-primary fs-6"><i className="bi bi-clock me-1"></i> {s.hora} hs</span>
+                                            <div>
+                                                <span className="badge bg-primary fs-6 me-2"><i className="bi bi-people-fill me-1"></i> {s.grupos || 'Toda la congregación'}</span>
+                                                <span className="badge bg-secondary fs-6"><i className="bi bi-clock me-1"></i> {s.hora} hs</span>
+                                            </div>
                                         </div>
                                         <hr className="my-2 opacity-25" />
                                         <div className="row g-2 align-items-center">
