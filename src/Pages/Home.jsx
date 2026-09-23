@@ -37,16 +37,16 @@ const CampanasBanners = () => {
       {campanas.map((campana, index) => (
         <div key={campana.id} className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
           {campana.imagen ? (
-            <img src={campana.imagen} alt={campana.titulo} className="img-fluid w-100" style={{ maxHeight: '300px', objectFit: 'cover' }} />
+            <img src={campana.imagen} alt={campana.titulo} className="img-fluid w-100" style={{ maxHeight: '150px', objectFit: 'cover' }} />
           ) : (
-            <div className="bg-primary bg-gradient p-4 text-white text-center">
-              <i className="bi bi-megaphone-fill display-4 mb-2 d-block"></i>
-              <h3 className="fw-bold m-0">{campana.titulo}</h3>
+            <div className="bg-primary bg-gradient p-3 text-white text-center">
+              <i className="bi bi-megaphone-fill display-6 mb-2 d-block"></i>
+              <h5 className="fw-bold m-0">{campana.titulo}</h5>
             </div>
           )}
           {/* Opcional: mostrar título o fecha si se desea, aunque si es una imagen diseñada puede que no haga falta */}
           <div className="p-3 bg-white d-flex justify-content-between align-items-center">
-            <h5 className="m-0 fw-bold text-primary">{campana.titulo}</h5>
+            <h6 className="m-0 fw-bold text-primary">{campana.titulo}</h6>
             <span className={`badge ${campana.estado === 'Activa' ? 'bg-success' : 'bg-warning text-dark'} rounded-pill`}>
               {campana.estado}
             </span>

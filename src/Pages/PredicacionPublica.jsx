@@ -364,15 +364,15 @@ const PredicacionPublica = () => {
             <div className="container py-5 mt-5 text-center" style={{ maxWidth: '600px' }}>
                 <div className="card shadow-lg border-0 p-5 rounded-4">
                     <div className="text-warning mb-4">
-                        <i className="bi bi-shield-lock-fill" style={{ fontSize: '5rem' }}></i>
+                        <i className="bi bi-info-circle-fill" style={{ fontSize: '5rem' }}></i>
                     </div>
-                    <h2 className="fw-bold text-dark mb-3">Acceso Restringido</h2>
+                    <h2 className="fw-bold text-dark mb-3">¡Gracias por hacerte disponible!</h2>
                     <p className="text-secondary fs-5 mb-4">
-                        Actualmente no cuentas con la habilitación para participar en la Predicación Pública.
+                        Actualmente no estás habilitado en el sistema para participar en la Predicación Pública.
                     </p>
                     <div className="alert alert-info border-0 rounded-3 mb-4">
-                        <i className="bi bi-info-circle-fill me-2"></i>
-                        Si deseas participar, te invitamos a hablar con el <strong>Comité de Servicio</strong> de la congregación para que te habiliten desde el sistema.
+                        <i className="bi bi-chat-dots-fill me-2"></i>
+                        Para participar, te invitamos a hablar con el <strong>Comité de Servicio</strong> de la congregación.
                     </div>
                     <Link to="/" className="btn btn-primary rounded-pill px-5 py-2 fw-semibold shadow-sm">
                         Volver al Inicio
