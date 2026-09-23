@@ -36,20 +36,38 @@ const CampanasBanners = () => {
     <div className="mb-5">
       {campanas.map((campana, index) => (
         <div key={campana.id} className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-          {campana.imagen ? (
-            <img src={campana.imagen} alt={campana.titulo} className="img-fluid w-100" style={{ maxHeight: '150px', objectFit: 'cover' }} />
-          ) : (
-            <div className="bg-primary bg-gradient p-3 text-white text-center">
-              <i className="bi bi-megaphone-fill display-6 mb-2 d-block"></i>
-              <h5 className="fw-bold m-0">{campana.titulo}</h5>
+          <div className="d-flex flex-row">
+            {/* Contenedor de la Imagen */}
+            {campana.imagen ? (
+              <div 
+                className="bg-light d-flex align-items-center justify-content-center p-2" 
+                style={{ width: '120px', minWidth: '120px' }}
+              >
+                <img 
+                  src={campana.imagen} 
+                  alt={campana.titulo} 
+                  className="img-fluid rounded" 
+                  style={{ maxHeight: '120px', objectFit: 'contain' }} 
+                />
+              </div>
+            ) : (
+              <div 
+                className="bg-primary bg-gradient d-flex align-items-center justify-content-center"
+                style={{ width: '120px', minWidth: '120px', minHeight: '120px' }}
+              >
+                <i className="bi bi-megaphone-fill text-white fs-1"></i>
+              </div>
+            )}
+            
+            {/* Contenido / Textos */}
+            <div className="card-body d-flex flex-column justify-content-center p-3 p-sm-4 bg-white">
+              <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
+                <h6 className="m-0 fw-bold text-primary lh-sm">{campana.titulo}</h6>
+                <span className={`badge ${campana.estado === 'Activa' ? 'bg-success' : 'bg-warning text-dark'} rounded-pill flex-shrink-0`}>
+                  {campana.estado}
+                </span>
+              </div>
             </div>
-          )}
-          {/* Opcional: mostrar título o fecha si se desea, aunque si es una imagen diseñada puede que no haga falta */}
-          <div className="p-3 bg-white d-flex justify-content-between align-items-center">
-            <h6 className="m-0 fw-bold text-primary">{campana.titulo}</h6>
-            <span className={`badge ${campana.estado === 'Activa' ? 'bg-success' : 'bg-warning text-dark'} rounded-pill`}>
-              {campana.estado}
-            </span>
           </div>
         </div>
       ))}
