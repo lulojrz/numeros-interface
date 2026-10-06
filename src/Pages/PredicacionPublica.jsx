@@ -367,9 +367,11 @@ const PredicacionPublica = () => {
                         <i className="bi bi-info-circle-fill" style={{ fontSize: '5rem' }}></i>
                     </div>
                     <h2 className="fw-bold text-dark mb-3">¡Gracias por hacerte disponible!</h2>
-                    <p className="text-secondary fs-5 mb-4">
-                        Actualmente no estás habilitado en el sistema para participar en la Predicación Pública.
-                    </p>
+                    {privilegio !== 'ROLE_PUB' && (
+                        <p className="text-secondary fs-5 mb-4">
+                            Actualmente no estás habilitado en el sistema para participar en la Predicación Pública.
+                        </p>
+                    )}
                     <div className="alert alert-info border-0 rounded-3 mb-4">
                         <i className="bi bi-chat-dots-fill me-2"></i>
                         Para participar, te invitamos a hablar con el <strong>Comité de Servicio</strong> de la congregación.

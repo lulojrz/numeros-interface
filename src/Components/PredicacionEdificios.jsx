@@ -155,6 +155,8 @@ const PredicacionEdificios = () => {
     const mActual = tActual && manzanaSel ? tActual.manzanas?.find(m => m.id === manzanaSel.id) : null;
     const eActual = mActual && edificioSel ? mActual.edificios?.find(e => e.id === edificioSel.id) : null;
 
+    const isPublicador = localStorage.getItem('privilegio') === 'ROLE_PUB' || !localStorage.getItem('privilegio');
+
     return (
         <div className="container mt-4 mb-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -162,9 +164,11 @@ const PredicacionEdificios = () => {
                     <i className="bi bi-buildings me-2"></i>Predicación de Edificios
                 </h2>
                 {vistaActual === 'territorios' ? (
-                    <button className="btn btn-outline-primary btn-sm fw-bold shadow-sm" onClick={() => setVistaActual('estadisticas')}>
-                        <i className="bi bi-bar-chart-fill me-1"></i> Estadísticas
-                    </button>
+                    !isPublicador && (
+                        <button className="btn btn-outline-primary btn-sm fw-bold shadow-sm" onClick={() => setVistaActual('estadisticas')}>
+                            <i className="bi bi-bar-chart-fill me-1"></i> Estadísticas
+                        </button>
+                    )
                 ) : (
                     <button className="btn btn-outline-secondary btn-sm shadow-sm" onClick={() => setVistaActual('territorios')}>
                         <i className="bi bi-house-door-fill me-1"></i> Inicio
@@ -254,84 +258,88 @@ const PredicacionEdificios = () => {
                             </div>
                         ))
                     )}
-                    <div className="col-12 mt-4 text-center">
-                        <button 
-                            className="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
-                            onClick={async () => {
-                                try {
-                                    const nuevaFecha = new Date().toISOString();
-                                    const nuevasFechas = tActual.fechasTrabajado ? [...tActual.fechasTrabajado, nuevaFecha] : [nuevaFecha];
-                                    
-                                    const res = await fetch(`${api}/territorios/editar/${tActual.id}`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({
-                                            ...tActual,
-                                            ultimaFechaTrabajada: nuevaFecha,
-                                            fechasTrabajado: nuevasFechas
-                                        })
-                                    });
-                                    if (res.ok) {
-                                        Toast.fire({ icon: 'success', title: 'Territorio actualizado' });
-                                        const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
-                                        if (resTerr.ok) setTerritorios(await resTerr.json());
+                    {!isPublicador && (
+                        <div className="col-12 mt-4 text-center">
+                            <button 
+                                className="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
+                                onClick={async () => {
+                                    try {
+                                        const nuevaFecha = new Date().toISOString();
+                                        const nuevasFechas = tActual.fechasTrabajado ? [...tActual.fechasTrabajado, nuevaFecha] : [nuevaFecha];
+                                        
+                                        const res = await fetch(`${api}/territorios/editar/${tActual.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            credentials: 'include',
+                                            body: JSON.stringify({
+                                                ...tActual,
+                                                ultimaFechaTrabajada: nuevaFecha,
+                                                fechasTrabajado: nuevasFechas
+                                            })
+                                        });
+                                        if (res.ok) {
+                                            Toast.fire({ icon: 'success', title: 'Territorio actualizado' });
+                                            const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
+                                            if (resTerr.ok) setTerritorios(await resTerr.json());
+                                        }
+                                    } catch (e) {
+                                        Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
                                     }
-                                } catch (e) {
-                                    Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
-                                }
-                            }}
-                        >
-                            <i className="bi bi-calendar-check me-2"></i>Marcar Territorio como Trabajado Hoy
-                        </button>
-                    </div>
+                                }}
+                            >
+                                <i className="bi bi-calendar-check me-2"></i>Marcar Territorio como Trabajado Hoy
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* VISTA 3: EDIFICIOS */}
             {vistaActual === 'edificios' && mActual && (
                 <div className="row g-3">
-                    <div className="col-12 mb-3 d-flex justify-content-end">
-                        <button 
-                            className={`btn ${mActual.completada ? 'btn-outline-success bg-white' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
-                            onClick={async () => {
-                                const nuevoEstado = !mActual.completada;
-                                try {
-                                    const res = await fetch(`${api}/manzanas/editar/${mActual.id}`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({
-                                            ...mActual,
-                                            completada: nuevoEstado,
-                                            ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
-                                        })
-                                    });
-                                    if (res.ok) {
-                                        Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
-                                        const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
-                                        if (resTerr.ok) {
-                                            const terrs = await resTerr.json();
-                                            setTerritorios(terrs);
-                                            const tNew = terrs.find(t => t.id === tActual.id);
-                                            if (tNew) {
-                                                const mNew = tNew.manzanas.find(m => m.id === mActual.id);
-                                                if (mNew) setManzanaSel(mNew);
+                    {!isPublicador && (
+                        <div className="col-12 mb-3 d-flex justify-content-end">
+                            <button 
+                                className={`btn ${mActual.completada ? 'btn-outline-success bg-white' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
+                                onClick={async () => {
+                                    const nuevoEstado = !mActual.completada;
+                                    try {
+                                        const res = await fetch(`${api}/manzanas/editar/${mActual.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            credentials: 'include',
+                                            body: JSON.stringify({
+                                                ...mActual,
+                                                completada: nuevoEstado,
+                                                ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
+                                            })
+                                        });
+                                        if (res.ok) {
+                                            Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
+                                            const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
+                                            if (resTerr.ok) {
+                                                const terrs = await resTerr.json();
+                                                setTerritorios(terrs);
+                                                const tNew = terrs.find(t => t.id === tActual.id);
+                                                if (tNew) {
+                                                    const mNew = tNew.manzanas.find(m => m.id === mActual.id);
+                                                    if (mNew) setManzanaSel(mNew);
+                                                }
                                             }
                                         }
+                                    } catch (e) {
+                                        Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
                                     }
-                                } catch (e) {
-                                    Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
-                                }
-                            }}
-                        >
-                            {mActual.completada ? (
-                                <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
-                            ) : (
-                                <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
-                            )}
-                        </button>
-                    </div>
+                                }}
+                            >
+                                {mActual.completada ? (
+                                    <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
+                                ) : (
+                                    <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
+                                )}
+                            </button>
+                        </div>
+                    )}
                     {(!mActual.edificios || mActual.edificios.length === 0) ? (
                         <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
                     ) : (

@@ -132,6 +132,8 @@ const MisSalidasBanner = () => {
 const Home = () => {
   const {numero,numeros,error,loading,setNumero, isAuthenticated} = useContext(NumerosContext)
   const [activeTab, setActiveTab] = useState('dashboard')
+  const privilegio = localStorage.getItem('privilegio') || 'ROLE_PUB';
+  const isSMAorANC = privilegio === 'ROLE_SM' || privilegio === 'ROLE_ANC';
 
   return (
     <>
@@ -222,21 +224,23 @@ const Home = () => {
                     </div>
 
                     {/* Botón Mis Días de Salida (Disponibilidad) */}
-                    <div className="col-12 col-md-6">
-                        <Link 
-                            to="/admin/disponibilidad" 
-                            className="btn w-100 text-start shadow-sm d-flex justify-content-between align-items-center text-decoration-none"
-                            style={{ backgroundColor: '#4b6cb7', color: 'white', borderRadius: '12px', padding: '24px 20px', border: 'none', transition: 'transform 0.2s' }}
-                            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                            onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                            <div className="d-flex align-items-center fw-bold fs-5">
-                                <i className="bi bi-clock-history me-3 fs-4"></i>
-                                Mis Días de Salida
-                            </div>
-                            <i className="bi bi-chevron-right fs-5 fw-bold"></i>
-                        </Link>
-                    </div>
+                    {isSMAorANC && (
+                        <div className="col-12 col-md-6">
+                            <Link 
+                                to="/admin/disponibilidad" 
+                                className="btn w-100 text-start shadow-sm d-flex justify-content-between align-items-center text-decoration-none"
+                                style={{ backgroundColor: '#4b6cb7', color: 'white', borderRadius: '12px', padding: '24px 20px', border: 'none', transition: 'transform 0.2s' }}
+                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <div className="d-flex align-items-center fw-bold fs-5">
+                                    <i className="bi bi-clock-history me-3 fs-4"></i>
+                                    Mis Días de Salida
+                                </div>
+                                <i className="bi bi-chevron-right fs-5 fw-bold"></i>
+                            </Link>
+                        </div>
+                    )}
 
                     {/* Botón Mis Revisitas */}
                     <div className="col-12 col-md-6">
