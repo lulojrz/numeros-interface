@@ -9,6 +9,7 @@ import {
 const EstadisticasDashboard = () => {
     const { numeros } = useContext(NumerosContext);
     const [turnos, setTurnos] = useState([]);
+    const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
     const api = import.meta.env.VITE_API_URL;
     
@@ -27,28 +28,26 @@ const EstadisticasDashboard = () => {
     ];
     const COLORS = ['#10b981', '#cbd5e1']; // green and light gray
 
-    // --- Pública Stats ---
+    // --- Pública y Territorios Stats ---
     useEffect(() => {
-        const fetchTurnos = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${api}/api/turnos/todos?year=${yearSelected}`, {
-                    credentials: 'include'
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setTurnos(data);
-                } else {
-                    Swal.fire('Error', 'No se pudieron cargar los turnos para estadísticas.', 'error');
-                }
+                const [resTurnos, resTerritorios] = await Promise.all([
+                    fetch(`${api}/api/turnos/todos?year=${yearSelected}`, { credentials: 'include' }),
+                    fetch(`${api}/territorios/traer`, { credentials: 'include' })
+                ]);
+                
+                if (resTurnos.ok) setTurnos(await resTurnos.json());
+                if (resTerritorios.ok) setTerritorios(await resTerritorios.json());
             } catch (error) {
-                console.error("Error al cargar turnos", error);
+                console.error("Error al cargar datos", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTurnos();
+        fetchData();
     }, [api, yearSelected]);
 
     const getPublicaStats = () => {
@@ -113,7 +112,50 @@ const EstadisticasDashboard = () => {
         return { dataMensual, dataPuntos };
     };
 
+    const getTerritoriosStats = () => {
+        const total = territorios.length;
+        const asignados = territorios.filter(t => t.asignadoA).length;
+        const sinAsignar = total - asignados;
+        
+        const dataAsignacion = [
+            { name: 'Asignados', value: asignados },
+            { name: 'Sin Asignar', value: sinAsignar }
+        ];
+
+        let nunca = 0;
+        let recientes = 0; // <= 30 dias
+        let medios = 0; // 31 a 90 dias
+        let antiguos = 0; // > 90 dias
+
+        const hoy = new Date();
+
+        territorios.forEach(t => {
+            if (!t.ultimaFechaTrabajada) {
+                nunca++;
+            } else {
+                const fecha = new Date(t.ultimaFechaTrabajada);
+                const diffTime = Math.abs(hoy - fecha);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                if (diffDays <= 30) recientes++;
+                else if (diffDays <= 90) medios++;
+                else antiguos++;
+            }
+        });
+
+        const dataAntiguedad = [
+            { name: 'Nunca Trabajados', value: nunca, fill: '#ef4444' }, // red
+            { name: 'Más de 3 meses', value: antiguos, fill: '#f97316' }, // orange
+            { name: '1 a 3 meses', value: medios, fill: '#eab308' }, // yellow
+            { name: 'Menos de 1 mes', value: recientes, fill: '#22c55e' }, // green
+        ];
+
+        const porcentajeAsignados = total > 0 ? Math.round((asignados / total) * 100) : 0;
+
+        return { dataAsignacion, dataAntiguedad, total, asignados, porcentajeAsignados, nunca, sinAsignar };
+    };
+
     const { dataMensual, dataPuntos } = getPublicaStats();
+    const terrStats = getTerritoriosStats();
 
     if (loading) {
         return (
@@ -224,7 +266,76 @@ const EstadisticasDashboard = () => {
                     </div>
                 </div>
 
-                {/* 3. Pública: Puntos con Menos Asistencia */}
+                {/* 3. Territorios: Asignación */}
+                <div className="col-12 col-md-6 col-xl-6">
+                    <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '1rem' }}>
+                        <div className="card-body p-4">
+                            <h5 className="card-title fw-bold text-info mb-3">
+                                <i className="bi bi-buildings-fill me-2"></i>
+                                Territorios: Asignación
+                            </h5>
+                            
+                            <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={terrStats.dataAsignacion}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={100}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                        >
+                                            <Cell fill="#0ea5e9" /> {/* blue */}
+                                            <Cell fill="#cbd5e1" /> {/* gray */}
+                                        </Pie>
+                                        <RechartsTooltip />
+                                        <Legend verticalAlign="bottom" height={36}/>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            
+                            <div className="text-center mt-2">
+                                <h2 className="fw-bold text-info">
+                                    {terrStats.porcentajeAsignados}%
+                                </h2>
+                                <span className="text-muted">Territorios Asignados</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. Territorios: Antigüedad de Trabajo */}
+                <div className="col-12 col-md-6 col-xl-6">
+                    <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '1rem' }}>
+                        <div className="card-body p-4">
+                            <h5 className="card-title fw-bold text-warning mb-3">
+                                <i className="bi bi-clock-history me-2"></i>
+                                Territorios: Antigüedad de Trabajo
+                            </h5>
+                            <p className="text-muted small mb-4">Hace cuánto tiempo se trabajaron por última vez.</p>
+                            
+                            <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <BarChart data={terrStats.dataAntiguedad} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                                        <XAxis type="number" axisLine={false} tickLine={false} />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={100} />
+                                        <RechartsTooltip cursor={{fill: '#f8f9fa'}} />
+                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
+                                            {terrStats.dataAntiguedad.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Pública: Puntos con Menos Asistencia */}
                 <div className="col-12">
                     <div className="card border-0 shadow-sm" style={{ borderRadius: '1rem' }}>
                         <div className="card-body p-4">
