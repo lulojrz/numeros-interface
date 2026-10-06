@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { exportarS13 } from '../utils/exportS13';
 
 const GestionEdificios = () => {
     const [territorios, setTerritorios] = useState([]);
@@ -338,7 +339,12 @@ const GestionEdificios = () => {
 
     return (
         <div className="mt-3">
-            <h3 className="h5 text-primary mb-3">Gestión de Territorios (Edificios)</h3>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h5 text-primary m-0">Gestión de Territorios (Edificios)</h3>
+                <button className="btn btn-outline-danger btn-sm fw-bold shadow-sm" onClick={() => exportarS13(territorios)}>
+                    <i className="bi bi-file-earmark-pdf-fill me-2"></i>Exportar S-13 (Registro)
+                </button>
+            </div>
             
             <div className="row g-4">
                 {/* LISTA DE TERRITORIOS (Se oculta si entramos a una manzana) */}
