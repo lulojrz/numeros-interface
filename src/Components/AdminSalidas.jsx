@@ -174,15 +174,52 @@ const AdminSalidas = () => {
                                 <div className="col-md-12">
                                     <div className="d-flex justify-content-between align-items-center mb-1">
                                         <label className="form-label small fw-bold text-success m-0"><i className="bi bi-map-fill me-1"></i> Territorio Asignado (Opcional)</label>
-                                        <button type="button" className="btn btn-sm btn-outline-success fw-bold py-0" onClick={() => setMapaViewer(true)}>
-                                            <i className="bi bi-eye me-1"></i> Ver Mapa General
-                                        </button>
+                                        <div>
+                                            {territorioId && territorios.find(t => t.id === parseInt(territorioId))?.imagen && (
+                                                <button type="button" className="btn btn-sm btn-outline-info fw-bold py-0 me-2" onClick={() => setMapaViewer(territorios.find(t => t.id === parseInt(territorioId))?.imagen)}>
+                                                    <i className="bi bi-image me-1"></i> Ver Territorio
+                                                </button>
+                                            )}
+                                            <button type="button" className="btn btn-sm btn-outline-success fw-bold py-0" onClick={() => setMapaViewer('/mapa_general.jpg')}>
+                                                <i className="bi bi-eye me-1"></i> Ver Mapa General
+                                            </button>
+                                        </div>
                                     </div>
                                     <select className="form-select" value={territorioId} onChange={e => setTerritorioId(e.target.value)}>
                                         <option value="">Ninguno específico...</option>
-                                        {territorios.map(t => (
-                                            <option key={t.id} value={t.id}>Territorio {t.numero} - {t.manzanas?.length || 0} manzanas</option>
-                                        ))}
+                                        {(() => {
+                                            const territoriosOrdenados = [...territorios].sort((a, b) => {
+                                                if (!a.ultimaFechaTrabajada) return -1;
+                                                if (!b.ultimaFechaTrabajada) return 1;
+                                                return new Date(a.ultimaFechaTrabajada) - new Date(b.ultimaFechaTrabajada);
+                                            });
+                                            const territoriosSugeridos = territoriosOrdenados.slice(0, 3);
+                                            const sugeridosIds = territoriosSugeridos.map(t => t.id);
+                                            const otrosTerritorios = territorios.filter(t => !sugeridosIds.includes(t.id));
+
+                                            return (
+                                                <>
+                                                    {territoriosSugeridos.length > 0 && (
+                                                        <optgroup label="Sugeridos (Hace mucho no se trabajan)">
+                                                            {territoriosSugeridos.map(t => (
+                                                                <option key={t.id} value={t.id}>
+                                                                    Territorio {t.numero} - {t.manzanas?.length || 0} manzanas {t.ultimaFechaTrabajada ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})` : '(Nunca trabajado)'}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
+                                                    {otrosTerritorios.length > 0 && (
+                                                        <optgroup label="Otros Territorios">
+                                                            {otrosTerritorios.map(t => (
+                                                                <option key={t.id} value={t.id}>
+                                                                    Territorio {t.numero} - {t.manzanas?.length || 0} manzanas {t.ultimaFechaTrabajada ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})` : ''}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </select>
                                 </div>
                                 <div className="col-12 text-end">
@@ -224,7 +261,7 @@ const AdminSalidas = () => {
                         <button onClick={() => setMapaViewer(false)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}>
                             <i className="bi bi-x-lg"></i>
                         </button>
-                        <img src="/mapa_general.jpg" alt="Mapa General de la Congregación" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
+                        <img src={typeof mapaViewer === 'string' ? mapaViewer : "/mapa_general.jpg"} alt="Mapa" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
                     </div>
                 </div>
             )}
