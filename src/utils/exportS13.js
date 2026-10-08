@@ -40,6 +40,14 @@ export const exportarS13 = async (territorios) => {
                             fComp.setFontSize(8);
                             fComp.setAlignment(1);
                         }
+
+                        // Llenar SIEMPRE el hermano asignado para esta fecha histórica
+                        const fAsigHist = form.getTextField(`T${rowNum}_g${blockIdx}_asignado_a`);
+                        if(fAsigHist) {
+                            const nombreHist = t.asignadoA ? (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15) : "---";
+                            fAsigHist.setText(nombreHist);
+                            fAsigHist.setFontSize(8);
+                        }
                         
                         blockIdx++;
                     });
@@ -50,8 +58,12 @@ export const exportarS13 = async (territorios) => {
                     const nombreCorto = (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15);
                     const fAsig = form.getTextField(`T${rowNum}_g${blockIdx}_asignado_a`);
                     if(fAsig) {
-                        fAsig.setText(nombreCorto);
-                        fAsig.setFontSize(8);
+                        // Solo escribir el nombre en la celda actual si está vacía (para no pisar la histórica si blockIdx = 4 y ya se llenó)
+                        const textoActual = fAsig.getText();
+                        if (!textoActual || textoActual === "---") {
+                            fAsig.setText(nombreCorto);
+                            fAsig.setFontSize(8);
+                        }
                     }
                 }
 
