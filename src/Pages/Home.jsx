@@ -122,7 +122,15 @@ const MisSalidasBanner = () => {
         <div className="d-flex gap-3 flex-wrap">
           <span className="badge bg-white text-dark border shadow-sm px-3 py-2"><i className="bi bi-calendar3 me-2 text-primary"></i>{diaStr} - {s.hora} hs</span>
           <span className="badge bg-white text-dark border shadow-sm px-3 py-2"><i className="bi bi-geo-alt-fill me-2 text-danger"></i>{s.puntoEncuentro}</span>
-          {s.territorio && <span className="badge bg-success text-white shadow-sm px-3 py-2"><i className="bi bi-map-fill me-2"></i>Territorio {s.territorio.numero}</span>}
+          {s.territorio && (
+            <Link 
+              to="/edificios" 
+              state={{ territorioId: s.territorio.id, territorioNumero: s.territorio.numero }} 
+              className="badge bg-success text-white shadow-sm px-3 py-2 text-decoration-none"
+            >
+              <i className="bi bi-map-fill me-2"></i>Territorio {s.territorio.numero} <i className="bi bi-arrow-right ms-1"></i>
+            </Link>
+          )}
         </div>
       </div>
     </div>

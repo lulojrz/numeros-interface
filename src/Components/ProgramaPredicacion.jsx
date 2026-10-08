@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ProgramaPredicacion = () => {
+    const navigate = useNavigate();
     const api = import.meta.env.VITE_API_URL;
     const [salidas, setSalidas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -78,15 +80,23 @@ const ProgramaPredicacion = () => {
                                             </div>
                                             <div className="col-12 col-md-4">
                                                 {s.territorio ? (
-                                                    <div className="d-flex align-items-center text-muted">
-                                                        <div className="bg-success bg-opacity-10 rounded-circle p-2 me-3 text-success">
-                                                            <i className="bi bi-map-fill fs-5"></i>
-                                                        </div>
-                                                        <div>
-                                                            <div className="small fw-bold text-uppercase text-success">Territorio</div>
-                                                            <div className="text-dark fw-bold">N° {s.territorio.numero}</div>
-                                                        </div>
-                                                    </div>
+                                                    <div className="d-flex align-items-center justify-content-between text-muted w-100">
+        <div className="d-flex align-items-center">
+            <div className="bg-success bg-opacity-10 rounded-circle p-2 me-3 text-success">
+                <i className="bi bi-map-fill fs-5"></i>
+            </div>
+            <div>
+                <div className="small fw-bold text-uppercase text-success">Territorio</div>
+                <div className="text-dark fw-bold">Nº {s.territorio.numero}</div>
+            </div>
+        </div>
+        <button 
+            className="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm"
+            onClick={() => navigate('/edificios', { state: { territorioId: s.territorio.id, territorioNumero: s.territorio.numero } })}
+        >
+            <i className="bi bi-box-arrow-in-right me-1"></i> Ir
+        </button>
+    </div>
                                                 ) : (
                                                     <div className="d-flex align-items-center text-muted opacity-50">
                                                         <div className="bg-light rounded-circle p-2 me-3">

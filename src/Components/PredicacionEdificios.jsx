@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 const PredicacionEdificios = () => {
+    const location = useLocation();
     const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
     
@@ -23,7 +25,17 @@ const PredicacionEdificios = () => {
             const timestamp = new Date().getTime();
             const res = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
             if (res.ok) {
-                setTerritorios(await res.json());
+                const data = await res.json();
+                setTerritorios(data);
+                
+                if (location.state?.territorioId) {
+                    const t = data.find(ter => ter.id === location.state.territorioId || ter.numero === location.state.territorioNumero);
+                    if (t) {
+                        setTerritorioSel(t);
+                        setVistaActual('manzanas');
+                        window.history.replaceState({}, document.title);
+                    }
+                }
             }
         } catch (error) {
             console.error(error);
