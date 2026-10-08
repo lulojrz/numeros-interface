@@ -53,17 +53,13 @@ export const exportarS13 = async (territorios) => {
                     });
                 }
 
-                if (t.asignadoA) {
-                    if (blockIdx > 4) blockIdx = 4;
+                // Si NO hay fechas históricas, el hermano asignado actual ocupa el primer bloque
+                if (t.asignadoA && (!t.fechasTrabajado || t.fechasTrabajado.length === 0)) {
                     const nombreCorto = (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15);
-                    const fAsig = form.getTextField(`T${rowNum}_g${blockIdx}_asignado_a`);
+                    const fAsig = form.getTextField(`T${rowNum}_g1_asignado_a`);
                     if(fAsig) {
-                        // Solo escribir el nombre en la celda actual si está vacía (para no pisar la histórica si blockIdx = 4 y ya se llenó)
-                        const textoActual = fAsig.getText();
-                        if (!textoActual || textoActual === "---") {
-                            fAsig.setText(nombreCorto);
-                            fAsig.setFontSize(8);
-                        }
+                        fAsig.setText(nombreCorto);
+                        fAsig.setFontSize(8);
                     }
                 }
 
