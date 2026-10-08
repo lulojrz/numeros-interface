@@ -2,99 +2,92 @@ import { PDFDocument, rgb } from 'pdf-lib';
 
 export const exportarS13 = async (territorios) => {
     try {
-        // Cargar el PDF original
-        const url = '/S-13_S.pdf';
+        const url = '/S-13_S_rellenable.pdf';
         const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer());
 
-        const pdfDoc = await PDFDocument.load(existingPdfBytes);
-        
-        // Copiamos la primera página para usarla como plantilla
-        const templatePage = pdfDoc.getPage(0);
-        
-        const size = 7;
-        const startY = 665;
-        const rowHeight = 17.5;
-        const maxRowsPerPage = 32;
-
-        let currentPage = templatePage;
-        let rowIndex = 0;
-        let pageCount = 1;
-
-        // Limpiar el doc (si queremos duplicar, mejor guardamos el documento original y creamos uno nuevo vacío y copiamos la página)
-        const newPdfDoc = await PDFDocument.create();
-        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [0]);
-        newPdfDoc.addPage(copiedPage);
-        currentPage = newPdfDoc.getPage(0);
-
-        // Añadir el año de servicio
+        const mergedPdf = await PDFDocument.create();
         const currentYear = new Date().getFullYear();
-        currentPage.drawText(currentYear.toString(), { x: 150, y: 700, size: 10, color: rgb(0,0,0) });
-
+        
         // Ordenar territorios numéricamente
         const territoriosOrdenados = [...territorios].sort((a, b) => parseInt(a.numero || 0) - parseInt(b.numero || 0));
 
-        for (const t of territoriosOrdenados) {
-            if (rowIndex >= maxRowsPerPage) {
-                const [nextPage] = await newPdfDoc.copyPages(pdfDoc, [0]);
-                newPdfDoc.addPage(nextPage);
-                pageCount++;
-                currentPage = newPdfDoc.getPage(pageCount - 1);
-                rowIndex = 0;
-                currentPage.drawText(currentYear.toString(), { x: 150, y: 700, size: 10, color: rgb(0,0,0) });
-            }
+        const maxRowsPerPage = 32;
+        const numPages = Math.ceil(territoriosOrdenados.length / maxRowsPerPage) || 1;
 
-            const yName = startY - (rowIndex * rowHeight) + 9;
-            const yDate = startY - (rowIndex * rowHeight) + 2;
-
-            // Num Territorio
-            currentPage.drawText((t.numero || '').toString(), { x: 75, y: yName, size, color: rgb(0,0,0) });
-
-            // Última fecha
-            if (t.ultimaFechaTrabajada) {
-                const dateStr = new Date(t.ultimaFechaTrabajada).toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: '2-digit'});
-                currentPage.drawText(dateStr, { x: 140, y: yName, size, color: rgb(0,0,0) });
-            }
-
-            // Historial (últimos 4 registros para que entren)
-            // Asumimos que t.fechasTrabajado es una lista de fechas que podemos agrupar, pero necesitamos los nombres también.
-            // Actualmente la base de datos de territorios tiene: asignadoA y fechasTrabajado. 
-            // Como no guarda el historial de quién lo tuvo en cada fecha en la entidad Territorio, 
-            // ponemos el Asignado actual y las fechas recientes, o simplemente rellenamos con la info disponible.
+        for (let p = 0; p < numPages; p++) {
+            // Cargar una copia fresca del PDF rellenable para cada página
+            const pdfDoc = await PDFDocument.load(existingPdfBytes);
+            const form = pdfDoc.getForm();
+            const page = pdfDoc.getPage(0);
             
-            // Simulamos los 4 bloques
-            const bloques = [
-                { nameX: 230, f1X: 228, f2X: 268 },
-                { nameX: 308, f1X: 305, f2X: 345 },
-                { nameX: 385, f1X: 383, f2X: 420 },
-                { nameX: 462, f1X: 460, f2X: 500 }
-            ];
+            const startY = 665;
+            const rowHeight = 17.5;
 
-            // Llenar con el historial disponible
-            if (t.fechasTrabajado && t.fechasTrabajado.length > 0) {
-                const fechas = [...t.fechasTrabajado].sort((a,b) => new Date(a) - new Date(b));
-                // Tomar hasta 4 fechas
-                const ultimasFechas = fechas.slice(-4);
+            // Año de servicio (no es un campo rellenable, lo dibujamos)
+            page.drawText(currentYear.toString(), { x: 150, y: 700, size: 10, color: rgb(0,0,0) });
+
+            const startIndex = p * maxRowsPerPage;
+            const endIndex = Math.min(startIndex + maxRowsPerPage, territoriosOrdenados.length);
+            const batch = territoriosOrdenados.slice(startIndex, endIndex);
+
+            for (let i = 0; i < batch.length; i++) {
+                const t = batch[i];
+                const rowNum = (i + 1).toString().padStart(2, '0');
                 
-                ultimasFechas.forEach((f, idx) => {
-                    const dateStr = new Date(f).toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: '2-digit'});
-                    currentPage.drawText(dateStr, { x: bloques[idx].f2X, y: yDate, size: 6, color: rgb(0,0,0) });
-                });
+                // Dibujar Número de Territorio (no es un campo rellenable)
+                const yName = startY - (i * rowHeight) + 9;
+                page.drawText((t.numero || '').toString(), { x: 75, y: yName, size: 7, color: rgb(0,0,0) });
+
+                try {
+                    // Última fecha
+                    if (t.ultimaFechaTrabajada) {
+                        const dateStr = new Date(t.ultimaFechaTrabajada).toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+                        const fieldUltima = form.getTextField(`T${rowNum}_ultima_fecha`);
+                        if(fieldUltima) fieldUltima.setText(dateStr);
+                    }
+
+                    // Historial y Asignación (Mapeo a los 4 grupos del formulario)
+                    let blockIdx = 1;
+                    
+                    if (t.fechasTrabajado && t.fechasTrabajado.length > 0) {
+                        const fechas = [...t.fechasTrabajado].sort((a,b) => new Date(a) - new Date(b));
+                        const ultimasFechas = fechas.slice(-4); // Últimas 4 veces completado
+                        
+                        ultimasFechas.forEach((f) => {
+                            if(blockIdx > 4) return;
+                            const dateStr = new Date(f).toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+                            
+                            const fComp = form.getTextField(`T${rowNum}_g${blockIdx}_fecha_completado`);
+                            if(fComp) fComp.setText(dateStr);
+                            
+                            blockIdx++;
+                        });
+                    }
+
+                    // Asignación actual (va en el siguiente bloque disponible o sobreescribe el último si está lleno)
+                    if (t.asignadoA) {
+                        if (blockIdx > 4) blockIdx = 4;
+                        const nombreCorto = (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15);
+                        const fAsig = form.getTextField(`T${rowNum}_g${blockIdx}_asignado_a`);
+                        if(fAsig) fAsig.setText(nombreCorto);
+                        // Como no guardamos la fecha en la que se asignó, la dejamos en blanco o usamos la de hoy
+                        // pero es mejor dejarla vacía para que el hermano anote a mano o se vea que está en curso.
+                    }
+
+                } catch (e) {
+                    console.error(`Error al llenar campos fila ${rowNum}:`, e);
+                }
             }
 
-            // Si está asignado actualmente, poner el nombre en el último bloque activo
-            if (t.asignadoA) {
-                const nombreCorto = (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15);
-                // Determinar el índice del bloque: si hay fechas, lo ponemos en el siguiente, o en el actual si no se completó
-                let blockIdx = t.fechasTrabajado ? t.fechasTrabajado.length : 0;
-                if (blockIdx > 3) blockIdx = 3;
-                
-                currentPage.drawText(nombreCorto, { x: bloques[blockIdx].nameX, y: yName, size: 6, color: rgb(0,0,0) });
-            }
+            // Acoplar los campos (flatten) para que queden como texto impreso y evitar problemas al unir páginas
+            form.flatten();
 
-            rowIndex++;
+            // Copiar la página llena al documento final
+            const [copiedPage] = await mergedPdf.copyPages(pdfDoc, [0]);
+            mergedPdf.addPage(copiedPage);
         }
 
-        const pdfBytes = await newPdfDoc.save();
+        const pdfBytes = await mergedPdf.save();
         
         // Descargar el PDF
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -104,7 +97,7 @@ export const exportarS13 = async (territorios) => {
         link.click();
         
     } catch (error) {
-        console.error('Error al exportar S-13:', error);
+        console.error('Error al exportar S-13 rellenable:', error);
         throw error;
     }
 };

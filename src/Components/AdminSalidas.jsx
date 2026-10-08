@@ -235,9 +235,12 @@ const AdminSalidas = () => {
                             <div className="list-group-item text-center text-muted py-4">No hay salidas programadas.</div>
                         ) : (
                             salidas.sort((a,b) => a.fecha.localeCompare(b.fecha)).map(s => (
-                                <div key={s.id} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div key={s.id} className="list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
                                     <div>
-                                        <h6 className="fw-bold mb-1">{new Date(s.fecha + 'T12:00:00').toLocaleDateString()} a las {s.hora} hs <span className="badge bg-primary ms-2">{s.grupos || 'Toda la congregación'}</span></h6>
+                                        <h6 className="fw-bold mb-1 d-flex flex-wrap align-items-center gap-2">
+                                            <span>{new Date(s.fecha + 'T12:00:00').toLocaleDateString()} a las {s.hora} hs</span>
+                                            <span className="badge bg-primary">{s.grupos || 'Toda la congregación'}</span>
+                                        </h6>
                                         <div className="small text-muted">
                                             <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
                                             {s.territorio && <span className="ms-2 badge bg-success"><i className="bi bi-map-fill me-1"></i>Territorio {s.territorio.numero}</span>}

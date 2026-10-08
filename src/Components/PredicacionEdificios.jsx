@@ -44,6 +44,7 @@ const PredicacionEdificios = () => {
         if (vistaActual === 'portero') setVistaActual('edificios');
         else if (vistaActual === 'edificios') setVistaActual('manzanas');
         else if (vistaActual === 'manzanas') setVistaActual('territorios');
+        else if (vistaActual === 'estadisticas') setVistaActual('territorios');
     };
 
     // Actualizar un departamento

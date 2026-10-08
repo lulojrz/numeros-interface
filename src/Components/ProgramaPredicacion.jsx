@@ -45,10 +45,10 @@ const ProgramaPredicacion = () => {
                             <div className="col-12" key={s.id}>
                                 <div className="card shadow-sm border-0 border-start border-primary border-4 rounded-3 h-100">
                                     <div className="card-body py-3">
-                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <h5 className="fw-bold m-0 text-dark text-capitalize">{diaStr}</h5>
-                                            <div>
-                                                <span className="badge bg-primary fs-6 me-2"><i className="bi bi-people-fill me-1"></i> {s.grupos || 'Toda la congregación'}</span>
+                                        <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3">
+                                            <h5 className="fw-bold m-0 mb-2 mb-sm-0 text-dark text-capitalize">{diaStr}</h5>
+                                            <div className="d-flex flex-wrap gap-2">
+                                                <span className="badge bg-primary fs-6"><i className="bi bi-people-fill me-1"></i> {s.grupos || 'Toda la congregación'}</span>
                                                 <span className="badge bg-secondary fs-6"><i className="bi bi-clock me-1"></i> {s.hora} hs</span>
                                             </div>
                                         </div>
