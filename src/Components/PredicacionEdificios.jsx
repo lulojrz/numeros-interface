@@ -2,6 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loading from './Loading';
+import { useSwipeable } from 'react-swipeable';
+
+
+const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
+    const handlers = useSwipeable({
+        onSwipedLeft: () => {
+            // Swipe a la izquierda: Marcar como No Visitado
+            actualizarDpto(dpto, 'No visitado', dpto.tocar);
+        },
+        onSwipedRight: () => {
+            // Swipe a la derecha: Marcar como Atendió
+            actualizarDpto(dpto, 'Atendió', dpto.tocar);
+        },
+        preventDefaultTouchmoveEvent: false,
+        trackMouse: true
+    });
+
+    return (
+        <div className="col-4 col-sm-3 col-md-2" {...handlers}>
+            <button 
+                className={`btn w-100 py-3 ${btnClass} d-flex flex-column align-items-center justify-content-center h-100`}
+                onClick={() => abrirMenuDpto(dpto)}
+            >
+                <i className={`bi ${icon} fs-4 mb-1`}></i>
+                <span className="fw-bold" style={{fontSize: '0.9rem'}}>{dpto.piso}-{dpto.letra}</span>
+                {dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
+                    <span style={{fontSize: '0.65rem'}} className="mt-1 text-truncate w-100">{dpto.estado}</span>
+                )}
+                {dpto.ultimaFechaTrabajada && (
+                    <span style={{fontSize: '0.55rem', opacity: 0.8}} className="text-truncate w-100">
+                        {new Date(dpto.ultimaFechaTrabajada).toLocaleDateString()}
+                    </span>
+                )}
+            </button>
+        </div>
+    );
+};
 
 const PredicacionEdificios = () => {
     const location = useLocation();
@@ -120,6 +157,7 @@ const PredicacionEdificios = () => {
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
                     <button id="btn-noencasa" class="btn btn-warning fw-bold text-body">No en casa</button>
                     <button id="btn-ocupado" class="btn btn-secondary fw-bold">Ocupado / Vuelvo Luego</button>
+                      <button id="btn-novisitado" class="btn btn-outline-secondary fw-bold">Restablecer (No visitado)</button>
                     <hr/>
                     <button id="btn-notocar" class="btn ${dpto.tocar ? 'btn-danger' : 'btn-outline-danger'} fw-bold">
                         <i class="bi bi-slash-circle me-1"></i> ${dpto.tocar ? 'Marcar como NO TOCAR' : 'Volver a TOCAR'}
@@ -153,8 +191,11 @@ const PredicacionEdificios = () => {
                     Swal.close(); actualizarDpto(dpto, 'No en casa', dpto.tocar);
                 });
                 document.getElementById('btn-ocupado').addEventListener('click', () => {
-                    Swal.close(); actualizarDpto(dpto, 'Ocupado', dpto.tocar);
-                });
+                      Swal.close(); actualizarDpto(dpto, 'Ocupado', dpto.tocar);
+                  });
+                  document.getElementById('btn-novisitado')?.addEventListener('click', () => {
+                      Swal.close(); actualizarDpto(dpto, 'No visitado', dpto.tocar);
+                  });
                 document.getElementById('btn-notocar').addEventListener('click', () => {
                     Swal.close(); actualizarDpto(dpto, dpto.estado, !dpto.tocar);
                 });
@@ -419,25 +460,7 @@ const PredicacionEdificios = () => {
                                     icon = "bi-house-x";
                                 }
 
-                                return (
-                                    <div className="col-4 col-sm-3 col-md-2" key={dpto.id}>
-                                        <button 
-                                            className={`btn w-100 py-3 ${btnClass} d-flex flex-column align-items-center justify-content-center h-100`}
-                                            onClick={() => abrirMenuDpto(dpto)}
-                                        >
-                                            <i className={`bi ${icon} fs-4 mb-1`}></i>
-                                            <span className="fw-bold" style={{fontSize: '0.9rem'}}>{dpto.piso}-{dpto.letra}</span>
-                                            {dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
-                                                <span style={{fontSize: '0.65rem'}} className="mt-1 text-truncate w-100">{dpto.estado}</span>
-                                            )}
-                                            {dpto.ultimaFechaTrabajada && (
-                                                <span style={{fontSize: '0.55rem', opacity: 0.8}} className="text-truncate w-100">
-                                                    {new Date(dpto.ultimaFechaTrabajada).toLocaleDateString()}
-                                                </span>
-                                            )}
-                                        </button>
-                                    </div>
-                                );
+                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} actualizarDpto={actualizarDpto} />;
                             })}
                         </div>
                     </div>
