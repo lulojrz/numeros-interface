@@ -195,9 +195,9 @@ const Experiencias = () => {
                                                 <h6 className="card-subtitle mb-3 text-muted small">
                                                     <i className="bi bi-person-fill me-1"></i>
                                                     Por: <span className="fw-semibold">{exp.usuario?.usuario || 'Anónimo'}</span>
-                                                    {exp.categoria && <span className="badge bg-info text-dark ms-2">{exp.categoria}</span>}
+                                                    {exp.categoria && <span className="badge bg-info text-body ms-2">{exp.categoria}</span>}
                                                 </h6>
-                                                <p className="card-text text-secondary mb-4">{exp.descripcion}</p>
+                                                <p className="card-text text-body-secondary mb-4">{exp.descripcion}</p>
 
                                             </div>
                                         </div>
@@ -221,7 +221,7 @@ const Experiencias = () => {
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body p-4">
                                     <div className="mb-4">
-                                        <label className="form-label fw-semibold text-secondary">Título</label>
+                                        <label className="form-label fw-semibold text-body-secondary">Título</label>
                                         <input
                                             type="text"
                                             className="form-control p-3 bg-body-tertiary border-0 rounded-3"
@@ -233,7 +233,7 @@ const Experiencias = () => {
                                         />
                                     </div>
                                     <div className="mb-2">
-                                        <label className="form-label fw-semibold text-secondary">Categoría</label>
+                                        <label className="form-label fw-semibold text-body-secondary">Categoría</label>
                                         <select
                                             className="form-select p-3 bg-body-tertiary border-0 rounded-3"
                                             name="categoria"
@@ -248,7 +248,7 @@ const Experiencias = () => {
                                         </select>
                                     </div>
                                     <div className="mb-2">
-                                        <label className="form-label fw-semibold text-secondary">Descripción</label>
+                                        <label className="form-label fw-semibold text-body-secondary">Descripción</label>
                                         <textarea
                                             className="form-control p-3 bg-body-tertiary border-0 rounded-3"
                                             name="descripcion"

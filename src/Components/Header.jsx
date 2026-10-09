@@ -129,7 +129,7 @@ const Header = () => {
                 <p className="text-muted mb-4">¿Tienes alguna consulta? Comunícate con los encargados correspondientes según el área:</p>
                 
                 <div className="mb-4">
-                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Administración (Servicio y Territorios)</h6>
+                  <h6 className="fw-bold text-body-secondary mb-2 border-bottom pb-1">Administración (Servicio y Territorios)</h6>
                   {contactosServicio.length > 0 ? (
                     <ul className="list-unstyled mb-0">
                       {contactosServicio.map((c, i) => (
@@ -145,7 +145,7 @@ const Header = () => {
                 </div>
 
                 <div className="mb-4">
-                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Predicación Pública</h6>
+                  <h6 className="fw-bold text-body-secondary mb-2 border-bottom pb-1">Predicación Pública</h6>
                   {contactosPublica.length > 0 ? (
                     <ul className="list-unstyled mb-0">
                       {contactosPublica.map((c, i) => (
@@ -161,7 +161,7 @@ const Header = () => {
                 </div>
 
                 <div className="mb-4">
-                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Territorios Telefónicos / Personales</h6>
+                  <h6 className="fw-bold text-body-secondary mb-2 border-bottom pb-1">Territorios Telefónicos / Personales</h6>
                   {contactosTelefonica.length > 0 ? (
                     <ul className="list-unstyled mb-0">
                       {contactosTelefonica.map((c, i) => (
@@ -177,7 +177,7 @@ const Header = () => {
                 </div>
 
                 <div className="mb-2">
-                  <h6 className="fw-bold text-secondary mb-2 border-bottom pb-1">Soporte Técnico de la App</h6>
+                  <h6 className="fw-bold text-body-secondary mb-2 border-bottom pb-1">Soporte Técnico de la App</h6>
                   <ul className="list-unstyled mb-0">
                     <li className="mb-2 d-flex justify-content-between align-items-center border-bottom pb-1">
                       <span><i className="bi bi-gear-fill me-2 text-warning"></i>Luca Jerez</span>

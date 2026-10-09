@@ -311,7 +311,7 @@ const GestionPlantillas = () => {
                     <div className="card shadow-sm border-0">
                         <div className="card-body p-4">
                             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-                                <h4 className="card-title fw-bold text-secondary mb-0">Plantillas de Turnos</h4>
+                                <h4 className="card-title fw-bold text-body-secondary mb-0">Plantillas de Turnos</h4>
                                 <div className="w-100" style={{ maxWidth: '300px' }}>
                                     <select 
                                         className="form-select w-100"
@@ -376,8 +376,8 @@ const GestionPlantillas = () => {
                                                         <td className="text-muted">{plantilla.punto?.nombre || 'Desconocido'}</td>
                                                         <td>
                                                             <div className="small text-start d-inline-block">
-                                                                {plantilla.publicador1 ? <div><i className="bi bi-person-fill text-secondary"></i> {plantilla.publicador1.nombre} {plantilla.publicador1.apellido || ''}</div> : null}
-                                                                {plantilla.publicador2 ? <div><i className="bi bi-person-fill text-secondary"></i> {plantilla.publicador2.nombre} {plantilla.publicador2.apellido || ''}</div> : null}
+                                                                {plantilla.publicador1 ? <div><i className="bi bi-person-fill text-body-secondary"></i> {plantilla.publicador1.nombre} {plantilla.publicador1.apellido || ''}</div> : null}
+                                                                {plantilla.publicador2 ? <div><i className="bi bi-person-fill text-body-secondary"></i> {plantilla.publicador2.nombre} {plantilla.publicador2.apellido || ''}</div> : null}
                                                                 {!plantilla.publicador1 && !plantilla.publicador2 ? <span className="text-muted fst-italic">Nadie</span> : null}
                                                             </div>
                                                         </td>
@@ -413,7 +413,7 @@ const GestionPlantillas = () => {
                                                         </button>
                                                     </div>
                                                     <div className="d-flex align-items-center text-muted">
-                                                        <i className="bi bi-geo-alt-fill me-2 text-secondary"></i>
+                                                        <i className="bi bi-geo-alt-fill me-2 text-body-secondary"></i>
                                                         <span>{plantilla.punto?.nombre || 'Desconocido'}</span>
                                                     </div>
                                                     {(plantilla.publicador1 || plantilla.publicador2) && (

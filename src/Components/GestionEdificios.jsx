@@ -366,7 +366,7 @@ const GestionEdificios = () => {
                                             <button 
                                                 key={t.id} 
                                                 onClick={() => setTerritorioSeleccionado(t)}
-                                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-white'}`}
+                                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
                                             >
                                                 <div>
                                                     <div className="fw-bold">Territorio {t.numero}</div>
@@ -390,7 +390,7 @@ const GestionEdificios = () => {
                     {/* VISTA: EDIFICIO -> DEPARTAMENTOS */}
                     {edificioSeleccionado && currentEdificioFull ? (
                         <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
-                            <div className="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                            <div className="card-header bg-body border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
                                 <div>
                                     <button className="btn btn-sm btn-light me-3 rounded-pill" onClick={() => setEdificioSeleccionado(null)}>
                                         <i className="bi bi-arrow-left"></i> Volver a Edificios
@@ -426,7 +426,7 @@ const GestionEdificios = () => {
                     /* VISTA: MANZANA -> EDIFICIOS */
                     manzanaSeleccionada && currentManzanaFull ? (
                         <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
-                            <div className="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                            <div className="card-header bg-body border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
                                 <div>
                                     <button className="btn btn-sm btn-light me-3 rounded-pill" onClick={() => setManzanaSeleccionada(null)}>
                                         <i className="bi bi-arrow-left"></i> Volver a Manzanas
@@ -485,7 +485,7 @@ const GestionEdificios = () => {
 
                                 <div className="row mb-4 bg-body-tertiary p-3 rounded-3 g-3">
                                     <div className="col-12 col-md-6">
-                                        <label className="form-label fw-semibold text-secondary small mb-1">Asignar a:</label>
+                                        <label className="form-label fw-semibold text-body-secondary small mb-1">Asignar a:</label>
                                         <select 
                                             className="form-select border-0 shadow-sm"
                                             value={currentTerritorioFull.asignadoA?.id || ""}
@@ -499,7 +499,7 @@ const GestionEdificios = () => {
                                     </div>
                                     <div className="col-12 col-md-6">
                                         {currentTerritorioFull.imagen && (
-                                            <button onClick={() => setMapaViewer(currentTerritorioFull.imagen)} className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-white p-3">
+                                            <button onClick={() => setMapaViewer(currentTerritorioFull.imagen)} className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-body p-3">
                                                 <i className="bi bi-image fs-4 me-2"></i> <span className="fw-semibold">Ver Mapa del Territorio</span>
                                             </button>
                                         )}
@@ -507,7 +507,7 @@ const GestionEdificios = () => {
                                 </div>
 
                                 <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-secondary me-2"></i>Manzanas</h5>
+                                    <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-body-secondary me-2"></i>Manzanas</h5>
                                     <button className="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm" onClick={() => agregarManzana(currentTerritorioFull.id)}>
                                         <i className="bi bi-plus-lg me-1"></i> Nueva Manzana
                                     </button>
@@ -515,7 +515,7 @@ const GestionEdificios = () => {
 
                                 {(!currentTerritorioFull.manzanas || currentTerritorioFull.manzanas.length === 0) ? (
                                     <div className="alert alert-light border text-center py-4 text-muted">
-                                        <i className="bi bi-building fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                        <i className="bi bi-building fs-1 d-block mb-2 text-body-secondary opacity-50"></i>
                                         No hay manzanas creadas en este territorio.
                                     </div>
                                 ) : (

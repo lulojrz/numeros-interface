@@ -64,7 +64,7 @@ const GestionReportes = () => {
         return (
             <div className="text-center py-5 bg-body shadow-sm rounded-4 border-0 mt-3">
                 <i className="bi bi-check-circle text-success" style={{ fontSize: '3rem' }}></i>
-                <h5 className="mt-3 text-secondary">¡Todo al día!</h5>
+                <h5 className="mt-3 text-body-secondary">¡Todo al día!</h5>
                 <p className="text-muted mb-0">No hay reportes pendientes.</p>
             </div>
         );
@@ -82,7 +82,7 @@ const GestionReportes = () => {
                                     <span className="badge bg-secondary">
                                         {new Date(r.fecha).toLocaleDateString()}
                                     </span>
-                                    <span className="fw-bold text-dark small">
+                                    <span className="fw-bold text-body small">
                                         <i className="bi bi-person-fill me-1 text-primary"></i> 
                                         {r.usuario?.usuario || 'Desconocido'}
                                     </span>

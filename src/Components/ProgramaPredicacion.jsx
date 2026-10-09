@@ -21,7 +21,7 @@ const ProgramaPredicacion = () => {
         fetchSalidas();
     }, []);
 
-    if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary"></div></div>;
+    if (loading) return <div className="mt-4"><Loading type="cards" count={3} /></div>;
 
     // Filtrar para mostrar solo las salidas desde hoy en adelante (o mostrar todas pero ordenadas)
     const hoy = new Date().toISOString().split('T')[0];
@@ -48,7 +48,7 @@ const ProgramaPredicacion = () => {
                                 <div className="card shadow-sm border-0 border-start border-primary border-4 rounded-3 h-100">
                                     <div className="card-body py-3">
                                         <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3">
-                                            <h5 className="fw-bold m-0 mb-2 mb-sm-0 text-dark text-capitalize">{diaStr}</h5>
+                                            <h5 className="fw-bold m-0 mb-2 mb-sm-0 text-body text-capitalize">{diaStr}</h5>
                                             <div className="d-flex flex-wrap gap-2">
                                                 <span className="badge bg-primary fs-6"><i className="bi bi-people-fill me-1"></i> {s.grupos || 'Toda la congregación'}</span>
                                                 <span className="badge bg-secondary fs-6"><i className="bi bi-clock me-1"></i> {s.hora} hs</span>
@@ -58,23 +58,23 @@ const ProgramaPredicacion = () => {
                                         <div className="row g-2 align-items-center">
                                             <div className="col-12 col-md-4">
                                                 <div className="d-flex align-items-center text-muted">
-                                                    <div className="bg-light rounded-circle p-2 me-3 text-danger">
+                                                    <div className="bg-body-tertiary rounded-circle p-2 me-3 text-danger">
                                                         <i className="bi bi-geo-alt-fill fs-5"></i>
                                                     </div>
                                                     <div>
                                                         <div className="small fw-bold text-uppercase">Encuentro</div>
-                                                        <div className="text-dark">{s.puntoEncuentro}</div>
+                                                        <div className="text-body">{s.puntoEncuentro}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="col-12 col-md-4">
                                                 <div className="d-flex align-items-center text-muted">
-                                                    <div className="bg-light rounded-circle p-2 me-3 text-info">
+                                                    <div className="bg-body-tertiary rounded-circle p-2 me-3 text-info">
                                                         <i className="bi bi-person-fill fs-5"></i>
                                                     </div>
                                                     <div>
                                                         <div className="small fw-bold text-uppercase">Conductor</div>
-                                                        <div className="text-dark">{s.conductor?.nombre} {s.conductor?.apellido}</div>
+                                                        <div className="text-body">{s.conductor?.nombre} {s.conductor?.apellido}</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -87,7 +87,7 @@ const ProgramaPredicacion = () => {
             </div>
             <div>
                 <div className="small fw-bold text-uppercase text-success">Territorio</div>
-                <div className="text-dark fw-bold">Nº {s.territorio.numero}</div>
+                <div className="text-body fw-bold">Nº {s.territorio.numero}</div>
             </div>
         </div>
         <button 
@@ -99,7 +99,7 @@ const ProgramaPredicacion = () => {
     </div>
                                                 ) : (
                                                     <div className="d-flex align-items-center text-muted opacity-50">
-                                                        <div className="bg-light rounded-circle p-2 me-3">
+                                                        <div className="bg-body-tertiary rounded-circle p-2 me-3">
                                                             <i className="bi bi-map fs-5"></i>
                                                         </div>
                                                         <div>

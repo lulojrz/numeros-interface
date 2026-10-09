@@ -128,7 +128,7 @@ const MisTurnosPublicos = () => {
                     <div key={turno.id} className="col-12 col-md-6 col-lg-4">
                         <div className={`card h-100 shadow-sm border-0 ${esPasado ? 'bg-body-tertiary' : 'border-start border-primary border-4'}`}>
                             <div className="card-body p-4">
-                                <h5 className={`card-title fw-bold text-capitalize ${esPasado ? 'text-secondary' : 'text-primary'}`}>
+                                <h5 className={`card-title fw-bold text-capitalize ${esPasado ? 'text-body-secondary' : 'text-primary'}`}>
                                     {formatearFecha(turno.fecha)}
                                 </h5>
                                 <h6 className="card-subtitle mb-3 text-muted">
@@ -142,13 +142,13 @@ const MisTurnosPublicos = () => {
                                 <hr className="my-3"/>
                                 <div className="d-flex flex-column gap-2">
                                     <div className="d-flex align-items-center">
-                                        <i className="bi bi-person-fill text-secondary me-2"></i>
+                                        <i className="bi bi-person-fill text-body-secondary me-2"></i>
                                         <span className={turno.publicador1?.usuario === usuarioActual ? 'fw-bold text-body' : 'text-muted'}>
                                             {turno.publicador1 ? `${turno.publicador1.nombre} ${turno.publicador1.apellido || ''}` : 'Libre'}
                                         </span>
                                     </div>
                                     <div className="d-flex align-items-center">
-                                        <i className="bi bi-person-fill text-secondary me-2"></i>
+                                        <i className="bi bi-person-fill text-body-secondary me-2"></i>
                                         <span className={turno.publicador2?.usuario === usuarioActual ? 'fw-bold text-body' : 'text-muted'}>
                                             {turno.publicador2 ? `${turno.publicador2.nombre} ${turno.publicador2.apellido || ''}` : 'Libre'}
                                         </span>
@@ -177,7 +177,7 @@ const MisTurnosPublicos = () => {
             <h4 className="fw-bold mb-4 text-primary">Mis Turnos Activos</h4>
             {renderTurnos(turnosActivos, false)}
 
-            <h4 className="fw-bold mt-5 mb-4 text-secondary">Historial de Turnos</h4>
+            <h4 className="fw-bold mt-5 mb-4 text-body-secondary">Historial de Turnos</h4>
             {renderTurnos(turnosPasados, true)}
         </div>
     );

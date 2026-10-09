@@ -135,7 +135,7 @@ const MisRevisitas = () => {
                             <div className="card h-100 border-0 shadow-sm rounded-4">
                                 <div className="card-header bg-info bg-opacity-10 border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center rounded-top-4">
                                     <div>
-                                        <h5 className="fw-bold m-0 text-dark">
+                                        <h5 className="fw-bold m-0 text-body">
                                             <i className="bi bi-building me-2"></i>
                                             {r.direccionEdificio}
                                         </h5>
@@ -143,7 +143,7 @@ const MisRevisitas = () => {
                                             <i className="bi bi-door-closed me-1"></i> Piso {r.piso} - Dpto {r.letra}
                                         </div>
                                     </div>
-                                    <span className="badge bg-white text-dark border shadow-sm">
+                                    <span className="badge bg-body text-body border shadow-sm">
                                         {new Date(r.ultimaFechaTrabajada).toLocaleDateString()}
                                     </span>
                                 </div>

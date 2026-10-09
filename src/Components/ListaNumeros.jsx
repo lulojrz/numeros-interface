@@ -104,7 +104,7 @@ const ListaNumeros = () => {
         <>
             <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
                 <div className="card shadow-sm p-3 border-0 bg-body-tertiary" style={{ borderRadius: '0.75rem' }}>
-                    <h6 className="mb-3 text-secondary fw-bold">Filtros de Búsqueda</h6>
+                    <h6 className="mb-3 text-body-secondary fw-bold">Filtros de Búsqueda</h6>
                     <div className="row g-3">
                         <div className="col-md-3">
                             <label className="form-label text-muted small fw-semibold mb-1">Dirección</label>
@@ -200,7 +200,7 @@ const ListaNumeros = () => {
                                 </button>
                                 <button 
                                     type="button" 
-                                    className="btn btn-warning btn-sm px-3 shadow-sm text-dark" 
+                                    className="btn btn-warning btn-sm px-3 shadow-sm text-body" 
                                     onClick={handleReiniciarContesta}
                                     disabled={!puedeModificarBloque}
                                     title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para reiniciar" : ""}
@@ -222,16 +222,16 @@ const ListaNumeros = () => {
                         <table className="table table-hover table-striped align-middle">
                             <thead className="table-light">
                                 <tr>
-                                    <th scope="col" className="text-secondary fw-semibold">Número</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Dirección</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Territorio</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Edificio</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Contesta</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Última Fecha (Y-MM-DD)</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Último Usuario</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Reservado</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Reservado A</th>
-                                    <th scope="col" className="text-secondary fw-semibold">Fecha Reserva</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Número</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Dirección</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Territorio</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Edificio</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Contesta</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Última Fecha (Y-MM-DD)</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Último Usuario</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Reservado</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Reservado A</th>
+                                    <th scope="col" className="text-body-secondary fw-semibold">Fecha Reserva</th>
                                 </tr>
                             </thead>
                             <tbody>

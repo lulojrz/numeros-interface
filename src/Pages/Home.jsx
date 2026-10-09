@@ -40,7 +40,7 @@ const CampanasBanners = () => {
             {/* Contenedor de la Imagen */}
             {campana.imagen ? (
               <div 
-                className="bg-light d-flex align-items-center justify-content-center p-2" 
+                className="bg-body-tertiary d-flex align-items-center justify-content-center p-2" 
                 style={{ width: '120px', minWidth: '120px' }}
               >
                 <img 
@@ -60,10 +60,10 @@ const CampanasBanners = () => {
             )}
             
             {/* Contenido / Textos */}
-            <div className="card-body d-flex flex-column justify-content-center p-3 p-sm-4 bg-white">
+            <div className="card-body d-flex flex-column justify-content-center p-3 p-sm-4 bg-body">
               <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
                 <h6 className="m-0 fw-bold text-primary lh-sm">{campana.titulo}</h6>
-                <span className={`badge ${campana.estado === 'Activa' ? 'bg-success' : 'bg-warning text-dark'} rounded-pill flex-shrink-0`}>
+                <span className={`badge ${campana.estado === 'Activa' ? 'bg-success' : 'bg-warning text-body'} rounded-pill flex-shrink-0`}>
                   {campana.estado}
                 </span>
               </div>
@@ -120,8 +120,8 @@ const MisSalidasBanner = () => {
         </h4>
         <p className="m-0 mb-2">Has sido asignado para conducir el grupo de predicación.</p>
         <div className="d-flex gap-3 flex-wrap">
-          <span className="badge bg-white text-dark border shadow-sm px-3 py-2"><i className="bi bi-calendar3 me-2 text-primary"></i>{diaStr} - {s.hora} hs</span>
-          <span className="badge bg-white text-dark border shadow-sm px-3 py-2"><i className="bi bi-geo-alt-fill me-2 text-danger"></i>{s.puntoEncuentro}</span>
+          <span className="badge bg-body text-body border shadow-sm px-3 py-2"><i className="bi bi-calendar3 me-2 text-primary"></i>{diaStr} - {s.hora} hs</span>
+          <span className="badge bg-body text-body border shadow-sm px-3 py-2"><i className="bi bi-geo-alt-fill me-2 text-danger"></i>{s.puntoEncuentro}</span>
           {s.territorio && (
             <Link 
               to="/edificios" 
@@ -152,7 +152,7 @@ const Home = () => {
                 <div className="row justify-content-center">
                     <div className="col-lg-8">
                         <h1 className="display-4 fw-bold text-primary mb-4">Bienvenido a CRM Panel</h1>
-                        <p className="lead text-secondary mb-5">
+                        <p className="lead text-body-secondary mb-5">
                             La herramienta definitiva para gestionar tus contactos y campañas telefónicas. 
                             Inicia sesión para acceder a los números asignados y comenzar a realizar llamadas.
                         </p>
@@ -366,7 +366,7 @@ const Home = () => {
                 {activeTab === 'llamar' ? (
                     <>
                         <div className="text-center mb-4">
-                            <h3 className="fw-semibold text-secondary">Número a llamar:</h3>
+                            <h3 className="fw-semibold text-body-secondary">Número a llamar:</h3>
                         </div>
                         {loading ? <Loading /> : <Numeros setNumero={setNumero} />}
                     </>

@@ -77,13 +77,13 @@ const MisReservas = ({ hideEmpty = false }) => {
                         <table className="table table-hover table-striped align-middle mb-0">
                             <thead className="table-light">
                                 <tr>
-                                    <th className="text-secondary fw-semibold">Número</th>
-                                    <th className="text-secondary fw-semibold">Dirección</th>
-                                    <th className="text-secondary fw-semibold">Edificio</th>
-                                    <th className="text-secondary fw-semibold">Territorio</th>
-                                    <th className="text-secondary fw-semibold">Último Llamado</th>
-                                    <th className="text-secondary fw-semibold">Resultado</th>
-                                    <th className="text-secondary fw-semibold text-center">Acciones</th>
+                                    <th className="text-body-secondary fw-semibold">Número</th>
+                                    <th className="text-body-secondary fw-semibold">Dirección</th>
+                                    <th className="text-body-secondary fw-semibold">Edificio</th>
+                                    <th className="text-body-secondary fw-semibold">Territorio</th>
+                                    <th className="text-body-secondary fw-semibold">Último Llamado</th>
+                                    <th className="text-body-secondary fw-semibold">Resultado</th>
+                                    <th className="text-body-secondary fw-semibold text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>

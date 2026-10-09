@@ -21,7 +21,7 @@
   content: "";
   position: absolute;
   inset: 5px; 
-  background-color: #fafafa; /* Lighter background for contrast */
+  background-color: var(--bs-body-bg); /* Lighter background for contrast */
   border-radius: 50%;
   z-index: 1;
 }

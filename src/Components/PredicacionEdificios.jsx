@@ -110,14 +110,14 @@ const PredicacionEdificios = () => {
         Swal.fire({
             title: `Timbre ${dpto.piso}-${dpto.letra}`,
             html: `
-                <div class="mb-3 text-start small text-secondary p-2 bg-light rounded border" style="max-height: 100px; overflow-y: auto;">
-                    <strong class="text-dark">Historial de Visitas:</strong><br/>
+                <div class="mb-3 text-start small text-body-secondary p-2 bg-body-tertiary rounded border" style="max-height: 100px; overflow-y: auto;">
+                    <strong class="text-body">Historial de Visitas:</strong><br/>
                     ${historialHtml}
                 </div>
                 <div class="d-grid gap-2">
                     <button id="btn-revisita" class="btn btn-info text-white fw-bold"><i class="bi bi-star-fill text-warning me-1"></i>Revisita</button>
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
-                    <button id="btn-noencasa" class="btn btn-warning fw-bold text-dark">No en casa</button>
+                    <button id="btn-noencasa" class="btn btn-warning fw-bold text-body">No en casa</button>
                     <button id="btn-ocupado" class="btn btn-secondary fw-bold">Ocupado / Vuelvo Luego</button>
                     <hr/>
                     <button id="btn-notocar" class="btn ${dpto.tocar ? 'btn-danger' : 'btn-outline-danger'} fw-bold">
@@ -161,7 +161,7 @@ const PredicacionEdificios = () => {
         });
     };
 
-    if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary" role="status"></div></div>;
+    if (loading) return <div className="mt-4"><Loading type="table" count={5} /></div>;
 
     // Obtener referencias actualizadas
     const tActual = territorioSel ? territorios.find(t => t.id === territorioSel.id) : null;
@@ -191,7 +191,7 @@ const PredicacionEdificios = () => {
 
             {/* BREADCRUMBS */}
             {vistaActual !== 'territorios' && (
-                <div className="mb-3 d-flex align-items-center bg-white p-2 rounded shadow-sm border">
+                <div className="mb-3 d-flex align-items-center bg-body p-2 rounded shadow-sm border">
                     <button className="btn btn-sm btn-light rounded-circle me-2" onClick={volver}><i className="bi bi-arrow-left"></i></button>
                     <div className="text-muted small fw-semibold overflow-hidden text-truncate">
                         Territorio {tActual?.numero} 
@@ -221,7 +221,7 @@ const PredicacionEdificios = () => {
                                                 Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
                                             </div>
                                             {t.asignadoA && (
-                                                <div className="badge bg-light text-dark border mt-2">
+                                                <div className="badge bg-body-tertiary text-body border mt-2">
                                                     Asignado a: {t.asignadoA.nombre}
                                                 </div>
                                             )}
@@ -240,7 +240,7 @@ const PredicacionEdificios = () => {
                 <div className="row g-3">
                     <div className="col-12">
                         {tActual.imagen && (
-                            <button onClick={() => setMapaViewer(tActual.imagen)} className="btn btn-outline-info w-100 bg-white shadow-sm fw-bold mb-3">
+                            <button onClick={() => setMapaViewer(tActual.imagen)} className="btn btn-outline-info w-100 bg-body shadow-sm fw-bold mb-3">
                                 <i className="bi bi-map me-2"></i> Ver Mapa del Territorio
                             </button>
                         )}
@@ -313,7 +313,7 @@ const PredicacionEdificios = () => {
                     {!isPublicador && (
                         <div className="col-12 mb-3 d-flex justify-content-end">
                             <button 
-                                className={`btn ${mActual.completada ? 'btn-outline-success bg-white' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
+                                className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
                                 onClick={async () => {
                                     const nuevoEstado = !mActual.completada;
                                     try {
@@ -414,7 +414,7 @@ const PredicacionEdificios = () => {
                                     btnClass = "btn-success text-white shadow-sm";
                                     icon = "bi-check-circle";
                                 } else if (dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
-                                    btnClass = "btn-warning text-dark shadow-sm";
+                                    btnClass = "btn-warning text-body shadow-sm";
                                     icon = "bi-house-x";
                                 }
 
@@ -454,10 +454,10 @@ const PredicacionEdificios = () => {
                             <table className="table table-hover align-middle m-0">
                                 <thead className="table-light">
                                     <tr>
-                                        <th className="fw-bold text-secondary">Territorio</th>
-                                        <th className="fw-bold text-secondary">Manzanas Completadas</th>
-                                        <th className="fw-bold text-secondary">Última vez trabajado</th>
-                                        <th className="fw-bold text-secondary">Historial de fechas</th>
+                                        <th className="fw-bold text-body-secondary">Territorio</th>
+                                        <th className="fw-bold text-body-secondary">Manzanas Completadas</th>
+                                        <th className="fw-bold text-body-secondary">Última vez trabajado</th>
+                                        <th className="fw-bold text-body-secondary">Historial de fechas</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -482,7 +482,7 @@ const PredicacionEdificios = () => {
                                                 </td>
                                                 <td>
                                                     {t.ultimaFechaTrabajada ? (
-                                                        <span className="badge bg-light text-dark border">
+                                                        <span className="badge bg-body-tertiary text-body border">
                                                             <i className="bi bi-calendar-check me-1"></i>
                                                             {new Date(t.ultimaFechaTrabajada).toLocaleDateString()}
                                                         </span>

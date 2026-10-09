@@ -330,16 +330,16 @@ const AdminUsuarios = () => {
                                     <table className="table table-hover table-striped align-middle mb-0">
                                         <thead className="table-light">
                                             <tr>
-                                                <th className="text-secondary fw-semibold">ID</th>
-                                                <th className="text-secondary fw-semibold">Nombre</th>
-                                                <th className="text-secondary fw-semibold">Apellido</th>
-                                                <th className="text-secondary fw-semibold">Usuario</th>
-                                                <th className="text-secondary fw-semibold">Teléfono</th>
-                                                <th className="text-secondary fw-semibold text-center">Inv.</th>
-                                                <th className="text-secondary fw-semibold">Privilegio</th>
-                                                <th className="text-secondary fw-semibold">Asignación</th>
-                                                <th className="text-secondary fw-semibold">Grupo</th>
-                                                <th className="text-secondary fw-semibold text-center">Acciones</th>
+                                                <th className="text-body-secondary fw-semibold">ID</th>
+                                                <th className="text-body-secondary fw-semibold">Nombre</th>
+                                                <th className="text-body-secondary fw-semibold">Apellido</th>
+                                                <th className="text-body-secondary fw-semibold">Usuario</th>
+                                                <th className="text-body-secondary fw-semibold">Teléfono</th>
+                                                <th className="text-body-secondary fw-semibold text-center">Inv.</th>
+                                                <th className="text-body-secondary fw-semibold">Privilegio</th>
+                                                <th className="text-body-secondary fw-semibold">Asignación</th>
+                                                <th className="text-body-secondary fw-semibold">Grupo</th>
+                                                <th className="text-body-secondary fw-semibold text-center">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -371,7 +371,7 @@ const AdminUsuarios = () => {
                                                         {u.banner && <span title="Tiene Banner">🏳️</span>}
                                                     </td>
                                                     <td><span className="badge bg-secondary">{u.privilegio}</span></td>
-                                                    <td>{u.asignacion ? <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
+                                                    <td>{u.asignacion ? <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
                                                     <td>{u.grupo ? <span className="badge border border-primary text-primary">{u.grupo}</span> : <span className="text-muted small">-</span>}</td>
                                                     <td className="text-center">
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
@@ -407,7 +407,7 @@ const AdminUsuarios = () => {
                                                     <h5 className="card-title mb-0 text-primary fw-bold text-break" style={{maxWidth: '100%'}}>{u.usuario}</h5>
                                                     <div className="d-flex flex-wrap gap-1">
                                                         <span className="badge bg-secondary">{u.privilegio}</span>
-                                                        {u.asignacion && <span className="badge bg-info text-dark text-capitalize">{u.asignacion}</span>}
+                                                        {u.asignacion && <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span>}
                                                         {u.grupo && <span className="badge border border-primary text-primary">{u.grupo}</span>}
                                                     </div>
                                                 </div>

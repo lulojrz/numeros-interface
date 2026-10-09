@@ -131,7 +131,7 @@ const Campanas = () => {
     const getBadgeColor = (estado) => {
         switch (estado?.toLowerCase()) {
             case 'activa': return 'bg-success';
-            case 'próxima': return 'bg-warning text-dark';
+            case 'próxima': return 'bg-warning text-body';
             case 'finalizada': return 'bg-secondary';
             default: return 'bg-primary';
         }
@@ -189,7 +189,7 @@ const Campanas = () => {
                                             <div className="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                                                 <div>
                                                     <h4 className="card-title text-primary fw-bold mb-2">{campana.titulo}</h4>
-                                                    <div className="d-flex flex-wrap gap-3 text-secondary mb-3 mb-md-0">
+                                                    <div className="d-flex flex-wrap gap-3 text-body-secondary mb-3 mb-md-0">
                                                         <span className="d-flex align-items-center">
                                                             <i className="bi bi-calendar-event me-2"></i>
                                                             Inicio: {formatFecha(campana.fechaInicio)}
@@ -230,7 +230,7 @@ const Campanas = () => {
                             </div>
                             <div className="modal-body p-4">
                                 <div className="mb-3">
-                                    <label className="form-label fw-semibold text-secondary">Título</label>
+                                    <label className="form-label fw-semibold text-body-secondary">Título</label>
                                     <input
                                         type="text"
                                         className="form-control p-3 bg-body-tertiary border-0 rounded-3"
@@ -243,7 +243,7 @@ const Campanas = () => {
                                 
                                 <div className="row mb-3">
                                     <div className="col-6">
-                                        <label className="form-label fw-semibold text-secondary">Fecha Inicio</label>
+                                        <label className="form-label fw-semibold text-body-secondary">Fecha Inicio</label>
                                         <input
                                             type="date"
                                             className="form-control p-3 bg-body-tertiary border-0 rounded-3"
@@ -254,7 +254,7 @@ const Campanas = () => {
                                         />
                                     </div>
                                     <div className="col-6">
-                                        <label className="form-label fw-semibold text-secondary">Fecha Fin</label>
+                                        <label className="form-label fw-semibold text-body-secondary">Fecha Fin</label>
                                         <input
                                             type="date"
                                             className="form-control p-3 bg-body-tertiary border-0 rounded-3"
@@ -267,7 +267,7 @@ const Campanas = () => {
                                 </div>
 
                                 <div className="mb-3">
-                                    <label className="form-label fw-semibold text-secondary">Estado</label>
+                                    <label className="form-label fw-semibold text-body-secondary">Estado</label>
                                     <select
                                         className="form-select p-3 bg-body-tertiary border-0 rounded-3"
                                         name="estado"
@@ -282,7 +282,7 @@ const Campanas = () => {
                                 </div>
 
                                 <div className="mb-2">
-                                    <label className="form-label fw-semibold text-secondary">Imagen (Banner)</label>
+                                    <label className="form-label fw-semibold text-body-secondary">Imagen (Banner)</label>
                                     <input
                                         type="file"
                                         accept="image/*"

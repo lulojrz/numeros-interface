@@ -192,13 +192,13 @@ const TerritoriosPersonales = () => {
 
                     <div className="mx-auto" style={{ maxWidth: '600px' }}>
                         <form onSubmit={enviarMensaje} className="p-3 bg-body border rounded-3 shadow-sm">
-                            <label htmlFor="territorio" className="form-label fw-semibold text-secondary mb-3">
+                            <label htmlFor="territorio" className="form-label fw-semibold text-body-secondary mb-3">
                                 <i className="bi bi-whatsapp text-success me-2"></i>
                                 Solicita tu territorio a {encargado ? `${encargado.nombre} ${encargado.apellido}` : 'tu encargado'}:
                             </label>
                             
                             <div className="input-group input-group-lg mb-2">
-                                <span className="input-group-text bg-body-tertiary text-secondary">
+                                <span className="input-group-text bg-body-tertiary text-body-secondary">
                                     <i className="bi bi-search"></i>
                                 </span>
                                 <input 
@@ -291,17 +291,17 @@ const TerritoriosPersonales = () => {
                         <div className="card-body p-0">
                             <ul className="nav nav-tabs nav-fill bg-body-secondary pt-2" style={{ borderBottom: '2px solid var(--bs-border-color)' }}>
                                 <li className="nav-item">
-                                    <button className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'telefonica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('telefonica')}>
+                                    <button className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active text-primary' : 'text-body-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'telefonica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('telefonica')}>
                                         <i className="bi bi-telephone-fill me-2"></i>Telefónica
                                     </button>
                                 </li>
                                 <li className="nav-item">
-                                    <button className={`nav-link fw-bold ${tabActiva === 'cartas' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'cartas' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('cartas')}>
+                                    <button className={`nav-link fw-bold ${tabActiva === 'cartas' ? 'active text-primary' : 'text-body-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'cartas' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('cartas')}>
                                         <i className="bi bi-envelope-paper-fill me-2"></i>Cartas
                                     </button>
                                 </li>
                                 <li className="nav-item">
-                                    <button className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active text-primary' : 'text-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'publica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('publica')}>
+                                    <button className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active text-primary' : 'text-body-secondary'}`} style={{ border: 'none', borderBottom: tabActiva === 'publica' ? '3px solid #0d6efd' : '3px solid transparent' }} onClick={() => setTabActiva('publica')}>
                                         <i className="bi bi-signpost-split-fill me-2"></i>Pública
                                     </button>
                                 </li>
@@ -362,12 +362,12 @@ const TerritoriosPersonales = () => {
                         </div>
                     ) : (
                         <div className="table-responsive shadow-sm rounded-3">
-                            <table className="table table-hover table-striped align-middle mb-0 bg-white">
+                            <table className="table table-hover table-striped align-middle mb-0 bg-body">
                                 <thead className="table-light">
                                     <tr>
-                                        <th className="text-secondary fw-semibold border-0 py-3 ps-4 rounded-start">Usuario</th>
-                                        <th className="text-secondary fw-semibold border-0 py-3">Territorios</th>
-                                        <th className="text-secondary fw-semibold border-0 py-3 pe-4 rounded-end">Fecha de Asignación</th>
+                                        <th className="text-body-secondary fw-semibold border-0 py-3 ps-4 rounded-start">Usuario</th>
+                                        <th className="text-body-secondary fw-semibold border-0 py-3">Territorios</th>
+                                        <th className="text-body-secondary fw-semibold border-0 py-3 pe-4 rounded-end">Fecha de Asignación</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -366,9 +366,9 @@ const PredicacionPublica = () => {
                     <div className="text-warning mb-4">
                         <i className="bi bi-info-circle-fill" style={{ fontSize: '5rem' }}></i>
                     </div>
-                    <h2 className="fw-bold text-dark mb-3">¡Gracias por hacerte disponible!</h2>
+                    <h2 className="fw-bold text-body mb-3">¡Gracias por hacerte disponible!</h2>
                     {privilegio !== 'ROLE_PUB' && (
-                        <p className="text-secondary fs-5 mb-4">
+                        <p className="text-body-secondary fs-5 mb-4">
                             Actualmente no estás habilitado en el sistema para participar en la Predicación Pública.
                         </p>
                     )}
@@ -437,7 +437,7 @@ const PredicacionPublica = () => {
                             </div>
                             
                             <select 
-                                className="form-select form-select-sm shadow-sm border-0 bg-body-tertiary fw-medium text-secondary" 
+                                className="form-select form-select-sm shadow-sm border-0 bg-body-tertiary fw-medium text-body-secondary" 
                                 value={filtroHorario} 
                                 onChange={(e) => setFiltroHorario(e.target.value)}
                                 style={{ width: 'auto', minWidth: '130px' }}
@@ -449,7 +449,7 @@ const PredicacionPublica = () => {
                             </select>
 
                             <select 
-                                className="form-select form-select-sm shadow-sm border-0 bg-body-tertiary fw-medium text-secondary" 
+                                className="form-select form-select-sm shadow-sm border-0 bg-body-tertiary fw-medium text-body-secondary" 
                                 value={filtroPunto} 
                                 onChange={(e) => setFiltroPunto(e.target.value)}
                                 style={{ width: 'auto', minWidth: '140px' }}
@@ -484,7 +484,7 @@ const PredicacionPublica = () => {
                     return (
                         <li className="nav-item" key={index}>
                             <button
-                                className={`nav-link fw-bold px-4 rounded-pill ${isActivo ? 'active shadow' : 'bg-body text-secondary border'}`}
+                                className={`nav-link fw-bold px-4 rounded-pill ${isActivo ? 'active shadow' : 'bg-body text-body-secondary border'}`}
                                 onClick={() => setDiaActivo(fechaStr)}
                             >
                                 {diasSemanaNombres[dia.getDay()]} {dia.getDate()}
@@ -504,7 +504,7 @@ const PredicacionPublica = () => {
             ) : turnosFiltrados.length === 0 ? (
                 <div className="text-center py-5 bg-body shadow-sm rounded-4 border-0">
                     <i className="bi bi-inbox text-muted" style={{ fontSize: '3rem' }}></i>
-                    <h5 className="mt-3 text-secondary">No hay turnos para mostrar</h5>
+                    <h5 className="mt-3 text-body-secondary">No hay turnos para mostrar</h5>
                     <p className="text-muted mb-0">Prueba cambiando de día o ajustando los filtros.</p>
                 </div>
             ) : (
@@ -554,7 +554,7 @@ const PredicacionPublica = () => {
 
                                     {/* Cuerpo de la Tarjeta */}
                                     <div className="card-body px-4 pb-4">
-                                        <div className="d-flex align-items-center mb-4 text-secondary">
+                                        <div className="d-flex align-items-center mb-4 text-body-secondary">
                                             <i className="bi bi-geo-alt-fill me-2 text-danger"></i>
                                             <span className="fw-medium">{turno.punto.nombre}</span>
                                         </div>
@@ -562,7 +562,7 @@ const PredicacionPublica = () => {
                                         <div className="d-flex flex-column gap-2 mb-3">
                                             {/* Slot 1 */}
                                             <div className="d-flex align-items-center p-2 rounded-3 bg-body-tertiary overflow-hidden">
-                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>1</div> 
+                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-body-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>1</div> 
                                                 <div className="text-truncate">
                                                     {turno.publicador1 ? (
                                                         <span className={`fw-semibold ${turno.publicador1.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
@@ -578,7 +578,7 @@ const PredicacionPublica = () => {
 
                                             {/* Slot 2 */}
                                             <div className="d-flex align-items-center p-2 rounded-3 bg-body-tertiary overflow-hidden">
-                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>2</div> 
+                                                <div className="rounded-circle bg-secondary bg-opacity-25 text-body-secondary d-flex justify-content-center align-items-center me-3 flex-shrink-0" style={{width: '28px', height:'28px', fontSize: '0.85rem'}}>2</div> 
                                                 <div className="text-truncate">
                                                     {turno.publicador2 ? (
                                                         <span className={`fw-semibold ${turno.publicador2.usuario === usuarioActual ? 'text-primary' : 'text-body'}`}>
@@ -769,7 +769,7 @@ const PredicacionPublica = () => {
                             <div className="modal-body px-4 py-3">
                                 
                                 {/* Sección Carritos */}
-                                <h6 className="text-secondary fw-bold mb-3 d-flex align-items-center border-bottom pb-2">
+                                <h6 className="text-body-secondary fw-bold mb-3 d-flex align-items-center border-bottom pb-2">
                                     <i className="bi bi-cart-fill me-2 text-primary"></i> Hermanos con Carrito
                                 </h6>
                                 <div className="row g-3 mb-4">
@@ -779,9 +779,9 @@ const PredicacionPublica = () => {
                                             const numLimpiado = tieneNumero ? h.telefono.replace(/\D/g, '') : '';
                                             return (
                                                 <div key={h.id} className="col-12 col-md-6">
-                                                    <div className="card shadow-sm border-0 h-100 bg-light rounded-3">
+                                                    <div className="card shadow-sm border-0 h-100 bg-body-tertiary rounded-3">
                                                         <div className="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                                            <div className="fw-medium text-dark text-break">{h.nombre} {h.apellido}</div>
+                                                            <div className="fw-medium text-body text-break">{h.nombre} {h.apellido}</div>
                                                             {tieneNumero ? (
                                                                 <a 
                                                                     href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${h.nombre}, ¿cómo estás? Te escribo por el carrito...`)}`}
@@ -804,7 +804,7 @@ const PredicacionPublica = () => {
                                 </div>
 
                                 {/* Sección Banners */}
-                                <h6 className="text-secondary fw-bold mb-3 d-flex align-items-center border-bottom pb-2">
+                                <h6 className="text-body-secondary fw-bold mb-3 d-flex align-items-center border-bottom pb-2">
                                     <i className="bi bi-flag-fill me-2 text-info"></i> Hermanos con Banner
                                 </h6>
                                 <div className="row g-3">
@@ -814,9 +814,9 @@ const PredicacionPublica = () => {
                                             const numLimpiado = tieneNumero ? h.telefono.replace(/\D/g, '') : '';
                                             return (
                                                 <div key={h.id} className="col-12 col-md-6">
-                                                    <div className="card shadow-sm border-0 h-100 bg-light rounded-3">
+                                                    <div className="card shadow-sm border-0 h-100 bg-body-tertiary rounded-3">
                                                         <div className="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                                            <div className="fw-medium text-dark text-break">{h.nombre} {h.apellido}</div>
+                                                            <div className="fw-medium text-body text-break">{h.nombre} {h.apellido}</div>
                                                             {tieneNumero ? (
                                                                 <a 
                                                                     href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${h.nombre}, ¿cómo estás? Te escribo por el banner...`)}`}

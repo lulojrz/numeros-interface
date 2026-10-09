@@ -111,7 +111,7 @@ const Admin = () => {
         <ul className="nav nav-tabs mb-4">
             <li className="nav-item">
                 <button 
-                    className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active' : 'text-secondary'}`} 
+                    className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active' : 'text-body-secondary'}`} 
                     onClick={() => setTabActiva('telefonica')}
                     style={tabActiva === 'telefonica' ? { color: '#0d6efd' } : {}}
                 >
@@ -120,7 +120,7 @@ const Admin = () => {
             </li>
             <li className="nav-item">
                 <button 
-                    className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active' : 'text-secondary'}`} 
+                    className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active' : 'text-body-secondary'}`} 
                     onClick={() => setTabActiva('publica')}
                     style={tabActiva === 'publica' ? { color: '#198754' } : {}}
                 >
@@ -130,7 +130,7 @@ const Admin = () => {
             {isEdificiosAdmin && (
             <li className="nav-item">
                 <button 
-                    className={`nav-link fw-bold ${tabActiva === 'edificios' ? 'active' : 'text-secondary'}`} 
+                    className={`nav-link fw-bold ${tabActiva === 'edificios' ? 'active' : 'text-body-secondary'}`} 
                     onClick={() => setTabActiva('edificios')}
                     style={tabActiva === 'edificios' ? { color: '#fd7e14' } : {}}
                 >
@@ -141,7 +141,7 @@ const Admin = () => {
             {isFullAdmin && (
             <li className="nav-item">
                 <button 
-                    className={`nav-link fw-bold ${tabActiva === 'salidas' ? 'active' : 'text-secondary'}`} 
+                    className={`nav-link fw-bold ${tabActiva === 'salidas' ? 'active' : 'text-body-secondary'}`} 
                     onClick={() => setTabActiva('salidas')}
                     style={tabActiva === 'salidas' ? { color: '#0dcaf0' } : {}}
                 >
@@ -152,7 +152,7 @@ const Admin = () => {
             {isFullAdmin && (
             <li className="nav-item">
                 <button 
-                    className={`nav-link fw-bold ${tabActiva === 'estadisticas' ? 'active' : 'text-secondary'}`} 
+                    className={`nav-link fw-bold ${tabActiva === 'estadisticas' ? 'active' : 'text-body-secondary'}`} 
                     onClick={() => setTabActiva('estadisticas')}
                     style={tabActiva === 'estadisticas' ? { color: '#6f42c1' } : {}}
                 >
@@ -208,7 +208,7 @@ const Admin = () => {
         {clickeditar && isTelefonicaAdmin && (
             <div className="mb-4">
                 <h3 className="h4 text-primary">Progreso</h3>
-                <h5 className="text-secondary">Números contestados: {
+                <h5 className="text-body-secondary">Números contestados: {
                     numerosContestados.length !== 0 ? 
                     Math.round((numerosContestados.length / numeros.length) * 100) + "%" : "0%"
                 }</h5>

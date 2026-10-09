@@ -160,7 +160,7 @@ const GestionPuntos = () => {
                 <div className="col-12 col-lg-8">
                     <div className="card shadow-sm border-0">
                         <div className="card-body p-4">
-                            <h4 className="card-title fw-bold text-secondary mb-4">Puntos Disponibles</h4>
+                            <h4 className="card-title fw-bold text-body-secondary mb-4">Puntos Disponibles</h4>
                             
                             <div className="d-flex flex-column flex-md-row gap-3 mb-4">
                                 <input 
