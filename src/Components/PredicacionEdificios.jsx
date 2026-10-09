@@ -162,7 +162,7 @@ const PredicacionEdificios = () => {
         });
     };
 
-    if (loading) return <div className="mt-4"><Loading type="table" count={5} /></div>;
+    if (loading) return <div className="mt-4"><Loading type="cards" count={6} /></div>;
 
     // Obtener referencias actualizadas
     const tActual = territorioSel ? territorios.find(t => t.id === territorioSel.id) : null;
