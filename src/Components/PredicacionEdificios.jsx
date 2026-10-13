@@ -284,30 +284,65 @@ const PredicacionEdificios = () => {
                     {territorios.length === 0 ? (
                         <div className="col-12 text-center text-muted py-5">No hay territorios creados.</div>
                     ) : (
-                        territorios.map(t => (
-                            <div className="col-12 col-md-6 col-lg-4" key={t.id}>
-                                <div className="card h-100 border-0 shadow-sm" onClick={() => irAManzanas(t)} style={{cursor: 'pointer'}}>
-                                    <div className="card-body d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 className="fw-bold mb-1">Territorio {t.numero}</h5>
-                                            <div className="text-muted small mt-1">
-                                                <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
-                                            </div>
-                                            <div className="text-muted small mt-1">
-                                                <i className="bi bi-calendar-check me-1"></i> 
-                                                Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
-                                            </div>
-                                            {t.asignadoA && (
-                                                <div className="badge bg-body-tertiary text-body border mt-2">
-                                                    Asignado a: {t.asignadoA.nombre}
+                        territorios.map(t => {
+                            const hoy = new Date();
+                            let diffDays = null;
+                            let tieneAlarma = false;
+                            let textoAlarma = '';
+
+                            if (!t.ultimaFechaTrabajada) {
+                                tieneAlarma = true;
+                                textoAlarma = '¡Alarma! Sin trabajar';
+                            } else {
+                                const f = new Date(t.ultimaFechaTrabajada);
+                                diffDays = Math.ceil(Math.abs(hoy - f) / (1000 * 60 * 60 * 24));
+                                if (diffDays >= 120) {
+                                    tieneAlarma = true;
+                                    textoAlarma = `¡Alarma! Hace ${Math.floor(diffDays / 30)} meses`;
+                                }
+                            }
+
+                            return (
+                                <div className="col-12 col-md-6 col-lg-4" key={t.id}>
+                                    <div 
+                                        className={`card h-100 border-0 shadow-sm ${tieneAlarma ? 'border-start border-4 border-danger' : ''}`} 
+                                        onClick={() => irAManzanas(t)} 
+                                        style={{cursor: 'pointer'}}
+                                    >
+                                        <div className="card-body d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                    <h5 className="fw-bold mb-0">Territorio {t.numero}</h5>
+                                                    {tieneAlarma && (
+                                                        <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                            <i className="bi bi-bell-fill me-1"></i> {textoAlarma}
+                                                        </span>
+                                                    )}
+                                                    {!tieneAlarma && diffDays !== null && diffDays <= 30 && (
+                                                        <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                            <i className="bi bi-check-circle-fill me-1"></i> Al día ({diffDays}d)
+                                                        </span>
+                                                    )}
                                                 </div>
-                                            )}
+                                                <div className="text-muted small mt-1">
+                                                    <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
+                                                </div>
+                                                <div className="text-muted small mt-1">
+                                                    <i className="bi bi-calendar-check me-1"></i> 
+                                                    Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
+                                                </div>
+                                                {t.asignadoA && (
+                                                    <div className="badge bg-body-tertiary text-body border mt-2">
+                                                        Asignado a: {t.asignadoA.nombre}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <i className="bi bi-chevron-right text-primary fs-4"></i>
                                         </div>
-                                        <i className="bi bi-chevron-right text-primary fs-4"></i>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             )}
