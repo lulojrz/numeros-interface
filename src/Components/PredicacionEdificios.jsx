@@ -65,15 +65,6 @@ const PredicacionEdificios = () => {
             if (res.ok) {
                 const data = await res.json();
                 setTerritorios(data);
-                
-                if (location.state?.territorioId) {
-                    const t = data.find(ter => ter.id === location.state.territorioId || ter.numero === location.state.territorioNumero);
-                    if (t) {
-                        setTerritorioSel(t);
-                        setVistaActual('manzanas');
-                        window.history.replaceState({}, document.title);
-                    }
-                }
             }
         } catch (error) {
             console.error(error);
@@ -85,6 +76,50 @@ const PredicacionEdificios = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Manejar navegación directa por estado (Buscador Global o enlaces externos)
+    useEffect(() => {
+        if (!territorios || territorios.length === 0 || !location.state) return;
+
+        if (location.state.edificioId) {
+            let encontrado = false;
+            for (const t of territorios) {
+                for (const m of (t.manzanas || [])) {
+                    const ed = (m.edificios || []).find(e => e.id === location.state.edificioId);
+                    if (ed) {
+                        setTerritorioSel(t);
+                        setManzanaSel(m);
+                        setEdificioSel(ed);
+                        setVistaActual('portero');
+                        encontrado = true;
+                        break;
+                    }
+                }
+                if (encontrado) break;
+            }
+            window.history.replaceState({}, document.title);
+        } else if (location.state.manzanaId) {
+            let encontrado = false;
+            for (const t of territorios) {
+                const m = (t.manzanas || []).find(man => man.id === location.state.manzanaId);
+                if (m) {
+                    setTerritorioSel(t);
+                    setManzanaSel(m);
+                    setVistaActual('edificios');
+                    encontrado = true;
+                    break;
+                }
+            }
+            window.history.replaceState({}, document.title);
+        } else if (location.state.territorioId) {
+            const t = territorios.find(ter => ter.id === location.state.territorioId || ter.numero === location.state.territorioNumero);
+            if (t) {
+                setTerritorioSel(t);
+                setVistaActual('manzanas');
+                window.history.replaceState({}, document.title);
+            }
+        }
+    }, [location.state, territorios]);
 
     // Funciones de navegación
     const irAManzanas = (t) => { setTerritorioSel(t); setVistaActual('manzanas'); };

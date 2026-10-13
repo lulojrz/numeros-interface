@@ -4,6 +4,7 @@ import './App.css'
 
 import { NumerosContext } from './context/NumerosContext'
 import RutasProtegidas from './rutas/RutasProtegidas'
+import BuscadorGlobal from './Components/BuscadorGlobal'
 
 // 2. Componentes estáticos (Los que se necesitan SI O SI al cargar la app de entrada)
 import Home from './Pages/Home'
@@ -36,6 +37,7 @@ function App() {
 
   return (
     <>
+      <BuscadorGlobal />
       {/* 4. Envolvemos las rutas en Suspense e inyectamos un spinner de Bootstrap como fallback temporal */}
       <Suspense fallback={
         <div className="d-flex min-vh-100 justify-content-center align-items-center bg-body-tertiary">

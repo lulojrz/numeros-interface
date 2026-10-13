@@ -138,7 +138,7 @@ const MisSalidasBanner = () => {
 };
 
 const Home = () => {
-  const {numero,numeros,error,loading,setNumero, isAuthenticated} = useContext(NumerosContext)
+  const {numero, numeros, error, loading, setNumero, isAuthenticated, abrirBuscador} = useContext(NumerosContext)
   const [activeTab, setActiveTab] = useState('dashboard')
   const privilegio = localStorage.getItem('privilegio') || 'ROLE_PUB';
   const isSMAorANC = privilegio === 'ROLE_SM' || privilegio === 'ROLE_ANC';
@@ -168,9 +168,35 @@ const Home = () => {
                     <p className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: '0.85rem', letterSpacing: '1px' }}>
                         BIENVENIDO A COLEGIALES CRM
                     </p>
-                    <h1 className="fw-bold" style={{ color: '#1e293b', fontSize: '2.5rem' }}>
+                    <h1 className="fw-bold text-body" style={{ fontSize: '2.5rem' }}>
                         ¡Hola, {localStorage.getItem('usuario') || 'Usuario'}!
                     </h1>
+                </div>
+
+                {/* Buscador Rápido en Inicio */}
+                <div 
+                    className="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-body"
+                    onClick={abrirBuscador}
+                    style={{ cursor: 'pointer', transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
+                    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.classList.add('shadow'); }}
+                    onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.classList.remove('shadow'); }}
+                >
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '44px', height: '44px' }}>
+                            <i className="bi bi-search fs-5"></i>
+                        </div>
+                        <div className="flex-grow-1 overflow-hidden">
+                            <div className="fw-bold text-body mb-0 text-truncate">
+                                Buscar calle, edificio o territorio...
+                            </div>
+                            <small className="text-body-secondary d-none d-sm-block">
+                                Escribe una dirección para saltar directo a su portero o manzana
+                            </small>
+                        </div>
+                        <span className="badge bg-body-tertiary text-body-secondary border px-2 py-1 d-none d-sm-inline">
+                            Ctrl + K
+                        </span>
+                    </div>
                 </div>
 
                 {/* Banner de Salidas Propias (Si es conductor) */}

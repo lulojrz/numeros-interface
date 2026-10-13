@@ -23,12 +23,52 @@ export const NumerosProvider = ({ children }) => {
         return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     });
 
+    // Estado del Buscador Inteligente Global
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const abrirBuscador = () => setIsSearchOpen(true);
+    const cerrarBuscador = () => setIsSearchOpen(false);
+
+    // Territorios en caché global
+    const [territorios, setTerritorios] = useState([]);
+    const [loadingTerritorios, setLoadingTerritorios] = useState(false);
+
     useEffect(() => {
         document.documentElement.setAttribute('data-bs-theme', theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
 
+    // Atajo global Ctrl+K / Cmd+K para abrir/cerrar buscador
+    useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                setIsSearchOpen(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }, []);
+
     const api = `${import.meta.env.VITE_API_URL}`
+
+    const cargarTerritorios = async (force = false) => {
+        if (!force && territorios.length > 0) return territorios;
+        setLoadingTerritorios(true);
+        try {
+            const timestamp = new Date().getTime();
+            const res = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                setTerritorios(data);
+                return data;
+            }
+        } catch (e) {
+            console.error("Error al cargar territorios:", e);
+        } finally {
+            setLoadingTerritorios(false);
+        }
+        return [];
+    };
 
     const Toast = Swal.mixin({
         toast: true,
@@ -325,7 +365,17 @@ export const NumerosProvider = ({ children }) => {
 
 
         return (
-            <NumerosContext.Provider value={{ numero, setNumero,actualizarNumero, numeros, setNumeros, error, loading, isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, filtroReservado, setFiltroReservado, filtroFechaDesde, setFiltroFechaDesde, filtroFechaHasta, setFiltroFechaHasta, actualizarReserva, sacarReservados, reiniciarContesta, theme, setTheme }}>
+            <NumerosContext.Provider value={{ 
+                numero, setNumero, actualizarNumero, numeros, setNumeros, error, loading, 
+                isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, 
+                agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, 
+                filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, 
+                filtroReservado, setFiltroReservado, filtroFechaDesde, setFiltroFechaDesde, 
+                filtroFechaHasta, setFiltroFechaHasta, actualizarReserva, sacarReservados, 
+                reiniciarContesta, theme, setTheme,
+                isSearchOpen, setIsSearchOpen, abrirBuscador, cerrarBuscador,
+                territorios, setTerritorios, loadingTerritorios, cargarTerritorios
+            }}>
                 {children}
             </NumerosContext.Provider>
         )

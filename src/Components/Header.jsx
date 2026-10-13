@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { NumerosContext } from '../context/NumerosContext'
 
 const Header = () => {
-  const { isAuthenticated, setIsAuth, theme, setTheme } = useContext(NumerosContext);
+  const { isAuthenticated, setIsAuth, theme, setTheme, abrirBuscador } = useContext(NumerosContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -55,8 +55,29 @@ const Header = () => {
                 CRM
             </Link>
 
+            <div className="d-flex align-items-center gap-2 order-lg-last ms-auto me-2 me-lg-0">
+                <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary rounded-pill px-2 px-md-3 py-1 d-flex align-items-center gap-2 border shadow-none"
+                    onClick={abrirBuscador}
+                    title="Buscar calle, edificio o territorio (Ctrl+K)"
+                >
+                    <i className="bi bi-search text-primary"></i>
+                    <span className="d-none d-md-inline text-body-secondary small">Buscar...</span>
+                    <span className="badge bg-body-secondary text-body-tertiary border d-none d-md-inline" style={{ fontSize: '0.65rem' }}>Ctrl+K</span>
+                </button>
+
+                <button 
+                    className="btn btn-sm btn-outline-secondary rounded-circle" 
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                >
+                    {theme === 'dark' ? <i className="bi bi-sun-fill"></i> : <i className="bi bi-moon-stars-fill"></i>}
+                </button>
+            </div>
+
             <button
-                className="navbar-toggler border-0 shadow-none"
+                className="navbar-toggler border-0 shadow-none p-1"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent"
@@ -99,15 +120,6 @@ const Header = () => {
                             </Link>
                         </li>
                     )}
-                    <li className="nav-item ms-lg-3 mt-3 mt-lg-0">
-                        <button 
-                            className="btn btn-sm btn-outline-secondary rounded-circle" 
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-                        >
-                            {theme === 'dark' ? <i className="bi bi-sun-fill"></i> : <i className="bi bi-moon-stars-fill"></i>}
-                        </button>
-                    </li>
                 </ul>
             </div>
         </div>
