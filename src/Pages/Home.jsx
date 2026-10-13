@@ -5,7 +5,7 @@ import { useContext } from 'react'
 import { NumerosContext } from '../context/NumerosContext'
 import Loading from '../Components/Loading'
 import TerritoriosPersonales from '../Components/TerritoriosPersonales'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 
 
@@ -139,7 +139,18 @@ const MisSalidasBanner = () => {
 
 const Home = () => {
   const {numero, numeros, error, loading, setNumero, isAuthenticated, abrirBuscador} = useContext(NumerosContext)
+  const location = useLocation()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [numeroSeleccionadoId, setNumeroSeleccionadoId] = useState(null)
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+    if (location.state?.numeroId) {
+      setNumeroSeleccionadoId(location.state.numeroId);
+    }
+  }, [location.state]);
   const privilegio = localStorage.getItem('privilegio') || 'ROLE_PUB';
   const isSMAorANC = privilegio === 'ROLE_SM' || privilegio === 'ROLE_ANC';
 
@@ -383,7 +394,7 @@ const Home = () => {
             <div className="container py-4">
                 <div className="mb-4">
                     <button 
-                        onClick={() => setActiveTab('dashboard')} 
+                        onClick={() => { setActiveTab('dashboard'); setNumeroSeleccionadoId(null); }} 
                         className="btn btn-outline-secondary rounded-pill shadow-sm px-4 fw-semibold d-inline-flex align-items-center"
                     >
                         <i className="bi bi-arrow-left me-2"></i> Volver al Inicio
@@ -394,7 +405,7 @@ const Home = () => {
                         <div className="text-center mb-4">
                             <h3 className="fw-semibold text-body-secondary">Número a llamar:</h3>
                         </div>
-                        {loading ? <Loading /> : <Numeros setNumero={setNumero} />}
+                        {loading ? <Loading /> : <Numeros setNumero={setNumero} numeroSeleccionadoId={numeroSeleccionadoId} onLimpiarSeleccionado={() => setNumeroSeleccionadoId(null)} />}
                     </>
                 ) : (
                     <TerritoriosPersonales />

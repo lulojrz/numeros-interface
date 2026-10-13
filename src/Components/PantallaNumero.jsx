@@ -69,9 +69,15 @@ const PantallaNumero = ({ objeto }) => {
                     {objeto ? (
                         <>
 
-                            <h2 className="card-title text-body mb-3 fw-bold" style={{ fontSize: '2.5rem', letterSpacing: '-0.5px' }}>
+                            <a 
+                                href={objeto.numero ? `tel:${String(objeto.numero).replace(/\s+/g, '')}` : '#'} 
+                                className="card-title text-primary text-decoration-none mb-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2" 
+                                style={{ fontSize: '2.5rem', letterSpacing: '-0.5px' }}
+                                title="Tocar para llamar directamente"
+                            >
+                                <i className="bi bi-telephone-outbound-fill fs-3"></i>
                                 {objeto.numero}
-                            </h2>
+                            </a>
 
                             <hr className="my-3" style={{ opacity: 0.1 }} />
 

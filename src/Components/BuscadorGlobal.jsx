@@ -161,7 +161,13 @@ const BuscadorGlobal = () => {
                         numero: num,
                         accion: () => {
                             cerrarBuscador();
-                            navigate('/');
+                            navigate('/', { 
+                                state: { 
+                                    activeTab: 'llamar', 
+                                    numeroId: num.id, 
+                                    timestamp: Date.now() 
+                                } 
+                            });
                         }
                     });
                 }
@@ -414,7 +420,7 @@ const BuscadorGlobal = () => {
                                             </div>
                                             <div className="d-flex align-items-center text-primary flex-shrink-0">
                                                 <span className="small d-none d-md-inline me-1 fw-semibold">
-                                                    {item.tipo === 'edificio' ? 'Abrir Portero' : item.tipo === 'territorio' ? 'Ver Territorio' : 'Ver Manzana'}
+                                                    {item.tipo === 'edificio' ? 'Abrir Portero' : item.tipo === 'territorio' ? 'Ver Territorio' : item.tipo === 'telefono' ? 'Ir a Llamar' : 'Ver Manzana'}
                                                 </span>
                                                 <i className="bi bi-chevron-right fs-5"></i>
                                             </div>
