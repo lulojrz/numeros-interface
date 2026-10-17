@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { NumerosContext } from '../context/NumerosContext'
+import { obtenerColaPendiente } from '../utils/offlineSync'
 
 const Header = () => {
   const { isAuthenticated, setIsAuth, theme, setTheme, abrirBuscador } = useContext(NumerosContext);
@@ -56,6 +57,24 @@ const Header = () => {
             </Link>
 
             <div className="d-flex align-items-center gap-2 order-lg-last ms-auto me-2 me-lg-0">
+                {!isOnline ? (
+                    <span 
+                        className="badge bg-warning bg-opacity-25 text-warning-emphasis border border-warning rounded-pill px-2 py-1 small d-flex align-items-center gap-1"
+                        title="Modo sin conexión activo. Tus marcas se guardan localmente y se sincronizan al recuperar internet."
+                    >
+                        <i className="bi bi-wifi-off"></i>
+                        <span className="d-none d-sm-inline">Offline</span>
+                        {colaCount > 0 && <span className="badge bg-warning text-dark px-1">{colaCount}</span>}
+                    </span>
+                ) : colaCount > 0 ? (
+                    <span 
+                        className="badge bg-info bg-opacity-25 text-info-emphasis border border-info rounded-pill px-2 py-1 small d-flex align-items-center gap-1"
+                        title="Sincronizando cambios pendientes con el servidor..."
+                    >
+                        <i className="bi bi-arrow-repeat"></i>
+                        <span className="d-none d-sm-inline">Sincronizando ({colaCount})</span>
+                    </span>
+                ) : null}
                 <button
                     type="button"
                     className="btn btn-sm btn-outline-secondary rounded-pill px-2 px-md-3 py-1 d-flex align-items-center gap-2 border shadow-none"

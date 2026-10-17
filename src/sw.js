@@ -6,30 +6,36 @@ import { BackgroundSyncPlugin } from 'workbox-background-sync';
 // Precargar assets compilados por Vite
 precacheAndRoute(self.__WB_MANIFEST || []);
 
-// 1. Caching en tiempo real para las peticiones GET (Ej: Cargar turnos, números, experiencias)
+// Rutas de la API a cachear
+const rutasApi = [
+    '/api/',
+    '/territorios/',
+    '/departamentos/',
+    '/manzanas/',
+    '/edificios/',
+    '/experiencias/',
+    '/salidas/',
+    '/campanas/',
+    '/usuarios/',
+    '/reporte/'
+];
+
+// 1. Caching en tiempo real para las peticiones GET (Territorios, Edificios, Números, etc.)
 registerRoute(
-    ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/api/'),
+    ({ url, request }) => request.method === 'GET' && rutasApi.some(ruta => url.pathname.startsWith(ruta)),
     new NetworkFirst({
         cacheName: 'api-cache',
         plugins: []
     })
 );
 
-registerRoute(
-    ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/experiencias/traer'),
-    new NetworkFirst({
-        cacheName: 'experiencias-cache',
-        plugins: []
-    })
-);
-
-// 2. Background Sync para peticiones POST, PUT, DELETE
+// 2. Background Sync para peticiones POST, PUT, DELETE (Modificaciones offline)
 const bgSyncPlugin = new BackgroundSyncPlugin('api-sync-queue', {
     maxRetentionTime: 24 * 60, // Reintentar hasta por 24 horas
 });
 
 registerRoute(
-    ({ request, url }) => ['POST', 'PUT', 'DELETE'].includes(request.method) && (url.pathname.startsWith('/api/') || url.pathname.startsWith('/experiencias/')),
+    ({ request, url }) => ['POST', 'PUT', 'DELETE'].includes(request.method) && rutasApi.some(ruta => url.pathname.startsWith(ruta)),
     new NetworkOnly({
         plugins: [bgSyncPlugin]
     })

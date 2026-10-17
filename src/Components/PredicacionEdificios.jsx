@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loading from './Loading';
+import { guardarCacheLocal, obtenerCacheLocal, encolarMutacion } from '../utils/offlineSync';
 import { useSwipeable } from 'react-swipeable';
 
 
