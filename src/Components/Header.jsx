@@ -15,6 +15,42 @@ const Header = () => {
 
   const [usuarios, setUsuarios] = useState([]);
   const [showContacto, setShowContacto] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [colaCount, setColaCount] = useState(() => {
+    try {
+      return obtenerColaPendiente().length;
+    } catch {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setColaCount(obtenerColaPendiente().length);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setColaCount(obtenerColaPendiente().length);
+    };
+    const handleQueueChange = (e) => {
+      if (e && e.detail && e.detail.count !== undefined) {
+        setColaCount(e.detail.count);
+      } else {
+        setColaCount(obtenerColaPendiente().length);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('offline-queue-changed', handleQueueChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('offline-queue-changed', handleQueueChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (showContacto && usuarios.length === 0) {
