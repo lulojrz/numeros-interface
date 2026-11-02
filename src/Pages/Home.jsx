@@ -7,7 +7,7 @@ import Loading from '../Components/Loading'
 import TerritoriosPersonales from '../Components/TerritoriosPersonales'
 import { Link, useLocation } from 'react-router-dom'
 
-
+const estaHabilitado = (valor) => valor === true || valor === 'true' || valor === 1 || valor === '1';
 
 const CampanasBanners = () => {
   const [campanas, setCampanas] = useState([]);
@@ -142,6 +142,43 @@ const Home = () => {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [numeroSeleccionadoId, setNumeroSeleccionadoId] = useState(null)
+  const [esConductor, setEsConductor] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!isAuthenticated) {
+      setEsConductor(false);
+      return () => { isMounted = false; };
+    }
+
+    const cargarConductor = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error(`Error al consultar el usuario: ${response.status}`);
+        }
+
+        const usuarios = await response.json();
+        if (!Array.isArray(usuarios)) {
+          throw new Error('La respuesta de usuarios no tiene el formato esperado');
+        }
+
+        const usuarioActual = usuarios.find(u => u.usuario === localStorage.getItem('usuario'));
+        if (isMounted) {
+          setEsConductor(estaHabilitado(usuarioActual?.conductor));
+        }
+      } catch (error) {
+        console.error('Error verificando si el usuario es conductor:', error);
+        if (isMounted) {
+          setEsConductor(false);
+        }
+      }
+    };
+
+    cargarConductor();
+    return () => { isMounted = false; };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (location.state?.activeTab) {
@@ -151,9 +188,6 @@ const Home = () => {
       setNumeroSeleccionadoId(location.state.numeroId);
     }
   }, [location.state]);
-  const privilegio = localStorage.getItem('privilegio') || 'ROLE_PUB';
-  const isSMAorANC = privilegio === 'ROLE_SM' || privilegio === 'ROLE_ANC';
-
   return (
     <>
       <Header></Header>
@@ -269,7 +303,7 @@ const Home = () => {
                     </div>
 
                     {/* Botón Mis Días de Salida (Disponibilidad) */}
-                    {isSMAorANC && (
+                    {esConductor && (
                         <div className="col-12 col-md-6">
                             <Link 
                                 to="/admin/disponibilidad" 

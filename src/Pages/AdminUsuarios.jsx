@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { NumerosContext } from '../context/NumerosContext';
 
+const estaHabilitado = (valor) => valor === true || valor === 'true' || valor === 1 || valor === '1';
+
 const AdminUsuarios = () => {
     const { numeros } = useContext(NumerosContext);
     const [usuarios, setUsuarios] = useState([]);
@@ -25,7 +27,8 @@ const AdminUsuarios = () => {
         grupo: '',
         carrito: false,
         banner: false,
-        habilitacionPublica: false
+        habilitacionPublica: false,
+        conductor: false
     });
     const [filtroInventario, setFiltroInventario] = useState('todos');
 
@@ -72,7 +75,8 @@ const AdminUsuarios = () => {
                         grupo: loggedUser.grupo || '',
                         carrito: loggedUser.carrito || false,
                         banner: loggedUser.banner || false,
-                        habilitacionPublica: loggedUser.habilitacionPublica || false
+                        habilitacionPublica: loggedUser.habilitacionPublica || false,
+                        conductor: estaHabilitado(loggedUser.conductor)
                     });
                 }
             }
@@ -114,7 +118,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario agregado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false });
+                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false });
                 setClickAgregar(false);
                 cargarUsuarios();
             } else {
@@ -161,7 +165,7 @@ const AdminUsuarios = () => {
                 
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
                 if (isANC) {
-                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false });
+                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false });
                     setUsuarioEditando(null);
                 }
                 cargarUsuarios();
@@ -237,14 +241,16 @@ const AdminUsuarios = () => {
             privilegio: user.privilegio || 'ROLE_PUB',
             asignacion: user.asignacion || '',
             carrito: user.carrito || false,
-            banner: user.banner || false
+            banner: user.banner || false,
+            habilitacionPublica: estaHabilitado(user.habilitacionPublica),
+            conductor: estaHabilitado(user.conductor)
         });
         setClickAgregar(false);
     };
 
     const cancelarEdicion = () => {
         setUsuarioEditando(null);
-        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false });
+        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false });
     };
 
     const usuariosFiltrados = usuarios.filter(u => {
@@ -274,13 +280,13 @@ const AdminUsuarios = () => {
                     <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
                         <button
                             className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false }); }}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false }); }}
                         >
                             Lista de Usuarios
                         </button>
                         <button
                             className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
-                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false }); }}
+                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false, conductor: false }); }}
                         >
                             Agregar Nuevo
                         </button>
@@ -336,6 +342,7 @@ const AdminUsuarios = () => {
                                                 <th className="text-body-secondary fw-semibold">Usuario</th>
                                                 <th className="text-body-secondary fw-semibold">Teléfono</th>
                                                 <th className="text-body-secondary fw-semibold text-center">Inv.</th>
+                                                <th className="text-body-secondary fw-semibold text-center">Conductor</th>
                                                 <th className="text-body-secondary fw-semibold">Privilegio</th>
                                                 <th className="text-body-secondary fw-semibold">Asignación</th>
                                                 <th className="text-body-secondary fw-semibold">Grupo</th>
@@ -370,6 +377,9 @@ const AdminUsuarios = () => {
                                                         {u.carrito && <span title="Tiene Carrito" className="me-1">🛒</span>}
                                                         {u.banner && <span title="Tiene Banner">🏳️</span>}
                                                     </td>
+                                                    <td className="text-center">
+                                                        {estaHabilitado(u.conductor) ? <span className="badge bg-success">Sí</span> : <span className="text-muted">No</span>}
+                                                    </td>
                                                     <td><span className="badge bg-secondary">{u.privilegio}</span></td>
                                                     <td>{u.asignacion ? <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
                                                     <td>{u.grupo ? <span className="badge border border-primary text-primary">{u.grupo}</span> : <span className="text-muted small">-</span>}</td>
@@ -388,7 +398,7 @@ const AdminUsuarios = () => {
                                             })}
                                             {usuariosFiltrados.length === 0 && (
                                                 <tr>
-                                                    <td colSpan="9" className="text-center py-4 text-muted">No se encontraron usuarios.</td>
+                                                    <td colSpan="11" className="text-center py-4 text-muted">No se encontraron usuarios.</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -407,6 +417,7 @@ const AdminUsuarios = () => {
                                                     <h5 className="card-title mb-0 text-primary fw-bold text-break" style={{maxWidth: '100%'}}>{u.usuario}</h5>
                                                     <div className="d-flex flex-wrap gap-1">
                                                         <span className="badge bg-secondary">{u.privilegio}</span>
+                                                        {estaHabilitado(u.conductor) && <span className="badge bg-success">Conductor</span>}
                                                         {u.asignacion && <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span>}
                                                         {u.grupo && <span className="badge border border-primary text-primary">{u.grupo}</span>}
                                                     </div>
@@ -582,6 +593,18 @@ const AdminUsuarios = () => {
                                             disabled={!isANC}
                                         />
                                         <label className="form-check-label fw-semibold text-primary" htmlFor="checkHabilitacion">Apto Pública 🌟</label>
+                                    </div>
+                                    <div className="form-check form-switch">
+                                        <input
+                                            className="form-check-input border-success"
+                                            type="checkbox"
+                                            name="conductor"
+                                            id="checkConductor"
+                                            checked={formData.conductor}
+                                            onChange={(e) => setFormData({...formData, conductor: e.target.checked})}
+                                            disabled={!isANC}
+                                        />
+                                        <label className="form-check-label fw-semibold text-success" htmlFor="checkConductor">Conductor</label>
                                     </div>
                                 </div>
                                 <div className="d-flex gap-2">
