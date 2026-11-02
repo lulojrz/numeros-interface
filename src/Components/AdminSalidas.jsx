@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 const AdminSalidas = () => {
     const api = import.meta.env.VITE_API_URL;
     const [disponibilidades, setDisponibilidades] = useState([]);
+    const [conductores, setConductores] = useState([]);
     const [salidas, setSalidas] = useState([]);
     const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,12 +24,19 @@ const AdminSalidas = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [resDisp, resSalidas, resTerr] = await Promise.all([
+            const [resDisp, resUsuarios, resSalidas, resTerr] = await Promise.all([
                 fetch(`${api}/disponibilidades/traer`, { credentials: 'include' }),
+                fetch(`${api}/usuarios`, { credentials: 'include' }),
                 fetch(`${api}/salidas/traer`, { credentials: 'include' }),
                 fetch(`${api}/territorios/traer`, { credentials: 'include' })
             ]);
             if (resDisp.ok) setDisponibilidades(await resDisp.json());
+            if (resUsuarios.ok) {
+                const usuarios = await resUsuarios.json();
+                setConductores(usuarios
+                    .filter(usuario => usuario.conductor === true || usuario.conductor === 'true' || usuario.conductor === 1 || usuario.conductor === '1')
+                    .sort((a, b) => `${a.apellido || ''} ${a.nombre || ''}`.localeCompare(`${b.apellido || ''} ${b.nombre || ''}`, 'es')));
+            }
             if (resSalidas.ok) setSalidas(await resSalidas.json());
             if (resTerr.ok) setTerritorios(await resTerr.json());
         } catch (e) {
@@ -98,11 +106,11 @@ const AdminSalidas = () => {
             </h2>
 
             <div className="row g-4">
-                {/* Columna Izquierda: Disponibilidades */}
                 <div className="col-12 col-lg-5">
-                    <div className="card shadow-sm border-0 h-100">
+                    <div className="card shadow-sm border-0 mb-4">
                         <div className="card-header bg-info bg-opacity-10 border-bottom-0 pt-3 pb-2">
-                            <h5 className="fw-bold m-0 text-info-emphasis"><i className="bi bi-person-lines-fill me-2"></i>Disponibilidad de Hermanos</h5>
+                            <h5 className="fw-bold m-0 text-info-emphasis"><i className="bi bi-calendar-check me-2"></i>Disponibilidades fijas</h5>
+                            <small className="text-body-secondary">Hermanos que indicaron un día y horario habitual.</small>
                         </div>
                         <div className="card-body p-0">
                             {Object.keys(dispPorDia).length === 0 ? (
@@ -138,6 +146,25 @@ const AdminSalidas = () => {
                             )}
                         </div>
                     </div>
+
+                    <div className="card shadow-sm border-0">
+                        <div className="card-header bg-success bg-opacity-10 border-bottom-0 pt-3 pb-2">
+                            <h5 className="fw-bold m-0 text-success"><i className="bi bi-people-fill me-2"></i>Conductores disponibles</h5>
+                            <small className="text-body-secondary">Conductores habilitados en la congregación.</small>
+                        </div>
+                        <div className="list-group list-group-flush">
+                            {conductores.length === 0 ? (
+                                <div className="list-group-item text-center text-muted py-4">No hay conductores habilitados.</div>
+                            ) : (
+                                conductores.map(usuario => (
+                                    <div key={usuario.id} className="list-group-item d-flex align-items-center">
+                                        <i className="bi bi-person-fill text-success me-2"></i>
+                                        {usuario.nombre} {usuario.apellido}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Columna Derecha: Formulario y Programa */}
@@ -166,8 +193,8 @@ const AdminSalidas = () => {
                                     <label className="form-label small fw-bold">Conductor</label>
                                     <select className="form-select" required value={conductorId} onChange={e => setConductorId(e.target.value)}>
                                         <option value="">Seleccione...</option>
-                                        {disponibilidades.map(d => (
-                                            <option key={d.id} value={d.usuario?.id}>{d.usuario?.nombre} {d.usuario?.apellido} ({d.diaSemana} {d.hora}hs)</option>
+                                        {conductores.map(usuario => (
+                                            <option key={usuario.id} value={usuario.id}>{usuario.nombre} {usuario.apellido}</option>
                                         ))}
                                     </select>
                                 </div>
