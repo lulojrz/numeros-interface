@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { NumerosContext } from '../context/NumerosContext';
+import Header from './Header';
 
 const MisDisponibilidades = () => {
     const usuarioId = localStorage.getItem('usuarioId');
@@ -70,52 +70,66 @@ const MisDisponibilidades = () => {
         }
     };
 
-    if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary"></div></div>;
+    if (loading) {
+        return (
+            <>
+                <Header />
+                <main className="min-vh-100 bg-body-tertiary">
+                    <div className="text-center mt-5"><div className="spinner-border text-primary"></div></div>
+                </main>
+            </>
+        );
+    }
 
     return (
-        <div className="container mt-4 mb-5" style={{ maxWidth: '600px' }}>
-            <h2 className="h4 text-primary fw-bold mb-4">
-                <i className="bi bi-clock me-2"></i>Mis Días de Salida
-            </h2>
-            <div className="card shadow-sm border-0 mb-4">
-                <div className="card-body">
-                    <p className="text-muted small">Agrega los días y horarios fijos en los que puedes sacar salidas de predicación.</p>
-                    <form onSubmit={agregar} className="row g-2 align-items-end">
-                        <div className="col-12 col-sm-5">
-                            <label className="form-label small fw-bold">Día</label>
-                            <select className="form-select" value={diaSemana} onChange={e => setDiaSemana(e.target.value)}>
-                                {dias.map(d => <option key={d} value={d}>{d}</option>)}
-                            </select>
+        <>
+            <Header />
+            <main className="min-vh-100 bg-body-tertiary">
+                <div className="container mt-4 mb-5 py-1" style={{ maxWidth: '600px' }}>
+                    <h2 className="h4 text-primary fw-bold mb-4">
+                        <i className="bi bi-clock me-2"></i>Mis Días de Salida
+                    </h2>
+                    <div className="card shadow-sm border-0 mb-4">
+                        <div className="card-body">
+                            <p className="text-muted small">Agrega los días y horarios fijos en los que puedes sacar salidas de predicación.</p>
+                            <form onSubmit={agregar} className="row g-2 align-items-end">
+                                <div className="col-12 col-sm-5">
+                                    <label className="form-label small fw-bold">Día</label>
+                                    <select className="form-select" value={diaSemana} onChange={e => setDiaSemana(e.target.value)}>
+                                        {dias.map(d => <option key={d} value={d}>{d}</option>)}
+                                    </select>
+                                </div>
+                                <div className="col-12 col-sm-5">
+                                    <label className="form-label small fw-bold">Hora</label>
+                                    <input type="time" className="form-control" required value={hora} onChange={e => setHora(e.target.value)} />
+                                </div>
+                                <div className="col-12 col-sm-2">
+                                    <button type="submit" className="btn btn-primary w-100 fw-bold">+</button>
+                                </div>
+                            </form>
                         </div>
-                        <div className="col-12 col-sm-5">
-                            <label className="form-label small fw-bold">Hora</label>
-                            <input type="time" className="form-control" required value={hora} onChange={e => setHora(e.target.value)} />
-                        </div>
-                        <div className="col-12 col-sm-2">
-                            <button type="submit" className="btn btn-primary w-100 fw-bold">+</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
-            <div className="list-group shadow-sm">
-                {disponibilidades.length === 0 ? (
-                    <div className="list-group-item text-center text-muted py-4">No has agregado disponibilidades.</div>
-                ) : (
-                    disponibilidades.map(d => (
-                        <div key={d.id} className="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <h6 className="fw-bold mb-0">{d.diaSemana}s</h6>
-                                <span className="text-muted small"><i className="bi bi-clock me-1"></i>{d.hora} hs</span>
-                            </div>
-                            <button className="btn btn-sm btn-outline-danger" onClick={() => borrar(d.id)}>
-                                <i className="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
+                    <div className="list-group shadow-sm">
+                        {disponibilidades.length === 0 ? (
+                            <div className="list-group-item text-center text-muted py-4">No has agregado disponibilidades.</div>
+                        ) : (
+                            disponibilidades.map(d => (
+                                <div key={d.id} className="list-group-item d-flex justify-content-between align-items-center py-3">
+                                    <div>
+                                        <h6 className="fw-bold mb-0">{d.diaSemana}s</h6>
+                                        <span className="text-muted small"><i className="bi bi-clock me-1"></i>{d.hora} hs</span>
+                                    </div>
+                                    <button className="btn btn-sm btn-outline-danger" onClick={() => borrar(d.id)}>
+                                        <i className="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </main>
+        </>
     );
 };
 
