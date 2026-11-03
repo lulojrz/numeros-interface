@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { obtenerConflictoAsignacion } from '../utils/territorioAsignaciones';
 
 const AdminSalidas = () => {
     const api = import.meta.env.VITE_API_URL;
@@ -106,6 +107,12 @@ const AdminSalidas = () => {
         acc[d.diaSemana].push(d);
         return acc;
     }, {});
+    const territorioSeleccionado = territorios.find(t => Number(t.id) === Number(territorioId));
+    const inicioAsignacion = fecha && hora ? new Date(`${fecha}T${hora}:00`) : null;
+    const finAsignacion = fecha ? new Date(`${fecha}T23:59:59`) : null;
+    const usuarioEnConflicto = territorioSeleccionado && inicioAsignacion && finAsignacion
+        ? obtenerConflictoAsignacion(territorioSeleccionado, conductorId, inicioAsignacion, finAsignacion)
+        : null;
 
     return (
         <div className="container mt-4 mb-5">
@@ -237,8 +244,15 @@ const AdminSalidas = () => {
                                                     {territoriosSugeridos.length > 0 && (
                                                         <optgroup label="Sugeridos (Hace mucho no se trabajan)">
                                                             {territoriosSugeridos.map(t => (
-                                                                <option key={t.id} value={t.id}>
+                                                                <option
+                                                                    key={t.id}
+                                                                    value={t.id}
+                                                                    disabled={Boolean(inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion))}
+                                                                >
                                                                     Territorio {t.numero} - {t.manzanas?.length || 0} manzanas {t.ultimaFechaTrabajada ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})` : '(Nunca trabajado)'}
+                                                                    {inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion)
+                                                                        ? ` — asignado a ${obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion).nombre || 'otro usuario'}`
+                                                                        : ''}
                                                                 </option>
                                                             ))}
                                                         </optgroup>
@@ -246,8 +260,15 @@ const AdminSalidas = () => {
                                                     {otrosTerritorios.length > 0 && (
                                                         <optgroup label="Otros Territorios">
                                                             {otrosTerritorios.map(t => (
-                                                                <option key={t.id} value={t.id}>
+                                                                <option
+                                                                    key={t.id}
+                                                                    value={t.id}
+                                                                    disabled={Boolean(inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion))}
+                                                                >
                                                                     Territorio {t.numero} - {t.manzanas?.length || 0} manzanas {t.ultimaFechaTrabajada ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})` : ''}
+                                                                    {inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion)
+                                                                        ? ` — asignado a ${obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion).nombre || 'otro usuario'}`
+                                                                        : ''}
                                                                 </option>
                                                             ))}
                                                         </optgroup>
@@ -256,9 +277,14 @@ const AdminSalidas = () => {
                                             );
                                         })()}
                                     </select>
+                                    {usuarioEnConflicto && (
+                                        <div className="form-text text-danger">
+                                            Este territorio ya está asignado a {[usuarioEnConflicto.nombre, usuarioEnConflicto.apellido].filter(Boolean).join(' ')} durante ese período.
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="col-12 text-end">
-                                    <button type="submit" className="btn btn-primary fw-bold px-4">Guardar Salida</button>
+                                    <button type="submit" className="btn btn-primary fw-bold px-4" disabled={Boolean(usuarioEnConflicto)}>Guardar Salida</button>
                                 </div>
                             </form>
                         </div>

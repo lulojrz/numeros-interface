@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loading from './Loading';
 import { useSwipeable } from 'react-swipeable';
+import { obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
 
 
 const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
@@ -283,6 +284,7 @@ const PredicacionEdificios = () => {
                     ) : (
                         territorios.map(t => {
                             const hoy = new Date();
+                            const estadoAsignacion = obtenerEstadoAsignacion(t, hoy);
                             const asignacionesRecientes = [...(Array.isArray(t.asignaciones) ? t.asignaciones : [])]
                                 .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
                                 .slice(0, 3);
@@ -331,12 +333,17 @@ const PredicacionEdificios = () => {
                                                     <i className="bi bi-calendar-check me-1"></i> 
                                                     Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
                                                 </div>}
-                                                <div className={`badge mt-2 ${t.asignadoA ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
-                                                    <i className={`bi ${t.asignadoA ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                                    {t.asignadoA
-                                                        ? `Asignado a: ${[t.asignadoA.nombre, t.asignadoA.apellido].filter(Boolean).join(' ')}`
+                                                <div className={`badge mt-2 ${estadoAsignacion ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
+                                                    <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                    {estadoAsignacion
+                                                        ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
                                                         : 'Sin asignar'}
                                                 </div>
+                                                {estadoAsignacion?.tipo === 'salida' && (
+                                                    <div className="small text-muted mt-1">
+                                                        {new Date(estadoAsignacion.asignacion.fechaAsignacion).toLocaleString('es-AR')}
+                                                    </div>
+                                                )}
                                                 {asignacionesRecientes.length > 0 && (
                                                     <div className="small text-muted mt-2">
                                                         <i className="bi bi-person-check me-1"></i>

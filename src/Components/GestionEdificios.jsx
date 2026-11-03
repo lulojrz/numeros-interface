@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { exportarS13 } from '../utils/exportS13';
+import { obtenerConflictoAsignacion, obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
 
 const GestionEdificios = () => {
     const [territorios, setTerritorios] = useState([]);
@@ -105,6 +106,22 @@ const GestionEdificios = () => {
 
     const editarAsignacion = async (territorio, asignadoAId) => {
         const usuarioAsignado = usuarios.find(u => u.id === parseInt(asignadoAId));
+        if (usuarioAsignado) {
+            const conflicto = obtenerConflictoAsignacion(
+                territorio,
+                usuarioAsignado.id,
+                new Date(),
+                new Date(8640000000000000)
+            );
+            if (conflicto) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Territorio ya asignado',
+                    text: `Ya está asignado a ${[conflicto.nombre, conflicto.apellido].filter(Boolean).join(' ')}.`
+                });
+                return;
+            }
+        }
         const updated = { ...territorio, asignadoA: usuarioAsignado || null };
         try {
             const res = await fetch(`${api}/territorios/editar/${territorio.id}`, {
@@ -116,6 +133,9 @@ const GestionEdificios = () => {
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Asignación actualizada' });
                 fetchData();
+            } else {
+                const error = await res.text();
+                Toast.fire({ icon: 'error', title: 'No se pudo actualizar la asignación', text: error });
             }
         } catch (e) {
             Toast.fire({ icon: 'error', title: 'Error al actualizar' });
@@ -334,6 +354,7 @@ const GestionEdificios = () => {
     if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary" role="status"></div></div>;
 
     const currentTerritorioFull = territorioSeleccionado ? territorios.find(t => t.id === territorioSeleccionado.id) : null;
+    const estadoAsignacionTerritorio = currentTerritorioFull ? obtenerEstadoAsignacion(currentTerritorioFull) : null;
     const currentManzanaFull = currentTerritorioFull && manzanaSeleccionada ? currentTerritorioFull.manzanas.find(m => m.id === manzanaSeleccionada.id) : null;
     const currentEdificioFull = currentManzanaFull && edificioSeleccionado ? currentManzanaFull.edificios?.find(e => e.id === edificioSeleccionado.id) : null;
 
@@ -362,7 +383,9 @@ const GestionEdificios = () => {
                                     <p className="text-muted small text-center">No hay territorios creados.</p>
                                 ) : (
                                     <div className="list-group list-group-flush border-0">
-                                        {territorios.map(t => (
+                                        {territorios.map(t => {
+                                            const estadoAsignacion = obtenerEstadoAsignacion(t);
+                                            return (
                                             <button 
                                                 key={t.id} 
                                                 onClick={() => setTerritorioSeleccionado(t)}
@@ -373,16 +396,17 @@ const GestionEdificios = () => {
                                                     <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
                                                         {t.manzanas?.length || 0} manzanas
                                                     </small>
-                                                    <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : t.asignadoA ? 'text-primary' : 'text-muted'}`}>
-                                                        <i className={`bi ${t.asignadoA ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                                        {t.asignadoA
-                                                            ? `Asignado a: ${[t.asignadoA.nombre, t.asignadoA.apellido].filter(Boolean).join(' ')}`
+                                                    <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
+                                                        <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                        {estadoAsignacion
+                                                            ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
                                                             : 'Sin asignar'}
                                                     </div>
                                                 </div>
                                                 <i className="bi bi-chevron-right"></i>
                                             </button>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -483,12 +507,17 @@ const GestionEdificios = () => {
                                     <div>
                                         <h4 className="fw-bold text-primary m-0">Territorio {currentTerritorioFull.numero}</h4>
                                         <p className="text-muted mb-0 small">ID: {currentTerritorioFull.id}</p>
-                                        <span className={`badge mt-2 ${currentTerritorioFull.asignadoA ? 'bg-primary' : 'bg-secondary'}`}>
-                                            <i className={`bi ${currentTerritorioFull.asignadoA ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                            {currentTerritorioFull.asignadoA
-                                                ? `Asignado a: ${[currentTerritorioFull.asignadoA.nombre, currentTerritorioFull.asignadoA.apellido].filter(Boolean).join(' ')}`
+                                        <span className={`badge mt-2 ${estadoAsignacionTerritorio ? 'bg-primary' : 'bg-secondary'}`}>
+                                            <i className={`bi ${estadoAsignacionTerritorio ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                            {estadoAsignacionTerritorio
+                                                ? `${estadoAsignacionTerritorio.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacionTerritorio.usuario.nombre, estadoAsignacionTerritorio.usuario.apellido].filter(Boolean).join(' ')}`
                                                 : 'Sin asignar'}
                                         </span>
+                                        {estadoAsignacionTerritorio?.tipo === 'salida' && (
+                                            <div className="small text-muted mt-1">
+                                                {new Date(estadoAsignacionTerritorio.asignacion.fechaAsignacion).toLocaleString('es-AR')}
+                                            </div>
+                                        )}
                                     </div>
                                     <button className="btn btn-outline-danger btn-sm rounded-pill px-3" onClick={() => borrarTerritorio(currentTerritorioFull.id)}>
                                         <i className="bi bi-trash3 me-1"></i> Eliminar Territorio
@@ -505,7 +534,21 @@ const GestionEdificios = () => {
                                         >
                                             <option value="">-- Disponible (Sin asignar) --</option>
                                             {usuarios.map(u => (
-                                                <option key={u.id} value={u.id}>{u.nombre} {u.apellido}</option>
+                                                <option
+                                                    key={u.id}
+                                                    value={u.id}
+                                                    disabled={
+                                                        Number(u.id) !== Number(currentTerritorioFull.asignadoA?.id) &&
+                                                        !!obtenerConflictoAsignacion(
+                                                            currentTerritorioFull,
+                                                            u.id,
+                                                            new Date(),
+                                                            new Date(8640000000000000)
+                                                        )
+                                                    }
+                                                >
+                                                    {u.nombre} {u.apellido}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
