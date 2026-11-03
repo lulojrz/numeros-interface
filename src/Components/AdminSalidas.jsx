@@ -71,10 +71,18 @@ const AdminSalidas = () => {
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Salida programada' });
                 setFecha(''); setHora(''); setPuntoEncuentro(''); setConductorId(''); setTerritorioId(''); setGrupos('Toda la congregación');
-                fetchData();
+                await fetchData();
+            } else {
+                const error = await res.text();
+                Toast.fire({
+                    icon: 'error',
+                    title: 'No se pudo programar la salida',
+                    text: error || `Error del servidor (${res.status})`
+                });
             }
         } catch (e) {
             console.error(e);
+            Toast.fire({ icon: 'error', title: 'Error de conexión al programar la salida' });
         }
     };
 

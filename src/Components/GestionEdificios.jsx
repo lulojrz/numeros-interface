@@ -506,6 +506,31 @@ const GestionEdificios = () => {
                                     </div>
                                 </div>
 
+                                <div className="card border-0 shadow-sm mb-4">
+                                    <div className="card-header bg-body-tertiary">
+                                        <h6 className="fw-bold mb-0"><i className="bi bi-clock-history me-2"></i>Historial de asignaciones</h6>
+                                    </div>
+                                    <div className="list-group list-group-flush">
+                                        {[...(currentTerritorioFull.asignaciones || [])]
+                                            .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
+                                            .map(asignacion => (
+                                                <div key={asignacion.id} className="list-group-item d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                                                    <span className="fw-semibold">
+                                                        {asignacion.usuario?.nombre} {asignacion.usuario?.apellido || ''}
+                                                    </span>
+                                                    <span className="small text-muted text-end">
+                                                        Asignado: {asignacion.fechaAsignacion ? new Date(asignacion.fechaAsignacion).toLocaleString('es-AR') : 'Sin fecha'}
+                                                        {' · '}
+                                                        Devuelto: {asignacion.fechaDevolucion ? new Date(asignacion.fechaDevolucion).toLocaleString('es-AR') : 'Pendiente'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        {(!currentTerritorioFull.asignaciones || currentTerritorioFull.asignaciones.length === 0) && (
+                                            <div className="list-group-item text-muted small">Este territorio todavía no tiene asignaciones registradas.</div>
+                                        )}
+                                    </div>
+                                </div>
+
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-body-secondary me-2"></i>Manzanas</h5>
                                     <button className="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm" onClick={() => agregarManzana(currentTerritorioFull.id)}>

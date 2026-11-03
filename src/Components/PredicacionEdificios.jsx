@@ -283,6 +283,9 @@ const PredicacionEdificios = () => {
                     ) : (
                         territorios.map(t => {
                             const hoy = new Date();
+                            const asignacionesRecientes = [...(Array.isArray(t.asignaciones) ? t.asignaciones : [])]
+                                .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
+                                .slice(0, 3);
                             let diffDays = null;
                             let tieneAlarma = false;
                             let textoAlarma = '';
@@ -331,6 +334,18 @@ const PredicacionEdificios = () => {
                                                 {t.asignadoA && (
                                                     <div className="badge bg-body-tertiary text-body border mt-2">
                                                         Asignado a: {t.asignadoA.nombre}
+                                                    </div>
+                                                )}
+                                                {asignacionesRecientes.length > 0 && (
+                                                    <div className="small text-muted mt-2">
+                                                        <i className="bi bi-person-check me-1"></i>
+                                                        {asignacionesRecientes.map((asignacion, index) => (
+                                                            <span key={asignacion.id}>
+                                                                {index > 0 && ' · '}
+                                                                {asignacion.usuario?.nombre} {asignacion.usuario?.apellido || ''}
+                                                                {asignacion.fechaAsignacion && ` (${new Date(asignacion.fechaAsignacion).toLocaleDateString('es-AR')})`}
+                                                            </span>
+                                                        ))}
                                                     </div>
                                                 )}
                                             </div>
