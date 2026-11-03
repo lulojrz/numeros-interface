@@ -339,23 +339,8 @@ const PredicacionEdificios = () => {
                                                         ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
                                                         : 'Sin asignar'}
                                                 </div>
-                                                {estadoAsignacion?.tipo === 'salida' && (
-                                                    <div className="small text-muted mt-1">
-                                                        {new Date(estadoAsignacion.asignacion.fechaAsignacion).toLocaleString('es-AR')}
-                                                    </div>
-                                                )}
-                                                {asignacionesRecientes.length > 0 && (
-                                                    <div className="small text-muted mt-2">
-                                                        <i className="bi bi-person-check me-1"></i>
-                                                        {asignacionesRecientes.map((asignacion, index) => (
-                                                            <span key={asignacion.id}>
-                                                                {index > 0 && ' · '}
-                                                                {asignacion.usuario?.nombre} {asignacion.usuario?.apellido || ''}
-                                                                {asignacion.fechaAsignacion && ` (${new Date(asignacion.fechaAsignacion).toLocaleDateString('es-AR')})`}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                              
+                                               
                                             </div>
                                             <i className="bi bi-chevron-right text-primary fs-4"></i>
                                         </div>
