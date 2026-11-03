@@ -1,5 +1,14 @@
 import { PDFDocument } from 'pdf-lib';
 
+const formatearFecha = (fecha) => {
+    if (!fecha) return '';
+
+    const date = new Date(fecha);
+    if (Number.isNaN(date.getTime())) return '';
+
+    return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+};
+
 export const exportarS13 = async (territorios) => {
     try {
         const url = '/S-13-S_rellenable.pdf'; 
@@ -13,55 +22,40 @@ export const exportarS13 = async (territorios) => {
             const rowNum = (t.numero || '').toString().padStart(2, '0');
             
             try {
-                // Última fecha
-                if (t.ultimaFechaTrabajada) {
-                    const dateStr = new Date(t.ultimaFechaTrabajada).toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+                const asignaciones = (Array.isArray(t.asignaciones) ? t.asignaciones : [])
+                    .filter(asignacion => asignacion.fechaAsignacion && !Number.isNaN(new Date(asignacion.fechaAsignacion).getTime()))
+                    .sort((a, b) => new Date(a.fechaAsignacion) - new Date(b.fechaAsignacion))
+                    .slice(-4);
+
+                const ultimaAsignacion = asignaciones[asignaciones.length - 1];
+                if (ultimaAsignacion) {
                     const fieldUltima = form.getTextField(`T${rowNum}_ultima_fecha`);
-                    if(fieldUltima) {
-                        fieldUltima.setText(dateStr);
-                        fieldUltima.setFontSize(8);
-                        fieldUltima.setAlignment(1);
+                    fieldUltima.setText(formatearFecha(ultimaAsignacion.fechaAsignacion));
+                    fieldUltima.setFontSize(8);
+                    fieldUltima.setAlignment(1);
+                }
+
+                asignaciones.forEach((asignacion, index) => {
+                    const blockNum = index + 1;
+                    const fechaAsignado = form.getTextField(`T${rowNum}_g${blockNum}_fecha_asignado`);
+                    fechaAsignado.setText(formatearFecha(asignacion.fechaAsignacion));
+                    fechaAsignado.setFontSize(8);
+                    fechaAsignado.setAlignment(1);
+
+                    if (asignacion.fechaDevolucion) {
+                        const fechaCompletado = form.getTextField(`T${rowNum}_g${blockNum}_fecha_completado`);
+                        fechaCompletado.setText(formatearFecha(asignacion.fechaDevolucion));
+                        fechaCompletado.setFontSize(8);
+                        fechaCompletado.setAlignment(1);
                     }
-                }
 
-                let blockIdx = 1;
-                
-                if (t.fechasTrabajado && t.fechasTrabajado.length > 0) {
-                    const fechas = [...t.fechasTrabajado].sort((a,b) => new Date(a) - new Date(b));
-                    const ultimasFechas = fechas.slice(-4); 
-                    
-                    ultimasFechas.forEach((f) => {
-                        if(blockIdx > 4) return;
-                        const dateStr = new Date(f).toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: '2-digit'});
-                        
-                        const fComp = form.getTextField(`T${rowNum}_g${blockIdx}_fecha_completado`);
-                        if(fComp) {
-                            fComp.setText(dateStr);
-                            fComp.setFontSize(8);
-                            fComp.setAlignment(1);
-                        }
-
-                        // Llenar SIEMPRE el hermano asignado para esta fecha histórica
-                        const fAsigHist = form.getTextField(`T${rowNum}_g${blockIdx}_asignado_a`);
-                        if(fAsigHist) {
-                            const nombreHist = t.asignadoA ? (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15) : "---";
-                            fAsigHist.setText(nombreHist);
-                            fAsigHist.setFontSize(8);
-                        }
-                        
-                        blockIdx++;
-                    });
-                }
-
-                // Si NO hay fechas históricas, el hermano asignado actual ocupa el primer bloque
-                if (t.asignadoA && (!t.fechasTrabajado || t.fechasTrabajado.length === 0)) {
-                    const nombreCorto = (t.asignadoA.nombre + ' ' + (t.asignadoA.apellido || '')).substring(0, 15);
-                    const fAsig = form.getTextField(`T${rowNum}_g1_asignado_a`);
-                    if(fAsig) {
-                        fAsig.setText(nombreCorto);
-                        fAsig.setFontSize(8);
+                    if (asignacion.usuario) {
+                        const nombre = [asignacion.usuario.nombre, asignacion.usuario.apellido].filter(Boolean).join(' ').substring(0, 15);
+                        const asignadoA = form.getTextField(`T${rowNum}_g${blockNum}_asignado_a`);
+                        asignadoA.setText(nombre);
+                        asignadoA.setFontSize(8);
                     }
-                }
+                });
 
             } catch (e) {
                 console.error(`Error al llenar campos fila ${rowNum}:`, e);
