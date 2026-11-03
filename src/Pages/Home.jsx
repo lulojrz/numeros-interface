@@ -210,9 +210,7 @@ const Home = () => {
         ) : activeTab === 'dashboard' ? (
             <div className="container py-5" style={{ maxWidth: '900px' }}>
                 <div className="mb-4">
-                    <p className="text-primary fw-bold text-uppercase mb-1" style={{ fontSize: '0.85rem', letterSpacing: '1px' }}>
-                        BIENVENIDO A COLEGIALES CRM
-                    </p>
+                 
                     <h1 className="fw-bold text-body" style={{ fontSize: '2.5rem' }}>
                         ¡Hola, {localStorage.getItem('usuario') || 'Usuario'}!
                     </h1>

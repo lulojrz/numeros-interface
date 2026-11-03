@@ -5,7 +5,7 @@ import Loading from './Loading';
 import { useSwipeable } from 'react-swipeable';
 
 
-const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto, isPublicador }) => {
+const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
     const handlers = useSwipeable({
         onSwipedLeft: () => {
             // Swipe a la izquierda: Marcar como No Visitado
@@ -27,10 +27,10 @@ const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto, isPub
             >
                 <i className={`bi ${icon} fs-4 mb-1`}></i>
                 <span className="fw-bold" style={{fontSize: '0.9rem'}}>{dpto.piso}-{dpto.letra}</span>
-                {!isPublicador && dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
+                {dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
                     <span style={{fontSize: '0.65rem'}} className="mt-1 text-truncate w-100">{dpto.estado}</span>
                 )}
-                {!isPublicador && dpto.ultimaFechaTrabajada && (
+                {dpto.ultimaFechaTrabajada && (
                     <span style={{fontSize: '0.55rem', opacity: 0.8}} className="text-truncate w-100">
                         {new Date(dpto.ultimaFechaTrabajada).toLocaleDateString()}
                     </span>
@@ -180,12 +180,10 @@ const PredicacionEdificios = () => {
         Swal.fire({
             title: `Timbre ${dpto.piso}-${dpto.letra}`,
             html: `
-                ${!isPublicador ? `
-                    <div class="mb-3 text-start small text-body-secondary p-2 bg-body-tertiary rounded border" style="max-height: 100px; overflow-y: auto;">
-                        <strong class="text-body">Historial de Visitas:</strong><br/>
-                        ${historialHtml}
-                    </div>
-                ` : ''}
+                <div class="mb-3 text-start small text-body-secondary p-2 bg-body-tertiary rounded border" style="max-height: 100px; overflow-y: auto;">
+                    <strong class="text-body">Historial de Visitas:</strong><br/>
+                    ${historialHtml}
+                </div>
                 <div class="d-grid gap-2">
                     <button id="btn-revisita" class="btn btn-info text-white fw-bold"><i class="bi bi-star-fill text-warning me-1"></i>Revisita</button>
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
@@ -304,7 +302,7 @@ const PredicacionEdificios = () => {
                             return (
                                 <div className="col-12 col-md-6 col-lg-4" key={t.id}>
                                     <div 
-                                        className={`card h-100 border-0 shadow-sm ${tieneAlarma ? 'border-start border-4 border-danger' : ''}`} 
+                                        className={`card h-100 border-0 shadow-sm ${!isPublicador && tieneAlarma ? 'border-start border-4 border-danger' : ''}`}
                                         onClick={() => irAManzanas(t)} 
                                         style={{cursor: 'pointer'}}
                                     >
@@ -312,12 +310,12 @@ const PredicacionEdificios = () => {
                                             <div>
                                                 <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                                     <h5 className="fw-bold mb-0">Territorio {t.numero}</h5>
-                                                    {tieneAlarma && (
+                                                    {!isPublicador && tieneAlarma && (
                                                         <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
                                                             <i className="bi bi-bell-fill me-1"></i> {textoAlarma}
                                                         </span>
                                                     )}
-                                                    {!tieneAlarma && diffDays !== null && diffDays <= 30 && (
+                                                    {!isPublicador && !tieneAlarma && diffDays !== null && diffDays <= 30 && (
                                                         <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
                                                             <i className="bi bi-check-circle-fill me-1"></i> Al día ({diffDays}d)
                                                         </span>
@@ -326,10 +324,10 @@ const PredicacionEdificios = () => {
                                                 <div className="text-muted small mt-1">
                                                     <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
                                                 </div>
-                                                <div className="text-muted small mt-1">
+                                                {!isPublicador && <div className="text-muted small mt-1">
                                                     <i className="bi bi-calendar-check me-1"></i> 
                                                     Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
-                                                </div>
+                                                </div>}
                                                 {t.asignadoA && (
                                                     <div className="badge bg-body-tertiary text-body border mt-2">
                                                         Asignado a: {t.asignadoA.nombre}
@@ -476,38 +474,24 @@ const PredicacionEdificios = () => {
                             
                             return (
                                 <div className="col-12 col-lg-6" key={e.id}>
-                                    {isPublicador ? (
-                                        <button
-                                            type="button"
-                                            className="btn btn-light border shadow-sm w-100 h-100 d-flex justify-content-between align-items-center text-start p-3"
-                                            onClick={() => irAPortero(e)}
-                                            aria-label={`Abrir portero eléctrico de ${e.direccion}`}
-                                        >
-                                            <span className="fw-bold text-body">
-                                                <i className="bi bi-door-open text-primary me-2"></i>{e.direccion}
-                                            </span>
-                                            <i className="bi bi-chevron-right text-muted ms-2"></i>
-                                        </button>
-                                    ) : (
-                                        <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{cursor: 'pointer'}}>
-                                            <div className="card-body">
-                                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h5 className="fw-bold m-0">{e.direccion}</h5>
-                                                    <span className="badge bg-secondary">{e.categoria}</span>
-                                                </div>
-                                                <div className="text-muted small mb-3">
-                                                    <i className="bi bi-bell me-1"></i> {total} timbres en total
-                                                </div>
-                                                <div className="progress" style={{height: '8px'}}>
-                                                    <div className="progress-bar bg-success" style={{width: `${progreso}%`}}></div>
-                                                </div>
-                                                <div className="d-flex justify-content-between small fw-bold mt-2">
-                                                    <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
-                                                    <span className="text-success">{progreso}% Cubierto</span>
-                                                </div>
+                                    <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{cursor: 'pointer'}}>
+                                        <div className="card-body">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 className="fw-bold m-0">{e.direccion}</h5>
+                                                <span className="badge bg-secondary">{e.categoria}</span>
+                                            </div>
+                                            <div className="text-muted small mb-3">
+                                                <i className="bi bi-bell me-1"></i> {total} timbres en total
+                                            </div>
+                                            <div className="progress" style={{height: '8px'}}>
+                                                <div className="progress-bar bg-success" style={{width: `${progreso}%`}}></div>
+                                            </div>
+                                            <div className="d-flex justify-content-between small fw-bold mt-2">
+                                                <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
+                                                <span className="text-success">{progreso}% Cubierto</span>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             )
                         })
@@ -543,7 +527,7 @@ const PredicacionEdificios = () => {
                                     icon = "bi-house-x";
                                 }
 
-                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} actualizarDpto={actualizarDpto} isPublicador={isPublicador} />;
+                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} actualizarDpto={actualizarDpto} />;
                             })}
                         </div>
                     </div>
