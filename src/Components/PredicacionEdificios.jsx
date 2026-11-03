@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loading from './Loading';
-import { guardarCacheLocal, obtenerCacheLocal, encolarMutacion } from '../utils/offlineSync';
 import { useSwipeable } from 'react-swipeable';
 
 
-const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
+const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto, isPublicador }) => {
     const handlers = useSwipeable({
         onSwipedLeft: () => {
             // Swipe a la izquierda: Marcar como No Visitado
@@ -28,10 +27,10 @@ const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => 
             >
                 <i className={`bi ${icon} fs-4 mb-1`}></i>
                 <span className="fw-bold" style={{fontSize: '0.9rem'}}>{dpto.piso}-{dpto.letra}</span>
-                {dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
+                {!isPublicador && dpto.estado && dpto.estado !== 'No visitado' && dpto.tocar && (
                     <span style={{fontSize: '0.65rem'}} className="mt-1 text-truncate w-100">{dpto.estado}</span>
                 )}
-                {dpto.ultimaFechaTrabajada && (
+                {!isPublicador && dpto.ultimaFechaTrabajada && (
                     <span style={{fontSize: '0.55rem', opacity: 0.8}} className="text-truncate w-100">
                         {new Date(dpto.ultimaFechaTrabajada).toLocaleDateString()}
                     </span>
@@ -58,7 +57,7 @@ const PredicacionEdificios = () => {
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
     });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const timestamp = new Date().getTime();
@@ -72,18 +71,18 @@ const PredicacionEdificios = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [api]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     // Manejar navegación directa por estado (Buscador Global o enlaces externos)
     useEffect(() => {
         if (!territorios || territorios.length === 0 || !location.state) return;
 
         if (location.state.edificioId) {
-            let encontrado = false;
+            buscarEdificio:
             for (const t of territorios) {
                 for (const m of (t.manzanas || [])) {
                     const ed = (m.edificios || []).find(e => e.id === location.state.edificioId);
@@ -92,23 +91,20 @@ const PredicacionEdificios = () => {
                         setManzanaSel(m);
                         setEdificioSel(ed);
                         setVistaActual('portero');
-                        encontrado = true;
-                        break;
+                        break buscarEdificio;
                     }
                 }
-                if (encontrado) break;
             }
             window.history.replaceState({}, document.title);
         } else if (location.state.manzanaId) {
-            let encontrado = false;
+            buscarManzana:
             for (const t of territorios) {
                 const m = (t.manzanas || []).find(man => man.id === location.state.manzanaId);
                 if (m) {
                     setTerritorioSel(t);
                     setManzanaSel(m);
                     setVistaActual('edificios');
-                    encontrado = true;
-                    break;
+                    break buscarManzana;
                 }
             }
             window.history.replaceState({}, document.title);
@@ -171,23 +167,25 @@ const PredicacionEdificios = () => {
                 const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
                 if (resTerr.ok) setTerritorios(await resTerr.json());
             }
-        } catch (e) {
+        } catch {
             Toast.fire({ icon: 'error', title: 'Error al guardar' });
         }
     };
 
     const abrirMenuDpto = (dpto) => {
-        const historialHtml = dpto.historial 
+        const historialHtml = dpto.historial
             ? dpto.historial.split('\n').map(l => `<div><i class="bi bi-clock-history me-1"></i> ${l}</div>`).join('') 
             : '<em>No hay visitas previas.</em>';
 
         Swal.fire({
             title: `Timbre ${dpto.piso}-${dpto.letra}`,
             html: `
-                <div class="mb-3 text-start small text-body-secondary p-2 bg-body-tertiary rounded border" style="max-height: 100px; overflow-y: auto;">
-                    <strong class="text-body">Historial de Visitas:</strong><br/>
-                    ${historialHtml}
-                </div>
+                ${!isPublicador ? `
+                    <div class="mb-3 text-start small text-body-secondary p-2 bg-body-tertiary rounded border" style="max-height: 100px; overflow-y: auto;">
+                        <strong class="text-body">Historial de Visitas:</strong><br/>
+                        ${historialHtml}
+                    </div>
+                ` : ''}
                 <div class="d-grid gap-2">
                     <button id="btn-revisita" class="btn btn-info text-white fw-bold"><i class="bi bi-star-fill text-warning me-1"></i>Revisita</button>
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
@@ -408,7 +406,7 @@ const PredicacionEdificios = () => {
                                             const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
                                             if (resTerr.ok) setTerritorios(await resTerr.json());
                                         }
-                                    } catch (e) {
+                                    } catch {
                                         Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
                                     }
                                 }}
@@ -453,7 +451,7 @@ const PredicacionEdificios = () => {
                                                 }
                                             }
                                         }
-                                    } catch (e) {
+                                    } catch {
                                         Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
                                     }
                                 }}
@@ -478,24 +476,38 @@ const PredicacionEdificios = () => {
                             
                             return (
                                 <div className="col-12 col-lg-6" key={e.id}>
-                                    <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{cursor: 'pointer'}}>
-                                        <div className="card-body">
-                                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                                <h5 className="fw-bold m-0">{e.direccion}</h5>
-                                                <span className="badge bg-secondary">{e.categoria}</span>
-                                            </div>
-                                            <div className="text-muted small mb-3">
-                                                <i className="bi bi-bell me-1"></i> {total} timbres en total
-                                            </div>
-                                            <div className="progress" style={{height: '8px'}}>
-                                                <div className="progress-bar bg-success" style={{width: `${progreso}%`}}></div>
-                                            </div>
-                                            <div className="d-flex justify-content-between small fw-bold mt-2">
-                                                <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
-                                                <span className="text-success">{progreso}% Cubierto</span>
+                                    {isPublicador ? (
+                                        <button
+                                            type="button"
+                                            className="btn btn-light border shadow-sm w-100 h-100 d-flex justify-content-between align-items-center text-start p-3"
+                                            onClick={() => irAPortero(e)}
+                                            aria-label={`Abrir portero eléctrico de ${e.direccion}`}
+                                        >
+                                            <span className="fw-bold text-body">
+                                                <i className="bi bi-door-open text-primary me-2"></i>{e.direccion}
+                                            </span>
+                                            <i className="bi bi-chevron-right text-muted ms-2"></i>
+                                        </button>
+                                    ) : (
+                                        <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{cursor: 'pointer'}}>
+                                            <div className="card-body">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 className="fw-bold m-0">{e.direccion}</h5>
+                                                    <span className="badge bg-secondary">{e.categoria}</span>
+                                                </div>
+                                                <div className="text-muted small mb-3">
+                                                    <i className="bi bi-bell me-1"></i> {total} timbres en total
+                                                </div>
+                                                <div className="progress" style={{height: '8px'}}>
+                                                    <div className="progress-bar bg-success" style={{width: `${progreso}%`}}></div>
+                                                </div>
+                                                <div className="d-flex justify-content-between small fw-bold mt-2">
+                                                    <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
+                                                    <span className="text-success">{progreso}% Cubierto</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             )
                         })
@@ -531,7 +543,7 @@ const PredicacionEdificios = () => {
                                     icon = "bi-house-x";
                                 }
 
-                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} actualizarDpto={actualizarDpto} />;
+                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} actualizarDpto={actualizarDpto} isPublicador={isPublicador} />;
                             })}
                         </div>
                     </div>
