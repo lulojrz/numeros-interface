@@ -331,11 +331,12 @@ const PredicacionEdificios = () => {
                                                     <i className="bi bi-calendar-check me-1"></i> 
                                                     Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
                                                 </div>}
-                                                {t.asignadoA && (
-                                                    <div className="badge bg-body-tertiary text-body border mt-2">
-                                                        Asignado a: {t.asignadoA.nombre}
-                                                    </div>
-                                                )}
+                                                <div className={`badge mt-2 ${t.asignadoA ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
+                                                    <i className={`bi ${t.asignadoA ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                    {t.asignadoA
+                                                        ? `Asignado a: ${[t.asignadoA.nombre, t.asignadoA.apellido].filter(Boolean).join(' ')}`
+                                                        : 'Sin asignar'}
+                                                </div>
                                                 {asignacionesRecientes.length > 0 && (
                                                     <div className="small text-muted mt-2">
                                                         <i className="bi bi-person-check me-1"></i>
