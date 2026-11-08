@@ -10,39 +10,12 @@ const formatearFecha = (fecha) => {
 };
 
 export const obtenerAsignacionesParaS13 = (territorio) => {
-    const historial = Array.isArray(territorio?.asignaciones)
-        ? territorio.asignaciones.filter(asignacion => asignacion && typeof asignacion === 'object')
-        : [];
-    const asignadoActual = territorio?.asignadoA;
-    const esAsignacionActual = (asignacion) =>
-        !asignacion.fechaDevolucion &&
-        (asignacion.usuario?.id != null && asignadoActual.id != null
-            ? String(asignacion.usuario.id) === String(asignadoActual.id)
-            : Boolean(asignacion.usuario?.nombre || asignacion.usuario?.apellido) &&
-              asignacion.usuario?.nombre === asignadoActual.nombre &&
-              asignacion.usuario?.apellido === asignadoActual.apellido);
-    const tieneAsignacionActualEnHistorial = asignadoActual && historial.some(esAsignacionActual);
-
-    if (asignadoActual && !tieneAsignacionActualEnHistorial) {
-        historial.push({ usuario: asignadoActual });
-    }
-
-    const asignacionesConFecha = historial
+    return (Array.isArray(territorio?.asignaciones) ? territorio.asignaciones : [])
+        .filter(asignacion => asignacion && typeof asignacion === 'object')
         .filter(asignacion => asignacion.fechaAsignacion && !Number.isNaN(new Date(asignacion.fechaAsignacion).getTime()))
         .sort((a, b) => new Date(b.fechaAsignacion) - new Date(a.fechaAsignacion))
-        .slice(0, 4);
-
-    const asignacionActualEnHistorial = asignadoActual && historial.find(esAsignacionActual);
-    if (asignacionActualEnHistorial && !asignacionesConFecha.includes(asignacionActualEnHistorial)) {
-        if (asignacionesConFecha.length === 4) asignacionesConFecha.pop();
-        asignacionesConFecha.push(asignacionActualEnHistorial);
-    }
-
-    return asignacionesConFecha.sort((a, b) => {
-        const fechaA = a.fechaAsignacion ? new Date(a.fechaAsignacion).getTime() : Number.POSITIVE_INFINITY;
-        const fechaB = b.fechaAsignacion ? new Date(b.fechaAsignacion).getTime() : Number.POSITIVE_INFINITY;
-        return fechaA - fechaB;
-    });
+        .slice(0, 4)
+        .sort((a, b) => new Date(a.fechaAsignacion) - new Date(b.fechaAsignacion));
 };
 
 export const exportarS13 = async (territorios) => {
