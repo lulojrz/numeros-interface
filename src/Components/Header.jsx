@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { NumerosContext } from '../context/NumerosContext'
 import { obtenerColaPendiente } from '../utils/offlineSync'
 import Swal from 'sweetalert2'
+import { obtenerHeadersCsrf } from '../utils/csrf'
 
 const Header = () => {
   const { isAuthenticated, setIsAuth, theme, setTheme, abrirBuscador } = useContext(NumerosContext);
@@ -14,9 +15,11 @@ const Header = () => {
 
     setIsLoggingOut(true);
     try {
+      const csrfHeaders = await obtenerHeadersCsrf();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/logout`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: csrfHeaders
       });
 
       if (!response.ok) {

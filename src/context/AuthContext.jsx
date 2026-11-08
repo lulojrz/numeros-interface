@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { NumerosContext } from './NumerosContext.jsx'
 import Swal from 'sweetalert2'
+import { obtenerHeadersCsrf } from '../utils/csrf.js'
 
 export const AuthContext = createContext()
 
@@ -43,10 +44,12 @@ export const AuthProvider = ({ children }) => {
         setErrors({});
 
         try {
+            const csrfHeaders = await obtenerHeadersCsrf();
             const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/login`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...csrfHeaders
                 },
                 credentials: 'include',
                 body: JSON.stringify({ usuario: cleanUser, contrasena: cleanPassword })
@@ -104,12 +107,12 @@ export const AuthProvider = ({ children }) => {
 
         } catch (err) {
             console.error("Error crítico en el login:", err);
-            // Si la API estaba dormida o tira error de red
-            Swal.fire(
-                'Servidor iniciando', 
-                'El servidor está despertando. Por favor, reintentá en 10 segundos.', 
-                'info'
-            );
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo iniciar sesión',
+                text: 'No se pudo validar la solicitud con el servidor. Verifica tu conexión e inténtalo nuevamente.',
+                confirmButtonColor: '#007bff'
+            });
         } finally {
             setIsLoading(false);
         }
