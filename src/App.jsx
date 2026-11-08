@@ -9,6 +9,7 @@ import BuscadorGlobal from './Components/BuscadorGlobal'
 // 2. Componentes estáticos (Los que se necesitan SI O SI al cargar la app de entrada)
 import Home from './Pages/Home'
 import Login from './Pages/Login'
+import NotFound from './Pages/NotFound'
 
 // 3. Componentes perezosos (Se descargarán por separado en "chunks" solo cuando el usuario navegue a ellos)
 const Admin = lazy(() => import('./Pages/Admin'))
@@ -89,6 +90,8 @@ function App() {
           <Route path='/admin/disponibilidad' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><MisDisponibilidades /></RutasProtegidas>
           } />
+
+          <Route path='*' element={<NotFound />} />
         </Routes>
       </Suspense>
     </>

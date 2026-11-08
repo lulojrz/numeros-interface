@@ -2,15 +2,42 @@ import React, { useContext, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { NumerosContext } from '../context/NumerosContext'
 import { obtenerColaPendiente } from '../utils/offlineSync'
+import Swal from 'sweetalert2'
 
 const Header = () => {
   const { isAuthenticated, setIsAuth, theme, setTheme, abrirBuscador } = useContext(NumerosContext);
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    setIsAuth(false);
-    navigate('/');
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Logout failed with status ${response.status}`);
+      }
+
+      ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica']
+        .forEach((key) => localStorage.removeItem(key));
+      setIsAuth(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Error al cerrar sesión en el servidor:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'No se pudo cerrar la sesión',
+        text: 'El servidor no pudo invalidar la sesión. Inténtalo nuevamente.',
+        confirmButtonColor: '#0d6efd'
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const [usuarios, setUsuarios] = useState([]);
@@ -164,7 +191,7 @@ const Header = () => {
                                 <ul className="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3 mt-2">
                                     <li><Link className="dropdown-item fw-medium py-2" to={'/admin/perfil'}><i className="bi bi-person-badge me-2 text-primary"></i>Mi Perfil</Link></li>
                                     <li><hr className="dropdown-divider" /></li>
-                                    <li><button className="dropdown-item fw-medium py-2 text-danger" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</button></li>
+                                    <li><button className="dropdown-item fw-medium py-2 text-danger" onClick={handleLogout} disabled={isLoggingOut}><i className="bi bi-box-arrow-right me-2"></i>{isLoggingOut ? 'Cerrando sesión...' : 'Cerrar Sesión'}</button></li>
                                 </ul>
                             </li>
                         </>
