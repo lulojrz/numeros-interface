@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { NumerosContext } from '../context/NumerosContext';
+import { fetchConCsrf } from '../utils/csrf';
 
 const estaHabilitado = (valor) => valor === true || valor === 'true' || valor === 1 || valor === '1';
 
@@ -104,7 +105,7 @@ const AdminUsuarios = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`${api}/usuarios/crear`, {
+            const response = await fetchConCsrf(`${api}/usuarios/crear`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -148,7 +149,7 @@ const AdminUsuarios = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`${api}/usuarios/editar/${usuarioEditando.id}`, {
+            const response = await fetchConCsrf(`${api}/usuarios/editar/${usuarioEditando.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -202,7 +203,7 @@ const AdminUsuarios = () => {
 
         setDeletingId(id);
         try {
-            const response = await fetch(`${api}/usuarios/borrar/${id}`, {
+            const response = await fetchConCsrf(`${api}/usuarios/borrar/${id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });

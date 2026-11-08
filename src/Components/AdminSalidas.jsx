@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { obtenerConflictoAsignacion } from '../utils/territorioAsignaciones';
+import { fetchConCsrf } from '../utils/csrf';
 
 const AdminSalidas = () => {
     const api = import.meta.env.VITE_API_URL;
@@ -63,10 +64,9 @@ const AdminSalidas = () => {
             };
             if (territorioId) body.territorio = { id: territorioId };
 
-            const res = await fetch(`${api}/salidas/agregar`, {
+            const res = await fetchConCsrf(`${api}/salidas/agregar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify(body)
             });
             if (res.ok) {
@@ -89,7 +89,7 @@ const AdminSalidas = () => {
 
     const borrarSalida = async (id) => {
         try {
-            const res = await fetch(`${api}/salidas/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
+            const res = await fetchConCsrf(`${api}/salidas/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Borrada' });
                 fetchData();

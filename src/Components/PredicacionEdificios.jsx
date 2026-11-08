@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import Loading from './Loading';
 import { useSwipeable } from 'react-swipeable';
 import { obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
+import { fetchConCsrf } from '../utils/csrf';
 
 
 const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
@@ -156,7 +157,7 @@ const PredicacionEdificios = () => {
         if (observacionesExtra !== null) updated.observaciones = observacionesExtra;
 
         try {
-            const res = await fetch(`${api}/departamentos/editar/${dpto.id}`, {
+            const res = await fetchConCsrf(`${api}/departamentos/editar/${dpto.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -397,7 +398,7 @@ const PredicacionEdificios = () => {
                                         const nuevaFecha = new Date().toISOString();
                                         const nuevasFechas = tActual.fechasTrabajado ? [...tActual.fechasTrabajado, nuevaFecha] : [nuevaFecha];
                                         
-                                        const res = await fetch(`${api}/territorios/editar/${tActual.id}`, {
+                                        const res = await fetchConCsrf(`${api}/territorios/editar/${tActual.id}`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             credentials: 'include',
@@ -434,7 +435,7 @@ const PredicacionEdificios = () => {
                                 onClick={async () => {
                                     const nuevoEstado = !mActual.completada;
                                     try {
-                                        const res = await fetch(`${api}/manzanas/editar/${mActual.id}`, {
+                                        const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             credentials: 'include',

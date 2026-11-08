@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const GestionPlantillas = () => {
     const [plantillas, setPlantillas] = useState([]);
@@ -125,7 +126,7 @@ const GestionPlantillas = () => {
         }
 
         try {
-            const response = await fetch(`${api}/api/turnos/crear`, {
+            const response = await fetchConCsrf(`${api}/api/turnos/crear`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -168,7 +169,7 @@ const GestionPlantillas = () => {
 
         if (result.isConfirmed) {
             try {
-                const response = await fetch(`${api}/api/turnos/eliminar/${id}`, {
+                const response = await fetchConCsrf(`${api}/api/turnos/eliminar/${id}`, {
                     method: 'DELETE',
                     credentials: 'include'
                 });

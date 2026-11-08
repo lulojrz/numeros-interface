@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { exportarS13 } from '../utils/exportS13';
 import { obtenerConflictoAsignacion, obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
+import { fetchConCsrf } from '../utils/csrf';
 
 const GestionEdificios = () => {
     const [territorios, setTerritorios] = useState([]);
@@ -88,7 +89,7 @@ const GestionEdificios = () => {
 
         if (formValues && formValues.numero) {
             try {
-                const res = await fetch(`${api}/territorios/agregar`, {
+                const res = await fetchConCsrf(`${api}/territorios/agregar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -124,7 +125,7 @@ const GestionEdificios = () => {
         }
         const updated = { ...territorio, asignadoA: usuarioAsignado || null };
         try {
-            const res = await fetch(`${api}/territorios/editar/${territorio.id}`, {
+            const res = await fetchConCsrf(`${api}/territorios/editar/${territorio.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -153,7 +154,7 @@ const GestionEdificios = () => {
         });
         if (result.isConfirmed) {
             try {
-                const res = await fetch(`${api}/territorios/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
+                const res = await fetchConCsrf(`${api}/territorios/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
                 if (res.ok) {
                     Toast.fire({ icon: 'success', title: 'Territorio borrado' });
                     setTerritorioSeleccionado(null);
@@ -189,7 +190,7 @@ const GestionEdificios = () => {
         });
         if (formValues && formValues.nombre) {
             try {
-                const res = await fetch(`${api}/manzanas/agregar`, {
+                const res = await fetchConCsrf(`${api}/manzanas/agregar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -206,7 +207,7 @@ const GestionEdificios = () => {
     const borrarManzana = async (id) => {
         if (confirm("¿Seguro que deseas borrar esta manzana?")) {
             try {
-                const res = await fetch(`${api}/manzanas/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
+                const res = await fetchConCsrf(`${api}/manzanas/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
                 if (res.ok) {
                     Toast.fire({ icon: 'success', title: 'Manzana borrada' });
                     fetchData();
@@ -280,7 +281,7 @@ const GestionEdificios = () => {
         if (formValues && formValues.direccion) {
             Swal.fire({ title: 'Creando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {
-                const res = await fetch(`${api}/edificios/agregar`, {
+                const res = await fetchConCsrf(`${api}/edificios/agregar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -299,7 +300,7 @@ const GestionEdificios = () => {
     const borrarEdificio = async (id) => {
         if (confirm("¿Borrar este edificio y todos sus timbres?")) {
             try {
-                const res = await fetch(`${api}/edificios/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
+                const res = await fetchConCsrf(`${api}/edificios/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
                 if (res.ok) {
                     Toast.fire({ icon: 'success', title: 'Borrado' });
                     setEdificioSeleccionado(null);
@@ -331,7 +332,7 @@ const GestionEdificios = () => {
         });
         if (formValues && formValues.piso) {
             try {
-                const res = await fetch(`${api}/departamentos/agregar`, {
+                const res = await fetchConCsrf(`${api}/departamentos/agregar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -345,7 +346,7 @@ const GestionEdificios = () => {
     const borrarDpto = async (id) => {
         if (confirm("¿Borrar este timbre?")) {
             try {
-                const res = await fetch(`${api}/departamentos/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
+                const res = await fetchConCsrf(`${api}/departamentos/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
                 if (res.ok) fetchData();
             } catch (e) {}
         }

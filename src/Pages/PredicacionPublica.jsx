@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 import { Link } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -164,7 +165,7 @@ const PredicacionPublica = () => {
             const lunesStr = formatearFecha(lunes);
             
             try {
-                const response = await fetch(`${api}/api/turnos/generar?lunes=${lunesStr}`, {
+                const response = await fetchConCsrf(`${api}/api/turnos/generar?lunes=${lunesStr}`, {
                     method: 'POST',
                     credentials: 'include'
                 });
@@ -202,7 +203,7 @@ const PredicacionPublica = () => {
 
         setLoadingTurnoId(idTurno);
         try {
-            const response = await fetch(`${api}/api/turnos/anotarse/${idTurno}?usuario=${usuarioActual}`, {
+            const response = await fetchConCsrf(`${api}/api/turnos/anotarse/${idTurno}?usuario=${usuarioActual}`, {
                 method: 'PUT',
                 credentials: 'include'
             });
@@ -304,7 +305,7 @@ const PredicacionPublica = () => {
         setEnviandoReporte(true);
         
         try {
-            const res = await fetch(`${api}/reporte/subir`, {
+            const res = await fetchConCsrf(`${api}/reporte/subir`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

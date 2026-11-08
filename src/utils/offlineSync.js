@@ -1,4 +1,5 @@
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from './csrf.js';
 
 const QUEUE_KEY = 'offline_mutations_queue';
 const CACHE_PREFIX = 'offline_cache_';
@@ -89,7 +90,7 @@ export const sincronizarColaOffline = async () => {
 
     for (const item of cola) {
         try {
-            const res = await fetch(item.url, {
+            const res = await fetchConCsrf(item.url, {
                 method: item.method || 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

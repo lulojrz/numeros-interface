@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../Components/Header';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const Experiencias = () => {
     const [experiencias, setExperiencias] = useState([]);
@@ -55,7 +56,7 @@ const Experiencias = () => {
                 }
             };
 
-            const response = await fetch(`${api}/experiencias/agregar`, {
+            const response = await fetchConCsrf(`${api}/experiencias/agregar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload), // <-- Mandamos el payload estructurado
@@ -115,7 +116,7 @@ const Experiencias = () => {
 
         if (confirmar.isConfirmed) {
             try {
-                const response = await fetch(`${api}/experiencias/borrar/${id}`, {
+                const response = await fetchConCsrf(`${api}/experiencias/borrar/${id}`, {
                     method: 'DELETE',
                     credentials: 'include'
                 });

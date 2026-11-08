@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import Header from './Header';
+import { fetchConCsrf } from '../utils/csrf';
 
 const MisDisponibilidades = () => {
     const usuarioId = localStorage.getItem('usuarioId');
@@ -37,7 +38,7 @@ const MisDisponibilidades = () => {
     const agregar = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`${api}/disponibilidades/agregar`, {
+            const res = await fetchConCsrf(`${api}/disponibilidades/agregar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -60,7 +61,7 @@ const MisDisponibilidades = () => {
 
     const borrar = async (id) => {
         try {
-            const res = await fetch(`${api}/disponibilidades/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
+            const res = await fetchConCsrf(`${api}/disponibilidades/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Borrado' });
                 fetchDisponibilidades();

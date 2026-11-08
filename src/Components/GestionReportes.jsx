@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const GestionReportes = () => {
     const [reportes, setReportes] = useState([]);
@@ -27,7 +28,7 @@ const GestionReportes = () => {
 
     const handleRealizado = async (id) => {
         try {
-            const res = await fetch(`${api}/reporte/eliminar/${id}`, {
+            const res = await fetchConCsrf(`${api}/reporte/eliminar/${id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });

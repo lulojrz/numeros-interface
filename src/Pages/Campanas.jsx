@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../Components/Header';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const Campanas = () => {
     const [campanas, setCampanas] = useState([]);
@@ -56,7 +57,7 @@ const Campanas = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`${api}/campanas/agregar`, {
+            const response = await fetchConCsrf(`${api}/campanas/agregar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -103,7 +104,7 @@ const Campanas = () => {
 
         if (confirmar.isConfirmed) {
             try {
-                const response = await fetch(`${api}/campanas/borrar/${id}`, {
+                const response = await fetchConCsrf(`${api}/campanas/borrar/${id}`, {
                     method: 'DELETE',
                     credentials: 'include'
                 });

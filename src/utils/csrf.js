@@ -14,3 +14,20 @@ export const obtenerHeadersCsrf = async () => {
 
   return { [headerName]: token };
 };
+
+export const fetchConCsrf = async (url, options = {}) => {
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = new Headers(options.headers || {});
+
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    const csrfHeaders = await obtenerHeadersCsrf();
+    Object.entries(csrfHeaders).forEach(([name, value]) => headers.set(name, value));
+  }
+
+  return fetch(url, {
+    ...options,
+    method,
+    headers,
+    credentials: options.credentials || 'include'
+  });
+};

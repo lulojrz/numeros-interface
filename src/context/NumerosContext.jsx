@@ -1,6 +1,7 @@
 import React from 'react'
 import { createContext, useState, useEffect } from 'react'
 import Swal from 'sweetalert2'
+import { fetchConCsrf } from '../utils/csrf'
 
 export const NumerosContext = createContext()
 
@@ -83,15 +84,20 @@ export const NumerosProvider = ({ children }) => {
     });
 
     useEffect(() => {
-        cargarProductos();
-    }, [])
+        if (isAuthenticated) {
+            cargarProductos();
+        } else {
+            setNumeros([]);
+            setLoading(false);
+        }
+    }, [isAuthenticated])
 
     const actualizarNumero = async (objetoActualizado) => {
         // Actualización optimista de la UI
         setNumeros(prev => prev.map(n => n.id === objetoActualizado.id ? objetoActualizado : n));
 
         try {
-            await fetch(`${api}/api/editar/${objetoActualizado.id}`, {
+            await fetchConCsrf(`${api}/api/editar/${objetoActualizado.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -188,7 +194,7 @@ export const NumerosProvider = ({ children }) => {
             if (!result.isConfirmed) return;
 
             try {
-                await fetch(`${api}/api/borrar/${id}`, {
+                await fetchConCsrf(`${api}/api/borrar/${id}`, {
                     method: 'DELETE',
                     credentials: 'include'
                 })
@@ -214,7 +220,7 @@ export const NumerosProvider = ({ children }) => {
         const agregarNumero = async (number) => {
 
             try {
-                await fetch(`${api}/api/agregar`, {
+                await fetchConCsrf(`${api}/api/agregar`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -270,7 +276,7 @@ export const NumerosProvider = ({ children }) => {
             try {
                 // Wait for all PUT requests in parallel
                 await Promise.all(filtraditos.map(num => 
-                    fetch(`${api}/api/editar/${num.id}`, {
+                    fetchConCsrf(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -311,7 +317,7 @@ export const NumerosProvider = ({ children }) => {
             try {
                 // Wait for all PUT requests in parallel
                 await Promise.all(noReservados.map(num => 
-                    fetch(`${api}/api/editar/${num.id}`, {
+                    fetchConCsrf(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -349,7 +355,7 @@ export const NumerosProvider = ({ children }) => {
 
             try {
                 await Promise.all(reiniciados.map(num => 
-                    fetch(`${api}/api/editar/${num.id}`, {
+                    fetchConCsrf(`${api}/api/editar/${num.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',

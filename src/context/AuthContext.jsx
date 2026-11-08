@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { NumerosContext } from './NumerosContext.jsx'
 import Swal from 'sweetalert2'
-import { obtenerHeadersCsrf } from '../utils/csrf.js'
+import { fetchConCsrf } from '../utils/csrf.js'
 
 export const AuthContext = createContext()
 
@@ -44,14 +44,11 @@ export const AuthProvider = ({ children }) => {
         setErrors({});
 
         try {
-            const csrfHeaders = await obtenerHeadersCsrf();
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/login`, {
+            const res = await fetchConCsrf(`${import.meta.env.VITE_API_URL}/usuarios/login`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    ...csrfHeaders
+                    'Content-Type': 'application/json'
                 },
-                credentials: 'include',
                 body: JSON.stringify({ usuario: cleanUser, contrasena: cleanPassword })
             });
 

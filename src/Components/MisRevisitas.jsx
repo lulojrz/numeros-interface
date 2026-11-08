@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const MisRevisitas = () => {
     const [revisitas, setRevisitas] = useState([]);
@@ -60,7 +61,7 @@ const MisRevisitas = () => {
         
         if (observaciones !== undefined && observaciones !== dpto.observaciones) {
             try {
-                const res = await fetch(`${api}/departamentos/editar/${dpto.id}`, {
+                const res = await fetchConCsrf(`${api}/departamentos/editar/${dpto.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -88,7 +89,7 @@ const MisRevisitas = () => {
         
         if (confirm.isConfirmed) {
             try {
-                const res = await fetch(`${api}/departamentos/editar/${dpto.id}`, {
+                const res = await fetchConCsrf(`${api}/departamentos/editar/${dpto.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',

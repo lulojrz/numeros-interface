@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const GestionPuntos = () => {
     const [puntos, setPuntos] = useState([]);
@@ -45,7 +46,7 @@ const GestionPuntos = () => {
         }
 
         try {
-            const response = await fetch(`${api}/api/turnos/puntos`, {
+            const response = await fetchConCsrf(`${api}/api/turnos/puntos`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -73,7 +74,7 @@ const GestionPuntos = () => {
 
     const toggleActivo = async (punto) => {
         try {
-            const response = await fetch(`${api}/api/turnos/puntos/${punto.id}`, {
+            const response = await fetchConCsrf(`${api}/api/turnos/puntos/${punto.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

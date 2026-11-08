@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { fetchConCsrf } from '../utils/csrf';
 
 const CambiarContrasena = () => {
     const [formData, setFormData] = useState({
@@ -37,7 +38,7 @@ const CambiarContrasena = () => {
         e.preventDefault();
         setLoadingInventario(true);
         try {
-            const response = await fetch(`${api}/usuarios/editar/${userData.id}`, {
+            const response = await fetchConCsrf(`${api}/usuarios/editar/${userData.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -119,7 +120,7 @@ const CambiarContrasena = () => {
 
         try {
             // Se envía al backend: usuario (para saber quién es), contraseña actual (para validar) y la nueva
-            const response = await fetch(`${api}/usuarios/cambiar-contrasena`, {
+            const response = await fetchConCsrf(`${api}/usuarios/cambiar-contrasena`, {
                 method: 'PUT', // o POST, depende del backend
                 headers: {
                     'Content-Type': 'application/json'
