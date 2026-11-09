@@ -13,6 +13,8 @@ import EstadisticasDashboard from '../Components/EstadisticasDashboard.jsx'
 import GestionEdificios from '../Components/GestionEdificios.jsx'
 import AdminSalidas from '../Components/AdminSalidas.jsx'
 import { Link } from 'react-router-dom'
+import { obtenerPermisosAdmin } from '../utils/permisos'
+import { traerTodosLosUsuarios } from '../utils/usuarios'
 
 const Admin = () => {
   const {numeros}= useContext(NumerosContext)
@@ -22,62 +24,35 @@ const Admin = () => {
   const [clickllamados,setClickllamados]= useState(false)
   const [clickReservas, setClickReservas] = useState(false)
   const [clickPorEliminar,setClickPorEliminar]= useState(false)
-  const [isANC, setIsANC] = useState(() => localStorage.getItem('privilegio') === 'ROLE_ANC')
-  const [isFullAdmin, setIsFullAdmin] = useState(() => {
-    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
-    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios';
-  })
-  const [isTelefonicaAdmin, setIsTelefonicaAdmin] = useState(() => {
-    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
-    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales' || asig === 'territorios telefonicos' || asig === 'personales' || asig === 'territorios personales';
-  })
-  const [isPublicaAdmin, setIsPublicaAdmin] = useState(() => {
-    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
-    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'publica' || asig === 'pública';
-  })
-  const [isEdificiosAdmin, setIsEdificiosAdmin] = useState(() => {
-    const asig = (localStorage.getItem('asignacion') || '').trim().toLowerCase();
-    return asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios' || asig === 'edificios' || asig === 'territorios edificios';
-  })
+  const [initialPermissions] = useState(() => obtenerPermisosAdmin({
+    privilegio: localStorage.getItem('privilegio'),
+    asignacion: localStorage.getItem('asignacion')
+  }))
+  const [isANC, setIsANC] = useState(initialPermissions.puedeGestionarUsuarios)
+  const [isFullAdmin, setIsFullAdmin] = useState(initialPermissions.puedeAdministrarTodo)
+  const [isTelefonicaAdmin, setIsTelefonicaAdmin] = useState(initialPermissions.puedeAdministrarTelefonica)
+  const [isPublicaAdmin, setIsPublicaAdmin] = useState(initialPermissions.puedeAdministrarPublica)
+  const [isEdificiosAdmin, setIsEdificiosAdmin] = useState(initialPermissions.puedeAdministrarEdificios)
   const [tabActiva, setTabActiva] = useState('telefonica')
   const [subTabPublica, setSubTabPublica] = useState('puntos')
 
   useEffect(() => {
     const fetchPrivilegio = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          const loggedInUsername = localStorage.getItem('usuario');
-          const currentUser = data.find(u => u.usuario === loggedInUsername);
-          if (currentUser) {
-            localStorage.setItem('asignacion', currentUser.asignacion || '');
-            localStorage.setItem('privilegio', currentUser.privilegio || '');
-            const asig = (currentUser.asignacion || '').trim().toLowerCase();
-            
-            if (asig === 'soporte' || asig === 'servicio' || asig === 'territorios' || asig === 'servicio y territorios') {
-                setIsFullAdmin(true);
-                setIsTelefonicaAdmin(true);
-                setIsPublicaAdmin(true);
-                setIsEdificiosAdmin(true);
-                setIsANC(true);
-            } else if (asig === 'territorios telefonicos/personales' || asig === 'territorios telefónicos/personales' || asig === 'territorios telefonicos' || asig === 'personales' || asig === 'territorios personales') {
-                setIsTelefonicaAdmin(true);
-            } else if (asig === 'publica' || asig === 'pública') {
-                setIsPublicaAdmin(true);
-            } else if (asig === 'territorios edificios' || asig === 'edificios') {
-                setIsEdificiosAdmin(true);
-            }
-            
-            if (currentUser.privilegio === 'ROLE_ANC') {
-              setIsANC(true);
-            }
-          }
+        const data = await traerTodosLosUsuarios(import.meta.env.VITE_API_URL);
+        const currentUser = data.find(u => u.usuario === localStorage.getItem('usuario'));
+        if (currentUser) {
+          localStorage.setItem('asignacion', currentUser.asignacion || '');
+          localStorage.setItem('privilegio', currentUser.privilegio || '');
+          const permissions = obtenerPermisosAdmin(currentUser);
+          setIsANC(permissions.puedeGestionarUsuarios);
+          setIsFullAdmin(permissions.puedeAdministrarTodo);
+          setIsTelefonicaAdmin(permissions.puedeAdministrarTelefonica);
+          setIsPublicaAdmin(permissions.puedeAdministrarPublica);
+          setIsEdificiosAdmin(permissions.puedeAdministrarEdificios);
         }
       } catch (error) {
-
+        console.error('Error al verificar los permisos administrativos', error);
       }
     };
     fetchPrivilegio();

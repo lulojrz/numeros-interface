@@ -84,12 +84,8 @@ export const AuthProvider = ({ children }) => {
                     localStorage.setItem('usuarioId', responseData.id);
                 }
                 
-                if (responseData.privilegio) {
-                    localStorage.setItem('privilegio', responseData.privilegio);
-                }
-                if (responseData.asignacion) {
-                    localStorage.setItem('asignacion', responseData.asignacion);
-                }
+                localStorage.setItem('privilegio', responseData.privilegio || '');
+                localStorage.setItem('asignacion', responseData.asignacion || '');
                 if (responseData.habilitacionPublica !== undefined) {
                     localStorage.setItem('habilitacionPublica', responseData.habilitacionPublica);
                 }

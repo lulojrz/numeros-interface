@@ -27,7 +27,7 @@ function App() {
   const { numero, numeros, error, loading, setNumero, isAuthenticated } = useContext(NumerosContext)
   
   // Theme state
-  const [theme, setTheme] = useState(() => {
+  const [theme] = useState(() => {
     return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   });
 
@@ -56,7 +56,7 @@ function App() {
           } />
           
           <Route path='/admin/usuarios' element={
-            <RutasProtegidas isAuthenticated={isAuthenticated} rolesPermitidos={['ROLE_ANC']}><AdminUsuarios /></RutasProtegidas>
+            <RutasProtegidas isAuthenticated={isAuthenticated} rolesPermitidos={['ROLE_ANC']} asignacionesPermitidas={['soporte']}><AdminUsuarios /></RutasProtegidas>
           } />
           
           <Route path='/admin/perfil' element={

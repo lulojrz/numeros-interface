@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { fetchConCsrf } from '../utils/csrf';
+import { esSoporte } from '../utils/permisos';
+import { traerTodosLosUsuarios } from '../utils/usuarios';
 
 const CambiarContrasena = () => {
     const [formData, setFormData] = useState({
@@ -12,23 +14,25 @@ const CambiarContrasena = () => {
     const [loading, setLoading] = useState(false);
     const [userData, setUserData] = useState(null);
     const [loadingInventario, setLoadingInventario] = useState(false);
+    const [loadingProfile, setLoadingProfile] = useState(true);
 
     const api = import.meta.env.VITE_API_URL;
-    const usuarioLogueado = localStorage.getItem('usuario'); // Tomamos el usuario del localStorage
+    const usuarioLogueado = localStorage.getItem('usuario');
+    const puedeEditarPerfil = localStorage.getItem('privilegio') === 'ROLE_ANC' ||
+        esSoporte(localStorage.getItem('asignacion'));
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await fetch(`${api}/usuarios`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    const loggedIn = data.find(u => u.usuario === usuarioLogueado);
-                    if (loggedIn) {
-                        setUserData(loggedIn);
-                    }
-                }
+                const data = await traerTodosLosUsuarios(api);
+                const loggedIn = data.find(u => u.usuario === usuarioLogueado);
+                if (!loggedIn) throw new Error('No se encontró el usuario conectado en la lista recibida.');
+                setUserData(loggedIn);
             } catch (error) {
-                console.error('Error fetching user data', error);
+                console.error('Error al cargar los datos del perfil', error);
+                Swal.fire('Error', error.message || 'No se pudieron cargar los datos del perfil.', 'error');
+            } finally {
+                setLoadingProfile(false);
             }
         };
         fetchUserData();
@@ -36,6 +40,7 @@ const CambiarContrasena = () => {
 
     const handleGuardarInventario = async (e) => {
         e.preventDefault();
+        if (!puedeEditarPerfil || !userData) return;
         setLoadingInventario(true);
         try {
             const response = await fetchConCsrf(`${api}/usuarios/editar/${userData.id}`, {
@@ -45,17 +50,26 @@ const CambiarContrasena = () => {
                 body: JSON.stringify(userData)
             });
             if (response.ok) {
+                const perfilGuardado = await response.json();
+                setUserData(perfilGuardado);
+                if (perfilGuardado.usuario !== usuarioLogueado) {
+                    localStorage.setItem('usuario', perfilGuardado.usuario);
+                }
+                localStorage.setItem('privilegio', perfilGuardado.privilegio || '');
+                localStorage.setItem('asignacion', perfilGuardado.asignacion || '');
                 Swal.fire({
                     icon: 'success',
                     title: '¡Éxito!',
-                    text: 'Tu inventario ha sido actualizado.',
+                    text: 'Los datos del perfil han sido actualizados.',
                     confirmButtonColor: '#007bff'
                 });
             } else {
-                Swal.fire('Error', 'No se pudo actualizar el inventario.', 'error');
+                const detail = await response.text();
+                Swal.fire('Error', detail || 'No se pudieron actualizar los datos del perfil.', 'error');
             }
         } catch (error) {
-            Swal.fire('Error', 'Error de conexión', 'error');
+            console.error('Error al guardar el perfil', error);
+            Swal.fire('Error', error.message || 'Error de conexión', 'error');
         } finally {
             setLoadingInventario(false);
         }
@@ -166,7 +180,7 @@ const CambiarContrasena = () => {
             }
 
         } catch (error) {
-
+            console.error('Error al cambiar la contraseña', error);
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión con el servidor'
@@ -192,43 +206,61 @@ const CambiarContrasena = () => {
                         
                         <p className="text-muted mb-4">Usuario: <strong>{usuarioLogueado}</strong></p>
 
-                        {userData && (
+                        {loadingProfile ? (
+                            <div className="text-center py-3" role="status">Cargando datos del perfil...</div>
+                        ) : userData && (
                             <form onSubmit={handleGuardarInventario} className="mb-4">
                                 <h5 className="mb-3">Mis Datos e Inventario</h5>
-                                
-                                        <div className="mb-4">
-                                            <label className="form-label fw-medium">Privilegio</label>
-                                            <select
-                                                className="form-select bg-dark"
-                                                value={userData.privilegio || 'ROLE_PUB'}
-                                                disabled
-                                            >
-                                                <option value="ROLE_PUB">Publicador (PUB)</option>
-                                                <option value="ROLE_PR">Precursor Regular (PR)</option>
-                                                <option value="ROLE_SM">Siervo Ministerial (SM)</option>
-                                                <option value="ROLE_ANC">Anciano (ANC)</option>
-                                            </select>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="form-label fw-medium">Asignación</label>
-                                            <select
-                                                className="form-select bg-dark"
-                                                value={userData.asignacion || ''}
-                                                disabled
-                                            >
-                                                <option value="">-</option>
-                                                <option value="soporte">Soporte</option>
-                                                <option value="publica">Pública</option>
-                                                <option value="territorios">Territorios</option>
-                                                <option value="territorios telefonicos/personales">territorios telefonicos/personales</option>
-                                                <option value="servicio">Servicio</option>
-                                            </select>
-                                        </div>
-
-                                <div className="mb-4 d-flex gap-4">
+                                {!puedeEditarPerfil && (
+                                    <p className="text-muted small">Los datos del perfil son de solo lectura. Para editarlos se requiere el rol ROLE_ANC o la asignación de soporte.</p>
+                                )}
+                                <div className="row g-3 mb-4">
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilNombre">Nombre</label>
+                                        <input id="perfilNombre" className="form-control" value={userData.nombre || ''} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, nombre: e.target.value })} />
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilApellido">Apellido</label>
+                                        <input id="perfilApellido" className="form-control" value={userData.apellido || ''} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, apellido: e.target.value })} />
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilUsuario">Usuario</label>
+                                        <input id="perfilUsuario" className="form-control" value={userData.usuario || ''} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, usuario: e.target.value })} />
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilTelefono">Teléfono</label>
+                                        <input id="perfilTelefono" className="form-control" value={userData.telefono || ''} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, telefono: e.target.value })} />
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilPrivilegio">Privilegio</label>
+                                        <select id="perfilPrivilegio" className="form-select" value={userData.privilegio || 'ROLE_PUB'} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, privilegio: e.target.value })}>
+                                            <option value="ROLE_PUB">Publicador (PUB)</option>
+                                            <option value="ROLE_PR">Precursor Regular (PR)</option>
+                                            <option value="ROLE_SM">Siervo Ministerial (SM)</option>
+                                            <option value="ROLE_ANC">Anciano (ANC)</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilAsignacion">Asignación</label>
+                                        <input id="perfilAsignacion" className="form-control" value={userData.asignacion || ''} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, asignacion: e.target.value })} />
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label fw-medium" htmlFor="perfilGrupo">Grupo de Servicio</label>
+                                        <input id="perfilGrupo" className="form-control" value={userData.grupo || ''} disabled={!puedeEditarPerfil}
+                                            onChange={e => setUserData({ ...userData, grupo: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="mb-4 d-flex flex-wrap gap-4">
                                     <div className="form-check form-switch">
                                         <input className="form-check-input" type="checkbox" id="checkCarritoUser" 
                                             checked={userData.carrito || false} 
+                                            disabled={!puedeEditarPerfil}
                                             onChange={(e) => setUserData({...userData, carrito: e.target.checked})} 
                                         />
                                         <label className="form-check-label" htmlFor="checkCarritoUser">Tengo Carrito 🛒</label>
@@ -236,16 +268,19 @@ const CambiarContrasena = () => {
                                     <div className="form-check form-switch">
                                         <input className="form-check-input" type="checkbox" id="checkBannerUser" 
                                             checked={userData.banner || false} 
+                                            disabled={!puedeEditarPerfil}
                                             onChange={(e) => setUserData({...userData, banner: e.target.checked})} 
                                         />
                                         <label className="form-check-label" htmlFor="checkBannerUser">Tengo Banner 🏳️</label>
                                     </div>
                                 </div>
-                                <div className="d-grid">
-                                    <button type="submit" className="btn btn-success" disabled={loadingInventario}>
-                                        {loadingInventario ? 'Guardando...' : 'Guardar Inventario'}
-                                    </button>
-                                </div>
+                                {puedeEditarPerfil && (
+                                    <div className="d-grid">
+                                        <button type="submit" className="btn btn-success" disabled={loadingInventario}>
+                                            {loadingInventario ? 'Guardando...' : 'Guardar Perfil'}
+                                        </button>
+                                    </div>
+                                )}
                             </form>
                         )}
                         

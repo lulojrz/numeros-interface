@@ -1,10 +1,57 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { NumerosContext } from '../context/NumerosContext';
 import { fetchConCsrf } from '../utils/csrf';
+import { esSoporte } from '../utils/permisos';
+import { traerTodosLosUsuarios } from '../utils/usuarios';
 
 const estaHabilitado = (valor) => valor === true || valor === 'true' || valor === 1 || valor === '1';
+
+const formularioVacio = () => ({
+    nombre: '',
+    apellido: '',
+    usuario: '',
+    telefono: '',
+    contrasena: '',
+    privilegio: 'ROLE_PUB',
+    asignacion: '',
+    grupo: '',
+    carrito: false,
+    banner: false,
+    habilitacionPublica: false,
+    conductor: false
+});
+
+const crearFormularioUsuario = (user) => ({
+    nombre: user.nombre || '',
+    apellido: user.apellido || '',
+    usuario: user.usuario || '',
+    telefono: user.telefono || '',
+    contrasena: '',
+    privilegio: user.privilegio || 'ROLE_PUB',
+    asignacion: user.asignacion || '',
+    grupo: user.grupo || '',
+    carrito: estaHabilitado(user.carrito),
+    banner: estaHabilitado(user.banner),
+    habilitacionPublica: estaHabilitado(user.habilitacionPublica),
+    conductor: estaHabilitado(user.conductor)
+});
+
+const asignacionesDisponibles = [
+    { value: 'soporte', label: 'Soporte' },
+    { value: 'publica', label: 'Pública' },
+    { value: 'territorios', label: 'Territorios' },
+    { value: 'servicio', label: 'Servicio' },
+    { value: 'servicio y territorios', label: 'Servicio y Territorios' },
+    { value: 'territorios telefonicos/personales', label: 'Territorios telefónicos/personales' },
+    { value: 'territorios telefonicos', label: 'Territorios telefónicos' },
+    { value: 'personales', label: 'Personales' },
+    { value: 'territorios personales', label: 'Territorios personales' },
+    { value: 'edificios', label: 'Edificios' },
+    { value: 'territorios edificios', label: 'Territorios edificios' }
+];
+const gruposDisponibles = ['Grupo 1', 'Grupo 2', 'Grupo 3', 'Grupo 4', 'Grupo 5'];
 
 const AdminUsuarios = () => {
     const { numeros } = useContext(NumerosContext);
@@ -17,26 +64,14 @@ const AdminUsuarios = () => {
     const [deletingId, setDeletingId] = useState(null);
     
     // Form state
-    const [formData, setFormData] = useState({
-        nombre: '',
-        apellido: '',
-        usuario: '',
-        telefono: '',
-        contrasena: 'prueba123',
-        privilegio: 'ROLE_PUB',
-        asignacion: '',
-        grupo: '',
-        carrito: false,
-        banner: false,
-        habilitacionPublica: false,
-        conductor: false
-    });
+    const [formData, setFormData] = useState(formularioVacio);
     const [filtroInventario, setFiltroInventario] = useState('todos');
 
     const api = import.meta.env.VITE_API_URL;
 
     const loggedInUsername = localStorage.getItem('usuario');
-    const isANC = localStorage.getItem('privilegio') === 'ROLE_ANC';
+    const puedeGestionarUsuarios = localStorage.getItem('privilegio') === 'ROLE_ANC' ||
+        esSoporte(localStorage.getItem('asignacion'));
 
     const Toast = Swal.mixin({
         toast: true,
@@ -50,43 +85,28 @@ const AdminUsuarios = () => {
         }
     });
 
-    useEffect(() => {
-        cargarUsuarios();
-    }, []);
-
-    const cargarUsuarios = async () => {
+    const cargarUsuarios = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${api}/usuarios`, { credentials: 'include' });
-            if (response.ok) {
-                const data = await response.json();
-                setUsuarios(data);
-                
-                const loggedUser = data.find(u => u.usuario === localStorage.getItem('usuario'));
-                if (loggedUser && loggedUser.privilegio !== 'ROLE_ANC') {
-                    setUsuarioEditando(loggedUser);
-                    setFormData({ 
-                        nombre: loggedUser.nombre || '', 
-                        apellido: loggedUser.apellido || '', 
-                        usuario: loggedUser.usuario || '',
-                        telefono: loggedUser.telefono || '',
-                        contrasena: '',
-                        privilegio: loggedUser.privilegio || 'ROLE_PUB',
-                        asignacion: loggedUser.asignacion || '',
-                        grupo: loggedUser.grupo || '',
-                        carrito: loggedUser.carrito || false,
-                        banner: loggedUser.banner || false,
-                        habilitacionPublica: loggedUser.habilitacionPublica || false,
-                        conductor: estaHabilitado(loggedUser.conductor)
-                    });
-                }
+            const data = await traerTodosLosUsuarios(api);
+            setUsuarios(data);
+
+            const loggedUser = data.find(u => u.usuario === loggedInUsername);
+            if (loggedUser && !puedeGestionarUsuarios) {
+                setUsuarioEditando(loggedUser);
+                setFormData(crearFormularioUsuario(loggedUser));
             }
         } catch (error) {
-
+            console.error('Error al cargar usuarios', error);
+            Swal.fire({ icon: 'error', title: 'Error al cargar usuarios', text: error.message });
         } finally {
             setLoading(false);
         }
-    };
+    }, [api, loggedInUsername, puedeGestionarUsuarios]);
+
+    useEffect(() => {
+        cargarUsuarios();
+    }, [cargarUsuarios]);
 
     const handleInputChange = (e) => {
         setFormData({
@@ -98,7 +118,7 @@ const AdminUsuarios = () => {
     const handleAgregar = async (e) => {
         e.preventDefault();
         
-        if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.usuario.trim() || !formData.telefono.trim()) {
+        if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.usuario.trim() || !formData.telefono.trim() || !formData.contrasena.trim()) {
             Toast.fire({ icon: 'warning', title: 'Por favor, no dejes campos obligatorios en blanco.' });
             return;
         }
@@ -119,7 +139,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario agregado con éxito'
                 });
-                setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false });
+                setFormData(formularioVacio());
                 setClickAgregar(false);
                 cargarUsuarios();
             } else {
@@ -129,7 +149,7 @@ const AdminUsuarios = () => {
                 });
             }
         } catch (error) {
-
+            console.error('Error al crear usuario', error);
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión'
@@ -149,24 +169,29 @@ const AdminUsuarios = () => {
 
         setIsSubmitting(true);
         try {
+            const datosEdicion = { ...formData };
+            delete datosEdicion.contrasena;
             const response = await fetchConCsrf(`${api}/usuarios/editar/${usuarioEditando.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ ...usuarioEditando, ...formData })
+                body: JSON.stringify({ ...usuarioEditando, ...datosEdicion })
             });
             
             if (response.ok) {
+                if (usuarioEditando.usuario === loggedInUsername && formData.usuario !== loggedInUsername) {
+                    localStorage.setItem('usuario', formData.usuario);
+                }
                 Toast.fire({
                     icon: 'success',
                     title: 'Usuario editado con éxito'
                 });
                 
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
-                if (isANC) {
-                    setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false });
+                if (puedeGestionarUsuarios) {
+                    setFormData(formularioVacio());
                     setUsuarioEditando(null);
                 }
                 cargarUsuarios();
@@ -177,7 +202,7 @@ const AdminUsuarios = () => {
                 });
             }
         } catch (error) {
-
+            console.error('Error al editar usuario', error);
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión'
@@ -221,7 +246,7 @@ const AdminUsuarios = () => {
             }
         }
         catch (error) {
-
+            console.error('Error al eliminar usuario', error);
             Toast.fire({
                 icon: 'error',
                 title: 'Error de conexión'
@@ -233,25 +258,13 @@ const AdminUsuarios = () => {
 
     const abrirFormularioEditar = (user) => {
         setUsuarioEditando(user);
-        setFormData({ 
-            nombre: user.nombre || '', 
-            apellido: user.apellido || '', 
-            usuario: user.usuario || '', 
-            telefono: user.telefono || '',
-            contrasena: '',
-            privilegio: user.privilegio || 'ROLE_PUB',
-            asignacion: user.asignacion || '',
-            carrito: user.carrito || false,
-            banner: user.banner || false,
-            habilitacionPublica: estaHabilitado(user.habilitacionPublica),
-            conductor: estaHabilitado(user.conductor)
-        });
+        setFormData(crearFormularioUsuario(user));
         setClickAgregar(false);
     };
 
     const cancelarEdicion = () => {
         setUsuarioEditando(null);
-        setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false });
+        setFormData(formularioVacio());
     };
 
     const usuariosFiltrados = usuarios.filter(u => {
@@ -271,36 +284,36 @@ const AdminUsuarios = () => {
         <div className='container my-5'>
             <div className='card shadow-lg p-4'>
                 <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
-                    <h1 className="h2 mb-2 mb-md-0">{!isANC ? 'Mi Perfil' : 'Gestión de Usuarios'}</h1>
+                    <h1 className="h2 mb-2 mb-md-0">{!puedeGestionarUsuarios ? 'Mi Perfil' : 'Gestión de Usuarios'}</h1>
                     <Link to="/admin" className='btn btn-secondary'>
                         Volver al Panel
                     </Link>
                 </div>
 
-                {isANC && (
+                {puedeGestionarUsuarios && (
                     <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
                         <button
                             className={`btn flex-fill fw-semibold ${!clickAgregar && !usuarioEditando ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', asignacion: '', carrito: false, banner: false, conductor: false }); }}
+                            onClick={() => { setClickAgregar(false); setUsuarioEditando(null); setFormData(formularioVacio()); }}
                         >
                             Lista de Usuarios
                         </button>
                         <button
                             className={`btn flex-fill fw-semibold ${clickAgregar && !usuarioEditando ? 'btn-success' : 'btn-outline-success'}`}
-                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData({ nombre: '', apellido: '', usuario: '', telefono: '', contrasena: 'prueba123', privilegio: 'ROLE_PUB', carrito: false, banner: false, conductor: false }); }}
+                            onClick={() => { setClickAgregar(true); setUsuarioEditando(null); setFormData(formularioVacio()); }}
                         >
                             Agregar Nuevo
                         </button>
                     </div>
                 )}
 
-                {isANC && <hr />}
+                {puedeGestionarUsuarios && <hr />}
 
                 {loading ? (
                     <div className="text-center">Cargando...</div>
                 ) : (
                     <>
-                        {(!clickAgregar && !usuarioEditando && isANC) && (
+                        {(!clickAgregar && !usuarioEditando && puedeGestionarUsuarios) && (
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                                     <h4 className="mb-0">Lista de Usuarios</h4>
@@ -388,7 +401,7 @@ const AdminUsuarios = () => {
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
                                                             <i className="bi bi-pencil"></i> Editar
                                                         </button>
-                                                        {isANC && u.usuario !== loggedInUsername && (
+                                                        {puedeGestionarUsuarios && u.usuario !== loggedInUsername && (
                                                             <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
                                                                 {deletingId === u.id ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-trash"></i>}
                                                             </button>
@@ -445,7 +458,7 @@ const AdminUsuarios = () => {
                                                     <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
                                                         <i className="bi bi-pencil"></i> Editar
                                                     </button>
-                                                    {isANC && u.usuario !== loggedInUsername && (
+                                                    {puedeGestionarUsuarios && u.usuario !== loggedInUsername && (
                                                         <button className="btn btn-outline-danger btn-sm flex-fill fw-semibold" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
                                                             {deletingId === u.id ? <><span className="spinner-border spinner-border-sm me-1"></span> Borrando...</> : <><i className="bi bi-trash"></i> Eliminar</>}
                                                         </button>
@@ -466,8 +479,9 @@ const AdminUsuarios = () => {
 
                         {(clickAgregar || usuarioEditando) && (
                             <form onSubmit={usuarioEditando ? handleEditar : handleAgregar} className="mt-4">
-                                <h4 className="mb-3">{usuarioEditando ? (isANC ? 'Editar Usuario' : 'Editar Mi Perfil') : 'Nuevo Usuario'}</h4>
-                                <div className="mb-3">
+                                <h4 className="mb-3">{usuarioEditando ? (puedeGestionarUsuarios ? 'Editar Usuario' : 'Editar Mi Perfil') : 'Nuevo Usuario'}</h4>
+                                <div className="row g-3">
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Nombre</label>
                                     <input
                                         type="text"
@@ -478,7 +492,7 @@ const AdminUsuarios = () => {
                                         required
                                     />
                                 </div>
-                                <div className="mb-3">
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Apellido</label>
                                     <input
                                         type="text"
@@ -489,7 +503,7 @@ const AdminUsuarios = () => {
                                         required
                                     />
                                 </div>
-                                <div className="mb-3">
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Usuario</label>
                                     <input
                                         type="text"
@@ -500,7 +514,7 @@ const AdminUsuarios = () => {
                                         required
                                     />
                                 </div>
-                                <div className="mb-3">
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Teléfono</label>
                                     <input
                                         type="text"
@@ -512,20 +526,21 @@ const AdminUsuarios = () => {
                                         required
                                     />
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Contraseña</label>
-                                    <input
-                                        type="password"
-                                        className="form-control"
-                                        name="contrasena"
-                                        value={formData.contrasena}
-                                        onChange={handleInputChange}
-                                        required={!usuarioEditando}
-                                        placeholder={usuarioEditando ? 'Dejar en blanco para no cambiar' : ''}
-                                        disabled
-                                    />
-                                </div>
-                                <div className="mb-3">
+                                {!usuarioEditando && (
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Contraseña inicial</label>
+                                        <input
+                                            type="password"
+                                            className="form-control"
+                                            name="contrasena"
+                                            value={formData.contrasena}
+                                            onChange={handleInputChange}
+                                            autoComplete="new-password"
+                                            required
+                                        />
+                                    </div>
+                                )}
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Privilegio</label>
                                     <select
                                         className="form-select"
@@ -533,7 +548,7 @@ const AdminUsuarios = () => {
                                         value={formData.privilegio}
                                         onChange={handleInputChange}
                                         required
-                                        disabled={!isANC}
+                                        disabled={!puedeGestionarUsuarios}
                                     >
                                         <option value="ROLE_PUB">PUB</option>
                                         <option value="ROLE_SM">SM</option>
@@ -541,32 +556,37 @@ const AdminUsuarios = () => {
                                         <option value="ROLE_PR">PR</option>
                                     </select>
                                 </div>
-                                <div className="mb-3">
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Asignación</label>
                                     <select
                                         className="form-select"
                                         name="asignacion"
                                         value={formData.asignacion}
                                         onChange={handleInputChange}
-                                        disabled={!isANC}
+                                        disabled={!puedeGestionarUsuarios}
                                     >
                                         <option value="">Ninguna</option>
-                                        <option value="soporte">Soporte</option>
-                                        <option value="publica">Pública</option>
-                                        <option value="territorios">Territorios</option>
-                                        <option value="servicio y territorios">Servicio y Territorios</option>
+                                        {formData.asignacion && !asignacionesDisponibles.some(option => option.value === formData.asignacion) && (
+                                            <option value={formData.asignacion}>{formData.asignacion}</option>
+                                        )}
+                                        {asignacionesDisponibles.map(option => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div className="mb-3">
+                                <div className="col-12 col-md-6">
                                     <label className="form-label">Grupo de Servicio</label>
                                     <select
                                         className="form-select"
                                         name="grupo"
                                         value={formData.grupo}
                                         onChange={handleInputChange}
-                                        disabled={!isANC}
+                                        disabled={!puedeGestionarUsuarios}
                                     >
                                         <option value="">Ninguno</option>
+                                        {formData.grupo && !gruposDisponibles.includes(formData.grupo) && (
+                                            <option value={formData.grupo}>{formData.grupo}</option>
+                                        )}
                                         <option value="Grupo 1">Grupo 1</option>
                                         <option value="Grupo 2">Grupo 2</option>
                                         <option value="Grupo 3">Grupo 3</option>
@@ -574,7 +594,7 @@ const AdminUsuarios = () => {
                                         <option value="Grupo 5">Grupo 5</option>
                                     </select>
                                 </div>
-                                <div className="mb-4 d-flex gap-4">
+                                <div className="col-12 d-flex flex-wrap gap-3">
                                     <div className="form-check form-switch">
                                         <input className="form-check-input" type="checkbox" name="carrito" id="checkCarrito" checked={formData.carrito} onChange={(e) => setFormData({...formData, carrito: e.target.checked})} />
                                         <label className="form-check-label" htmlFor="checkCarrito">Tiene Carrito 🛒</label>
@@ -591,7 +611,7 @@ const AdminUsuarios = () => {
                                             id="checkHabilitacion" 
                                             checked={formData.habilitacionPublica} 
                                             onChange={(e) => setFormData({...formData, habilitacionPublica: e.target.checked})} 
-                                            disabled={!isANC}
+                                            disabled={!puedeGestionarUsuarios}
                                         />
                                         <label className="form-check-label fw-semibold text-primary" htmlFor="checkHabilitacion">Apto Pública 🌟</label>
                                     </div>
@@ -603,12 +623,13 @@ const AdminUsuarios = () => {
                                             id="checkConductor"
                                             checked={formData.conductor}
                                             onChange={(e) => setFormData({...formData, conductor: e.target.checked})}
-                                            disabled={!isANC}
+                                            disabled={!puedeGestionarUsuarios}
                                         />
                                         <label className="form-check-label fw-semibold text-success" htmlFor="checkConductor">Conductor</label>
                                     </div>
                                 </div>
-                                <div className="d-flex gap-2">
+                                </div>
+                                <div className="d-grid d-sm-flex gap-2 mt-3">
                                     <button type="submit" className={`btn ${usuarioEditando ? 'btn-primary' : 'btn-success'}`} disabled={isSubmitting}>
                                         {isSubmitting ? (
                                             <><span className="spinner-border spinner-border-sm me-2"></span> Cargando...</>
@@ -616,7 +637,7 @@ const AdminUsuarios = () => {
                                             usuarioEditando ? 'Guardar Cambios' : 'Agregar Usuario'
                                         )}
                                     </button>
-                                    {usuarioEditando && isANC && (
+                                    {usuarioEditando && puedeGestionarUsuarios && (
                                         <button type="button" className="btn btn-secondary" onClick={cancelarEdicion}>
                                             Cancelar
                                         </button>
