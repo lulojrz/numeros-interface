@@ -41,14 +41,14 @@ export const traerTodasLasAsignaciones = async (apiUrl = import.meta.env?.VITE_A
     throw new Error(`La consulta de asignaciones superó el límite de ${MAX_PAGINAS_ASIGNACIONES} páginas.`);
 };
 
-const vincularAsignacionesATerritorios = (territorios, asignaciones) => {
+export const vincularAsignacionesATerritorios = (territorios, asignaciones) => {
     const asignacionesPorTerritorio = new Map();
 
     asignaciones.forEach(asignacion => {
         const referencia = asignacion.territorio;
-        const territorioId = referencia && typeof referencia === 'object'
+        const territorioId = (referencia && typeof referencia === 'object'
             ? referencia.id
-            : referencia ?? asignacion.territorioId ?? asignacion.territorio_id;
+            : referencia) ?? asignacion.territorioId ?? asignacion.territorio_id;
         const territorioNumero = referencia?.numero ?? asignacion.territorioNumero ?? asignacion.territorio_numero;
         const territorio = territorioId != null
             ? territorios.find(item => String(item.id) === String(territorioId))
