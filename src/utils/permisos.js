@@ -7,6 +7,20 @@ export const normalizarAsignacion = (asignacion) => String(asignacion || '')
 
 export const esSoporte = (asignacion) => normalizarAsignacion(asignacion) === 'soporte';
 
+const ASIGNACIONES_TELEFONICA = new Set([
+    'telefonica',
+    'telefonico',
+    'telefonia',
+    'territorio telefonico',
+    'territorios telefonicos',
+    'territorios telefonicos/personales',
+    'territorios telefonicos y personales',
+    'telefonica/personales',
+    'telefonica y personales',
+    'personales telefonicos',
+    'personales'
+]);
+
 export const obtenerPermisosAdmin = (usuario = {}) => {
     const asignacion = normalizarAsignacion(usuario.asignacion);
     const soporte = asignacion === 'soporte';
@@ -15,12 +29,9 @@ export const obtenerPermisosAdmin = (usuario = {}) => {
 
     return {
         puedeGestionarUsuarios: usuario.privilegio === 'ROLE_ANC' || soporte,
-        puedeAdministrarTelefonica: administracionGeneral || [
-            'territorios telefonicos/personales',
-            'territorios telefonicos',
-            'personales',
-            'territorios personales'
-        ].includes(asignacion),
+        puedeAdministrarTelefonica: administracionGeneral ||
+            ASIGNACIONES_TELEFONICA.has(asignacion) ||
+            asignacion === 'territorios personales',
         puedeAdministrarPublica: administracionGeneral || ['publica'].includes(asignacion),
         puedeAdministrarEdificios: administracionGeneral || [
             'edificios',

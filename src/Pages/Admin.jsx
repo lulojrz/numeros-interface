@@ -93,6 +93,7 @@ const Admin = () => {
                     <i className="bi bi-telephone-fill me-2"></i>Predicación Telefónica
                 </button>
             </li>
+            {isPublicaAdmin && (
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active' : 'text-body-secondary'}`} 
@@ -102,6 +103,7 @@ const Admin = () => {
                     <i className="bi bi-geo-alt-fill me-2"></i>Predicación Pública
                 </button>
             </li>
+            )}
             {isEdificiosAdmin && (
             <li className="nav-item">
                 <button 

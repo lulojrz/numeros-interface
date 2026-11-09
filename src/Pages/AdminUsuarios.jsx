@@ -44,6 +44,7 @@ const asignacionesDisponibles = [
     { value: 'territorios', label: 'Territorios' },
     { value: 'servicio', label: 'Servicio' },
     { value: 'servicio y territorios', label: 'Servicio y Territorios' },
+    { value: 'telefonica', label: 'Telefónica' },
     { value: 'territorios telefonicos/personales', label: 'Territorios telefónicos/personales' },
     { value: 'territorios telefonicos', label: 'Territorios telefónicos' },
     { value: 'personales', label: 'Personales' },
