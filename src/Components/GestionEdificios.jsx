@@ -8,6 +8,7 @@ const GestionEdificios = () => {
     const [territorios, setTerritorios] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [exportandoS13, setExportandoS13] = useState(false);
     
     const [territorioSeleccionado, setTerritorioSeleccionado] = useState(null);
     const [manzanaSeleccionada, setManzanaSeleccionada] = useState(null);
@@ -33,6 +34,23 @@ const GestionEdificios = () => {
             console.error("Error cargando datos:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleExportarS13 = async () => {
+        if (exportandoS13) return;
+        setExportandoS13(true);
+        try {
+            await exportarS13(territorios);
+        } catch (error) {
+            console.error('Error al generar el registro S-13:', error);
+            await Swal.fire({
+                icon: 'error',
+                title: 'No se pudo generar el PDF',
+                text: error.message || 'No se encontraron asignaciones para incluir.'
+            });
+        } finally {
+            setExportandoS13(false);
         }
     };
 
@@ -363,8 +381,8 @@ const GestionEdificios = () => {
         <div className="mt-3">
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3 className="h5 text-primary m-0">Gestión de Territorios (Edificios)</h3>
-                <button className="btn btn-outline-danger btn-sm fw-bold shadow-sm" onClick={() => exportarS13(territorios)}>
-                    <i className="bi bi-file-earmark-pdf-fill me-2"></i>Exportar S-13 (Registro)
+                <button className="btn btn-outline-danger btn-sm fw-bold shadow-sm" onClick={handleExportarS13} disabled={exportandoS13}>
+                    <i className="bi bi-file-earmark-pdf-fill me-2"></i>{exportandoS13 ? 'Generando PDF...' : 'Exportar S-13 (Registro)'}
                 </button>
             </div>
             
