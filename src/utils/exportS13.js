@@ -1,5 +1,8 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
+const ASIGNACIONES_POR_PAGINA = 50;
+const MAX_PAGINAS_ASIGNACIONES = 200;
+
 const formatearFecha = (fecha) => {
     if (!fecha) return '';
 
@@ -7,6 +10,60 @@ const formatearFecha = (fecha) => {
     if (Number.isNaN(date.getTime())) return '';
 
     return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+};
+
+export const traerTodasLasAsignaciones = async (apiUrl = import.meta.env?.VITE_API_URL) => {
+    if (!apiUrl) {
+        throw new Error('No está configurada la URL del backend (VITE_API_URL).');
+    }
+
+    const api = apiUrl.replace(/\/$/, '');
+    const asignaciones = [];
+
+    for (let page = 0; page < MAX_PAGINAS_ASIGNACIONES; page++) {
+        const response = await fetch(
+            `${api}/asignaciones?page=${page}&size=${ASIGNACIONES_POR_PAGINA}`,
+            { credentials: 'include' }
+        );
+        if (!response.ok) {
+            throw new Error(`No se pudieron cargar las asignaciones (HTTP ${response.status}).`);
+        }
+
+        const pagina = await response.json();
+        if (!Array.isArray(pagina)) {
+            throw new Error('El endpoint /asignaciones no devolvió una lista válida.');
+        }
+
+        asignaciones.push(...pagina);
+        if (pagina.length < ASIGNACIONES_POR_PAGINA) return asignaciones;
+    }
+
+    throw new Error(`La consulta de asignaciones superó el límite de ${MAX_PAGINAS_ASIGNACIONES} páginas.`);
+};
+
+const vincularAsignacionesATerritorios = (territorios, asignaciones) => {
+    const asignacionesPorTerritorio = new Map();
+
+    asignaciones.forEach(asignacion => {
+        const referencia = asignacion.territorio;
+        const territorioId = referencia && typeof referencia === 'object'
+            ? referencia.id
+            : referencia ?? asignacion.territorioId ?? asignacion.territorio_id;
+        const territorioNumero = referencia?.numero ?? asignacion.territorioNumero ?? asignacion.territorio_numero;
+        const territorio = territorioId != null
+            ? territorios.find(item => String(item.id) === String(territorioId))
+            : territorios.find(item => territorioNumero != null && String(item.numero) === String(territorioNumero));
+
+        if (!territorio) return;
+        const lista = asignacionesPorTerritorio.get(territorio.id) || [];
+        lista.push(asignacion);
+        asignacionesPorTerritorio.set(territorio.id, lista);
+    });
+
+    return territorios.map(territorio => ({
+        ...territorio,
+        asignaciones: asignacionesPorTerritorio.get(territorio.id) || []
+    }));
 };
 
 export const obtenerAsignacionesParaS13 = (territorio) => {
@@ -108,10 +165,23 @@ const agregarContinuacionS13 = (doc, font, territorios) => {
     });
 };
 
-export const exportarS13 = async (territorios) => {
+export const exportarS13 = async (territorios, apiUrl = import.meta.env?.VITE_API_URL) => {
     try {
         if (!Array.isArray(territorios) || territorios.length === 0) {
             throw new Error('No hay territorios cargados para exportar.');
+        }
+
+        const registrosAsignacion = await traerTodasLasAsignaciones(apiUrl);
+        if (registrosAsignacion.length === 0) {
+            throw new Error('El endpoint /asignaciones no devolvió registros para incluir en el PDF.');
+        }
+        const territoriosConAsignaciones = vincularAsignacionesATerritorios(territorios, registrosAsignacion);
+        const asignacionesVinculadas = territoriosConAsignaciones.reduce(
+            (total, territorio) => total + territorio.asignaciones.length,
+            0
+        );
+        if (asignacionesVinculadas === 0) {
+            throw new Error('Se recibieron asignaciones, pero no se pudieron relacionar con los territorios. Verifica que cada registro incluya territorio.id.');
         }
 
         const url = '/S-13-S_rellenable.pdf'; 
@@ -129,7 +199,7 @@ export const exportarS13 = async (territorios) => {
         let asignacionesExportadas = 0;
         const territoriosContinuacion = [];
 
-        for (const t of territorios) {
+        for (const t of territoriosConAsignaciones) {
             const numero = Number(t.numero);
             if (!Number.isInteger(numero) || numero < 1) {
                 const asignaciones = obtenerAsignacionesParaS13(t);
