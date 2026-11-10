@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { NumerosContext } from './NumerosContext.jsx'
 import Swal from 'sweetalert2'
@@ -14,16 +14,6 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState({})
     const [isDoorOpening, setIsDoorOpening] = useState(false)
-
-    useEffect(() => {
-        const isAuthenticated = localStorage.getItem('isAuth') === 'true'
-        if (isAuthenticated) {
-            setIsAuth(true)
-            if (window.location.pathname === '/login') {
-                navigate("/")
-            }
-        }
-    }, [navigate, setIsAuth])
 
     const handleSubmit = async (e) => {
         e.preventDefault();

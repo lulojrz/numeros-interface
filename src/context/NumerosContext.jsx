@@ -1,5 +1,5 @@
 import React from 'react'
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { fetchConCsrf } from '../utils/csrf'
 
@@ -12,7 +12,10 @@ export const NumerosProvider = ({ children }) => {
     const [numeros, setNumeros] = useState([])
     const [error, setError] = useState(false)
     const [loading, setLoading] = useState(true)
-    const [isAuthenticated, setIsAuth] = useState(() => localStorage.getItem('isAuth') === 'true')
+    const [isAuthenticated, setIsAuth] = useState(false)
+    const [authReady, setAuthReady] = useState(false)
+    const [authCheckError, setAuthCheckError] = useState(null)
+    const [sessionCheckAttempt, setSessionCheckAttempt] = useState(0)
     const [seleccionado, setSeleccionado] = useState(null)
     const [busqueda, setBusqueda] = useState("")
     const [filtroTerritorio, setFiltroTerritorio] = useState("")
@@ -51,6 +54,87 @@ export const NumerosProvider = ({ children }) => {
     }, []);
 
     const api = `${import.meta.env.VITE_API_URL}`
+
+    const limpiarSesionLocal = useCallback(() => {
+        ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica']
+            .forEach(key => localStorage.removeItem(key));
+        setIsAuth(false);
+    }, []);
+
+    const reintentarVerificacionSesion = useCallback(() => {
+        setSessionCheckAttempt(attempt => attempt + 1);
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+
+        const verificarSesion = async () => {
+            setAuthReady(false);
+            setAuthCheckError(null);
+
+            if (localStorage.getItem('isAuth') !== 'true') {
+                if (active) {
+                    setIsAuth(false);
+                    setAuthReady(true);
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(`${api}/usuarios/me`, { credentials: 'include' });
+                if (response.status === 401 || response.status === 403) {
+                    if (active) {
+                        limpiarSesionLocal();
+                        setAuthReady(true);
+                    }
+                    return;
+                }
+                if (!response.ok) {
+                    throw new Error(`No se pudo verificar la sesión (HTTP ${response.status}).`);
+                }
+
+                const usuarioActual = await response.json();
+                if (!usuarioActual || !usuarioActual.usuario) {
+                    throw new Error('El backend devolvió datos de sesión inválidos.');
+                }
+
+                if (active) {
+                    localStorage.setItem('usuario', usuarioActual.usuario);
+                    localStorage.setItem('usuarioId', usuarioActual.id ?? '');
+                    localStorage.setItem('privilegio', usuarioActual.privilegio || '');
+                    localStorage.setItem('asignacion', usuarioActual.asignacion || '');
+                    if (usuarioActual.habilitacionPublica !== undefined) {
+                        localStorage.setItem('habilitacionPublica', usuarioActual.habilitacionPublica);
+                    }
+                    setIsAuth(true);
+                    setAuthReady(true);
+                }
+            } catch (verificationError) {
+                console.error('Error al verificar la sesión con el backend', verificationError);
+                if (active) {
+                    setAuthCheckError(verificationError);
+                    setAuthReady(true);
+                }
+            }
+        };
+
+        verificarSesion();
+        return () => {
+            active = false;
+        };
+    }, [api, limpiarSesionLocal, sessionCheckAttempt]);
+
+    useEffect(() => {
+        const verificarAlVolver = () => {
+            if (document.visibilityState === 'visible' && localStorage.getItem('isAuth') === 'true') {
+                reintentarVerificacionSesion();
+            }
+        };
+        document.addEventListener('visibilitychange', verificarAlVolver);
+        return () => {
+            document.removeEventListener('visibilitychange', verificarAlVolver);
+        };
+    }, [reintentarVerificacionSesion]);
 
     const cargarTerritorios = async (force = false) => {
         if (!force && territorios.length > 0) return territorios;
@@ -373,7 +457,8 @@ export const NumerosProvider = ({ children }) => {
         return (
             <NumerosContext.Provider value={{ 
                 numero, setNumero, actualizarNumero, numeros, setNumeros, error, loading, 
-                isAuthenticated, setIsAuth, eliminarNumero, seleccionado, setSeleccionado, 
+                isAuthenticated, setIsAuth, authReady, authCheckError, reintentarVerificacionSesion,
+                limpiarSesionLocal, eliminarNumero, seleccionado, setSeleccionado,
                 agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, 
                 filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, 
                 filtroReservado, setFiltroReservado, filtroFechaDesde, setFiltroFechaDesde, 

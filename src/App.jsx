@@ -1,5 +1,5 @@
 import { useState, useContext, lazy, Suspense, useEffect } from 'react' // 1. Importamos lazy y Suspense
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
 import { NumerosContext } from './context/NumerosContext'
@@ -24,7 +24,10 @@ const MisDisponibilidades = lazy(() => import('./Components/MisDisponibilidades'
 const ProgramaPredicacion = lazy(() => import('./Components/ProgramaPredicacion'))
 
 function App() {
-  const { numero, numeros, error, loading, setNumero, isAuthenticated } = useContext(NumerosContext)
+  const {
+    numero, numeros, error, loading, setNumero, isAuthenticated, authReady,
+    authCheckError, reintentarVerificacionSesion
+  } = useContext(NumerosContext)
   
   // Theme state
   const [theme] = useState(() => {
@@ -35,6 +38,28 @@ function App() {
     document.documentElement.setAttribute('data-bs-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  if (!authReady) {
+    return (
+      <div className="d-flex min-vh-100 justify-content-center align-items-center bg-body-tertiary">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Verificando sesión...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (authCheckError) {
+    return (
+      <main className="container min-vh-100 d-flex flex-column justify-content-center align-items-center text-center">
+        <h1 className="h4">No se pudo verificar la sesión</h1>
+        <p className="text-body-secondary">Comprueba tu conexión e inténtalo nuevamente.</p>
+        <button className="btn btn-primary" onClick={reintentarVerificacionSesion}>
+          Reintentar
+        </button>
+      </main>
+    );
+  }
 
   return (
     <>
@@ -49,7 +74,7 @@ function App() {
       }>
         <Routes>
           <Route path="/" element={<Home numero={numero} numeros={numeros} error={error} loading={loading} setNumero={setNumero} />} />
-          <Route path='/login' element={<Login />} />
+          <Route path='/login' element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
           
           <Route path='/admin' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><Admin /></RutasProtegidas>
