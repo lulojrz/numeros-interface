@@ -130,10 +130,10 @@ const Home = () => {
             <div className="container py-5 mt-5 text-center">
                 <div className="row justify-content-center">
                     <div className="col-lg-8">
-                        <h1 className="display-4 fw-bold text-primary mb-4">Bienvenido a CRM Panel</h1>
+                        <h1 className="display-4 fw-bold text-primary mb-4">Bienvenido a Colegiales Panel</h1>
                         <p className="lead text-body-secondary mb-5">
-                            La herramienta definitiva para gestionar tus contactos y campañas telefónicas. 
-                            Inicia sesión para acceder a los números asignados y comenzar a realizar llamadas.
+                            La herramienta definitiva para disfrutar de la predicación, en todas sus facetas 
+                            Inicia sesión para acceder. 
                         </p>
                         <Link to="/login" className="btn btn-primary btn-lg px-5 rounded-pill shadow">
                             Iniciar Sesión
