@@ -9,72 +9,6 @@ import { Link, useLocation } from 'react-router-dom'
 
 const estaHabilitado = (valor) => valor === true || valor === 'true' || valor === 1 || valor === '1';
 
-const CampanasBanners = () => {
-  const [campanas, setCampanas] = useState([]);
-  const api = import.meta.env.VITE_API_URL;
-
-  useEffect(() => {
-    const fetchCampanas = async () => {
-      try {
-        const response = await fetch(`${api}/campanas/traer`, { credentials: 'include' });
-        if (response.ok) {
-          const data = await response.json();
-          // Filtrar solo las que están activas o próximas, y que preferentemente tengan imagen
-          const banners = data.filter(c => c.estado === 'Activa' || c.estado === 'Próxima');
-          setCampanas(banners);
-        }
-      } catch (error) {
-        console.error("Error cargando campañas en inicio", error);
-      }
-    };
-    fetchCampanas();
-  }, [api]);
-
-  if (campanas.length === 0) return null;
-
-  return (
-    <div className="mb-5">
-      {campanas.map((campana, index) => (
-        <div key={campana.id} className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-          <div className="d-flex flex-row">
-            {/* Contenedor de la Imagen */}
-            {campana.imagen ? (
-              <div 
-                className="bg-body-tertiary d-flex align-items-center justify-content-center p-2" 
-                style={{ width: '120px', minWidth: '120px' }}
-              >
-                <img 
-                  src={campana.imagen} 
-                  alt={campana.titulo} 
-                  className="img-fluid rounded" 
-                  style={{ maxHeight: '120px', objectFit: 'contain' }} 
-                />
-              </div>
-            ) : (
-              <div 
-                className="bg-primary bg-gradient d-flex align-items-center justify-content-center"
-                style={{ width: '120px', minWidth: '120px', minHeight: '120px' }}
-              >
-                <i className="bi bi-megaphone-fill text-white fs-1"></i>
-              </div>
-            )}
-            
-            {/* Contenido / Textos */}
-            <div className="card-body d-flex flex-column justify-content-center p-3 p-sm-4 bg-body">
-              <div className="d-flex justify-content-between align-items-center mb-1 gap-2">
-                <h6 className="m-0 fw-bold text-primary lh-sm">{campana.titulo}</h6>
-                <span className={`badge ${campana.estado === 'Activa' ? 'bg-success' : 'bg-warning text-body'} rounded-pill flex-shrink-0`}>
-                  {campana.estado}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 const MisSalidasBanner = () => {
   const [misSalidas, setMisSalidas] = useState([]);
   const api = import.meta.env.VITE_API_URL;
@@ -138,7 +72,7 @@ const MisSalidasBanner = () => {
 };
 
 const Home = () => {
-  const {numero, numeros, error, loading, setNumero, isAuthenticated, abrirBuscador} = useContext(NumerosContext)
+  const {loading, setNumero, isAuthenticated, abrirBuscador} = useContext(NumerosContext)
   const location = useLocation()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [numeroSeleccionadoId, setNumeroSeleccionadoId] = useState(null)
@@ -244,9 +178,6 @@ const Home = () => {
 
                 {/* Banner de Salidas Propias (Si es conductor) */}
                 <MisSalidasBanner />
-
-                {/* Banner de Campañas Activas */}
-                <CampanasBanners />
 
                 <div className="row g-3">
                     {/* Botón Predicación Pública (Turnos) */}
