@@ -8,18 +8,6 @@ import { fetchConCsrf } from '../utils/csrf';
 
 
 const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
-    const handlers = useSwipeable({
-        onSwipedLeft: () => {
-            // Swipe a la izquierda: Marcar como No Visitado
-            actualizarDpto(dpto, 'No visitado', dpto.tocar);
-        },
-        onSwipedRight: () => {
-            // Swipe a la derecha: Marcar como Atendió
-            actualizarDpto(dpto, 'Atendió', dpto.tocar);
-        },
-        preventDefaultTouchmoveEvent: false,
-        trackMouse: true
-    });
 
     return (
         <div className="col-4 col-sm-3 col-md-2" {...handlers}>
@@ -189,8 +177,8 @@ const PredicacionEdificios = () => {
                 <div class="d-grid gap-2">
                     <button id="btn-revisita" class="btn btn-info text-white fw-bold"><i class="bi bi-star-fill text-warning me-1"></i>Revisita</button>
                     <button id="btn-atendio" class="btn btn-success fw-bold">Atendió</button>
-                    <button id="btn-noencasa" class="btn btn-warning fw-bold text-body">No en casa</button>
-                    <button id="btn-ocupado" class="btn btn-secondary fw-bold">Ocupado / Vuelvo Luego</button>
+                    <button id="btn-noencasa" class="btn btn-warning fw-bold">No Atendio</button>
+
                       <button id="btn-novisitado" class="btn btn-outline-secondary fw-bold">Restablecer (No visitado)</button>
                     <hr/>
                     <button id="btn-notocar" class="btn ${dpto.tocar ? 'btn-danger' : 'btn-outline-danger'} fw-bold">
@@ -222,11 +210,8 @@ const PredicacionEdificios = () => {
                     Swal.close(); actualizarDpto(dpto, 'Atendió', dpto.tocar);
                 });
                 document.getElementById('btn-noencasa').addEventListener('click', () => {
-                    Swal.close(); actualizarDpto(dpto, 'No en casa', dpto.tocar);
+                    Swal.close(); actualizarDpto(dpto, 'No Atendió', dpto.tocar);
                 });
-                document.getElementById('btn-ocupado').addEventListener('click', () => {
-                      Swal.close(); actualizarDpto(dpto, 'Ocupado', dpto.tocar);
-                  });
                   document.getElementById('btn-novisitado')?.addEventListener('click', () => {
                       Swal.close(); actualizarDpto(dpto, 'No visitado', dpto.tocar);
                   });
