@@ -2,15 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loading from './Loading';
-import { useSwipeable } from 'react-swipeable';
 import { obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
 import { fetchConCsrf } from '../utils/csrf';
 
 
-const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto, actualizarDpto }) => {
-
+const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto }) => {
     return (
-        <div className="col-4 col-sm-3 col-md-2" {...handlers}>
+        <div className="col-4 col-sm-3 col-md-2">
             <button 
                 className={`btn w-100 py-3 ${btnClass} d-flex flex-column align-items-center justify-content-center h-100`}
                 onClick={() => abrirMenuDpto(dpto)}
@@ -521,7 +519,7 @@ const PredicacionEdificios = () => {
                                     icon = "bi-house-x";
                                 }
 
-                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} actualizarDpto={actualizarDpto} />;
+                                return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} />;
                             })}
                         </div>
                     </div>
