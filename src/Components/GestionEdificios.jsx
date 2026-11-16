@@ -12,13 +12,13 @@ const GestionEdificios = () => {
     const [paginaTerritorios, setPaginaTerritorios] = useState(0);
     const [hayMasTerritorios, setHayMasTerritorios] = useState(false);
     const [exportandoS13, setExportandoS13] = useState(false);
-    
+
     const [territorioSeleccionado, setTerritorioSeleccionado] = useState(null);
     const [manzanaSeleccionada, setManzanaSeleccionada] = useState(null);
     const [edificioSeleccionado, setEdificioSeleccionado] = useState(null);
-    
+
     const [mapaViewer, setMapaViewer] = useState(null);
-    
+
     const api = import.meta.env.VITE_API_URL;
     const Toast = Swal.mixin({
         toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true
@@ -89,12 +89,12 @@ const GestionEdificios = () => {
             preConfirm: () => {
                 const numero = document.getElementById('swal-num').value;
                 const fileInput = document.getElementById('swal-img-file');
-                
+
                 if (!numero) {
                     Swal.showValidationMessage('El número de territorio es obligatorio');
                     return false;
                 }
-                
+
                 return new Promise((resolve) => {
                     if (fileInput.files.length > 0) {
                         const file = fileInput.files[0];
@@ -192,7 +192,7 @@ const GestionEdificios = () => {
                     setTerritorioSeleccionado(null);
                     fetchData();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
     };
 
@@ -232,7 +232,7 @@ const GestionEdificios = () => {
                     Toast.fire({ icon: 'success', title: 'Manzana creada' });
                     fetchData();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
     };
 
@@ -244,7 +244,7 @@ const GestionEdificios = () => {
                     Toast.fire({ icon: 'success', title: 'Manzana borrada' });
                     fetchData();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
     };
 
@@ -271,16 +271,16 @@ const GestionEdificios = () => {
                 const cat = document.getElementById('swal-cat').value;
                 const pisos = parseInt(document.getElementById('swal-pisos').value) || 1;
                 const dptos = parseInt(document.getElementById('swal-dptos').value) || 1;
-                
+
                 if (!dir) {
                     Swal.showValidationMessage('La dirección es obligatoria');
                     return false;
                 }
-                
+
                 // Autogeneración de departamentos
                 const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'];
                 const departamentos = [];
-                
+
                 // Si es Casa o Negocio, solo creamos 1 timbre
                 if (cat === 'Casa' || cat === 'Negocio') {
                     departamentos.push({ piso: "PB", letra: "-", estado: "No visitado", tocar: true });
@@ -288,7 +288,7 @@ const GestionEdificios = () => {
                     for (let p = 0; p <= pisos; p++) {
                         let pisoNombre = p === 0 ? "PB" : p.toString();
                         for (let d = 0; d < dptos; d++) {
-                            let letraNombre = letras[d] || (d+1).toString();
+                            let letraNombre = letras[d] || (d + 1).toString();
                             departamentos.push({
                                 piso: pisoNombre,
                                 letra: letraNombre,
@@ -298,7 +298,7 @@ const GestionEdificios = () => {
                         }
                     }
                 }
-                
+
                 return {
                     direccion: dir,
                     categoria: cat,
@@ -338,10 +338,10 @@ const GestionEdificios = () => {
                     setEdificioSeleccionado(null);
                     fetchData();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
     };
-    
+
     const agregarDptoManual = async (edificioId) => {
         const { value: formValues } = await Swal.fire({
             title: 'Agregar Timbre Manual',
@@ -371,7 +371,7 @@ const GestionEdificios = () => {
                     body: JSON.stringify(formValues)
                 });
                 if (res.ok) fetchData();
-            } catch (e) {}
+            } catch (e) { }
         }
     };
 
@@ -380,7 +380,7 @@ const GestionEdificios = () => {
             try {
                 const res = await fetchConCsrf(`${api}/departamentos/borrar/${id}`, { method: 'DELETE', credentials: 'include' });
                 if (res.ok) fetchData();
-            } catch (e) {}
+            } catch (e) { }
         }
     };
 
@@ -399,7 +399,7 @@ const GestionEdificios = () => {
                     <i className="bi bi-file-earmark-pdf-fill me-2"></i>{exportandoS13 ? 'Generando PDF...' : 'Exportar S-13 (Registro)'}
                 </button>
             </div>
-            
+
             <div className="row g-4">
                 {/* LISTA DE TERRITORIOS (Se oculta si entramos a una manzana) */}
                 {!manzanaSeleccionada && (
@@ -419,25 +419,25 @@ const GestionEdificios = () => {
                                         {territorios.map(t => {
                                             const estadoAsignacion = obtenerEstadoAsignacion(t);
                                             return (
-                                            <button 
-                                                key={t.id} 
-                                                onClick={() => setTerritorioSeleccionado(t)}
-                                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
-                                            >
-                                                <div>
-                                                    <div className="fw-bold">Territorio {t.numero}</div>
-                                                    <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
-                                                        {t.manzanas?.length || 0} manzanas
-                                                    </small>
-                                                    <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
-                                                        <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                                        {estadoAsignacion
-                                                            ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
-                                                            : 'Sin asignar'}
+                                                <button
+                                                    key={t.id}
+                                                    onClick={() => setTerritorioSeleccionado(t)}
+                                                    className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
+                                                >
+                                                    <div>
+                                                        <div className="fw-bold">Territorio {t.numero}</div>
+                                                        <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
+                                                            {t.manzanas?.length || 0} manzanas
+                                                        </small>
+                                                        <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
+                                                            <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                            {estadoAsignacion
+                                                                ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
+                                                                : 'Sin asignar'}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <i className="bi bi-chevron-right"></i>
-                                            </button>
+                                                    <i className="bi bi-chevron-right"></i>
+                                                </button>
                                             );
                                         })}
                                     </div>
@@ -476,7 +476,7 @@ const GestionEdificios = () => {
 
                 {/* DETALLE DEL TERRITORIO O MANZANA */}
                 <div className={manzanaSeleccionada ? "col-12" : "col-12 col-md-7 col-lg-8"}>
-                    
+
                     {/* VISTA: EDIFICIO -> DEPARTAMENTOS */}
                     {edificioSeleccionado && currentEdificioFull ? (
                         <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
@@ -496,11 +496,11 @@ const GestionEdificios = () => {
                             </div>
                             <div className="card-body bg-body-tertiary">
                                 <div className="row g-2">
-                                    {(currentEdificioFull.departamentos || []).sort((a,b) => a.piso.localeCompare(b.piso) || a.letra.localeCompare(b.letra)).map(dpto => (
+                                    {(currentEdificioFull.departamentos || []).sort((a, b) => a.piso.localeCompare(b.piso) || a.letra.localeCompare(b.letra)).map(dpto => (
                                         <div className="col-4 col-sm-3 col-md-2" key={dpto.id}>
                                             <div className="card border-0 shadow-sm text-center position-relative">
                                                 <div className="card-body p-2">
-                                                    <button className="btn btn-sm btn-link text-danger position-absolute" style={{top: -5, right: -5, padding: 0}} onClick={() => borrarDpto(dpto.id)}>
+                                                    <button className="btn btn-sm btn-link text-danger position-absolute" style={{ top: -5, right: -5, padding: 0 }} onClick={() => borrarDpto(dpto.id)}>
                                                         <i className="bi bi-x-circle-fill"></i>
                                                     </button>
                                                     <div className="fw-bold">{dpto.piso}-{dpto.letra}</div>
@@ -511,201 +511,176 @@ const GestionEdificios = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : 
-                    
-                    /* VISTA: MANZANA -> EDIFICIOS */
-                    manzanaSeleccionada && currentManzanaFull ? (
-                        <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
-                            <div className="card-header bg-body border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
-                                <div>
-                                    <button className="btn btn-sm btn-light me-3 rounded-pill" onClick={() => setManzanaSeleccionada(null)}>
-                                        <i className="bi bi-arrow-left"></i> Volver a Manzanas
-                                    </button>
-                                    <span className="h5 fw-bold mb-0 text-primary">{currentManzanaFull.nombre}</span>
-                                </div>
-                                <button className="btn btn-success btn-sm rounded-pill shadow-sm" onClick={() => agregarEdificio(currentManzanaFull.id)}>
-                                    <i className="bi bi-plus-lg me-1"></i> Nuevo Edificio
-                                </button>
-                            </div>
-                            <div className="card-body bg-body-tertiary">
-                                <div className="row g-3">
-                                    {(!currentManzanaFull.edificios || currentManzanaFull.edificios.length === 0) ? (
-                                        <div className="col-12 text-center py-4 text-muted">
-                                            No hay edificios creados en esta manzana.
-                                        </div>
-                                    ) : (
-                                        currentManzanaFull.edificios.map(e => (
-                                            <div className="col-12 col-md-6 col-xl-4" key={e.id}>
-                                                <div className="card h-100 border-0 shadow-sm">
-                                                    <div className="card-body">
-                                                        <div className="d-flex justify-content-between">
-                                                            <h6 className="fw-bold">{e.direccion}</h6>
-                                                            <button className="btn btn-sm btn-link text-danger p-0" onClick={() => borrarEdificio(e.id)}><i className="bi bi-trash"></i></button>
-                                                        </div>
-                                                        <span className="badge bg-secondary mb-2">{e.categoria}</span>
-                                                        <div className="text-muted small mb-3">
-                                                            {e.departamentos?.length || 0} timbres configurados
-                                                        </div>
-                                                        <button className="btn btn-outline-primary btn-sm w-100" onClick={() => setEdificioSeleccionado(e)}>
-                                                            <i className="bi bi-grid-3x3-gap"></i> Editar Timbres
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ) : 
-                    
-                    /* VISTA: TERRITORIO -> MANZANAS */
-                    currentTerritorioFull ? (
-                        <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
-                            <div className="card-body p-4">
-                                <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                    ) :
+
+                        /* VISTA: MANZANA -> EDIFICIOS */
+                        manzanaSeleccionada && currentManzanaFull ? (
+                            <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
+                                <div className="card-header bg-body border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h4 className="fw-bold text-primary m-0">Territorio {currentTerritorioFull.numero}</h4>
-                                        <p className="text-muted mb-0 small">ID: {currentTerritorioFull.id}</p>
-                                        <span className={`badge mt-2 ${estadoAsignacionTerritorio ? 'bg-primary' : 'bg-secondary'}`}>
-                                            <i className={`bi ${estadoAsignacionTerritorio ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                            {estadoAsignacionTerritorio
-                                                ? `${estadoAsignacionTerritorio.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacionTerritorio.usuario.nombre, estadoAsignacionTerritorio.usuario.apellido].filter(Boolean).join(' ')}`
-                                                : 'Sin asignar'}
-                                        </span>
-                                        {estadoAsignacionTerritorio?.tipo === 'salida' && (
-                                            <div className="small text-muted mt-1">
-                                                {new Date(estadoAsignacionTerritorio.asignacion.fechaAsignacion).toLocaleString('es-AR')}
-                                            </div>
-                                        )}
+                                        <button className="btn btn-sm btn-light me-3 rounded-pill" onClick={() => setManzanaSeleccionada(null)}>
+                                            <i className="bi bi-arrow-left"></i> Volver a Manzanas
+                                        </button>
+                                        <span className="h5 fw-bold mb-0 text-primary">{currentManzanaFull.nombre}</span>
                                     </div>
-                                    <button className="btn btn-outline-danger btn-sm rounded-pill px-3" onClick={() => borrarTerritorio(currentTerritorioFull.id)}>
-                                        <i className="bi bi-trash3 me-1"></i> Eliminar Territorio
+                                    <button className="btn btn-success btn-sm rounded-pill shadow-sm" onClick={() => agregarEdificio(currentManzanaFull.id)}>
+                                        <i className="bi bi-plus-lg me-1"></i> Nuevo Edificio
                                     </button>
                                 </div>
-
-                                <div className="row mb-4 bg-body-tertiary p-3 rounded-3 g-3">
-                                    <div className="col-12 col-md-6">
-                                        <label className="form-label fw-semibold text-body-secondary small mb-1">Asignar a:</label>
-                                        <select 
-                                            className="form-select border-0 shadow-sm"
-                                            value={currentTerritorioFull.asignadoA?.id || ""}
-                                            onChange={(e) => editarAsignacion(currentTerritorioFull, e.target.value)}
-                                        >
-                                            <option value="">-- Disponible (Sin asignar) --</option>
-                                            {usuarios.map(u => (
-                                                <option
-                                                    key={u.id}
-                                                    value={u.id}
-                                                    disabled={
-                                                        Number(u.id) !== Number(currentTerritorioFull.asignadoA?.id) &&
-                                                        !!obtenerConflictoAsignacion(
-                                                            currentTerritorioFull,
-                                                            u.id,
-                                                            new Date(),
-                                                            new Date(8640000000000000)
-                                                        )
-                                                    }
-                                                >
-                                                    {u.nombre} {u.apellido}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        {currentTerritorioFull.imagen && (
-                                            <button onClick={() => setMapaViewer(currentTerritorioFull.imagen)} className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-body p-3">
-                                                <i className="bi bi-image fs-4 me-2"></i> <span className="fw-semibold">Ver Mapa del Territorio</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="card border-0 shadow-sm mb-4">
-                                    <div className="card-header bg-body-tertiary">
-                                        <h6 className="fw-bold mb-0"><i className="bi bi-clock-history me-2"></i>Historial de asignaciones</h6>
-                                    </div>
-                                    <div className="list-group list-group-flush">
-                                        {[...(currentTerritorioFull.asignaciones || [])]
-                                            .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
-                                            .map(asignacion => (
-                                                <div key={asignacion.id} className="list-group-item d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                                                    <span className="fw-semibold">
-                                                        {asignacion.usuario?.nombre} {asignacion.usuario?.apellido || ''}
-                                                    </span>
-                                                    <span className="small text-muted text-end">
-                                                        Asignado: {asignacion.fechaAsignacion ? new Date(asignacion.fechaAsignacion).toLocaleString('es-AR') : 'Sin fecha'}
-                                                        {' · '}
-                                                        Devuelto: {asignacion.fechaDevolucion ? new Date(asignacion.fechaDevolucion).toLocaleString('es-AR') : 'Pendiente'}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        {(!currentTerritorioFull.asignaciones || currentTerritorioFull.asignaciones.length === 0) && (
-                                            <div className="list-group-item text-muted small">Este territorio todavía no tiene asignaciones registradas.</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-body-secondary me-2"></i>Manzanas</h5>
-                                    <button className="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm" onClick={() => agregarManzana(currentTerritorioFull.id)}>
-                                        <i className="bi bi-plus-lg me-1"></i> Nueva Manzana
-                                    </button>
-                                </div>
-
-                                {(!currentTerritorioFull.manzanas || currentTerritorioFull.manzanas.length === 0) ? (
-                                    <div className="alert alert-light border text-center py-4 text-muted">
-                                        <i className="bi bi-building fs-1 d-block mb-2 text-body-secondary opacity-50"></i>
-                                        No hay manzanas creadas en este territorio.
-                                    </div>
-                                ) : (
+                                <div className="card-body bg-body-tertiary">
                                     <div className="row g-3">
-                                        {currentTerritorioFull.manzanas.map(m => (
-                                            <div className="col-12 col-xl-6" key={m.id}>
-                                                <div className="card h-100 border bg-body rounded-3 shadow-sm position-relative">
-                                                    <div className="card-body">
-                                                        <div className="d-flex justify-content-between align-items-start mb-2">
-                                                            <h6 className="fw-bold text-primary m-0">{m.nombre}</h6>
-                                                            <button className="btn btn-link text-danger p-0" onClick={() => borrarManzana(m.id)}>
-                                                                <i className="bi bi-x-circle-fill fs-5"></i>
+                                        {(!currentManzanaFull.edificios || currentManzanaFull.edificios.length === 0) ? (
+                                            <div className="col-12 text-center py-4 text-muted">
+                                                No hay edificios creados en esta manzana.
+                                            </div>
+                                        ) : (
+                                            currentManzanaFull.edificios.map(e => (
+                                                <div className="col-12 col-md-6 col-xl-4" key={e.id}>
+                                                    <div className="card h-100 border-0 shadow-sm">
+                                                        <div className="card-body">
+                                                            <div className="d-flex justify-content-between">
+                                                                <h6 className="fw-bold">{e.direccion}</h6>
+                                                                <button className="btn btn-sm btn-link text-danger p-0" onClick={() => borrarEdificio(e.id)}><i className="bi bi-trash"></i></button>
+                                                            </div>
+                                                            <span className="badge bg-secondary mb-2">{e.categoria}</span>
+                                                            <div className="text-muted small mb-3">
+                                                                {e.departamentos?.length || 0} timbres configurados
+                                                            </div>
+                                                            <button className="btn btn-outline-primary btn-sm w-100" onClick={() => setEdificioSeleccionado(e)}>
+                                                                <i className="bi bi-grid-3x3-gap"></i> Editar Timbres
                                                             </button>
                                                         </div>
-                                                        <div className="text-muted small lh-sm mb-3">
-                                                            <div><span className="fw-semibold">Calles:</span> {m.calleNorte}, {m.calleSur}, {m.calleEste}, {m.calleOeste}</div>
-                                                        </div>
-                                                        <button className="btn btn-primary btn-sm w-100 fw-semibold" onClick={() => setManzanaSeleccionada(m)}>
-                                                            Gestionar Edificios ({m.edificios?.length || 0})
-                                                        </button>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="card shadow-sm border-0 h-100 bg-body-tertiary d-flex align-items-center justify-content-center py-5">
-                            <div className="text-center text-muted">
-                                <i className="bi bi-map fs-1 mb-3 d-block opacity-50"></i>
-                                <h5>Selecciona un territorio</h5>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+                        ) :
 
-            {mapaViewer && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
-                        <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <i className="bi bi-x-lg"></i>
-                        </button>
-                        <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
+                            /* VISTA: TERRITORIO -> MANZANAS */
+                            currentTerritorioFull ? (
+                                <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
+                                    <div className="card-body p-4">
+                                        <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                                            <div>
+                                                <h4 className="fw-bold text-primary m-0">Territorio {currentTerritorioFull.numero}</h4>
+                                                <p className="text-muted mb-0 small">ID: {currentTerritorioFull.id}</p>
+                                                <span className={`badge mt-2 ${estadoAsignacionTerritorio ? 'bg-primary' : 'bg-secondary'}`}>
+                                                    <i className={`bi ${estadoAsignacionTerritorio ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                    {estadoAsignacionTerritorio
+                                                        ? `${estadoAsignacionTerritorio.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacionTerritorio.usuario.nombre, estadoAsignacionTerritorio.usuario.apellido].filter(Boolean).join(' ')}`
+                                                        : 'Sin asignar'}
+                                                </span>
+                                                {estadoAsignacionTerritorio?.tipo === 'salida' && (
+                                                    <div className="small text-muted mt-1">
+                                                        {new Date(estadoAsignacionTerritorio.asignacion.fechaAsignacion).toLocaleString('es-AR')}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button className="btn btn-outline-danger btn-sm rounded-pill px-3" onClick={() => borrarTerritorio(currentTerritorioFull.id)}>
+                                                <i className="bi bi-trash3 me-1"></i> Eliminar Territorio
+                                            </button>
+                                        </div>
+
+
+                                        <div className="col-12 col-md-6">
+                                            {currentTerritorioFull.imagen && (
+                                                <button onClick={() => setMapaViewer(currentTerritorioFull.imagen)} className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-body p-3">
+                                                    <i className="bi bi-image fs-4 me-2"></i> <span className="fw-semibold">Ver Mapa del Territorio</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="card border-0 shadow-sm mb-4">
+                                        <div className="card-header bg-body-tertiary">
+                                            <h6 className="fw-bold mb-0"><i className="bi bi-clock-history me-2"></i>Historial de asignaciones</h6>
+                                        </div>
+                                        <div className="list-group list-group-flush">
+                                            {[...(currentTerritorioFull.asignaciones || [])]
+                                                .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
+                                                .map(asignacion => (
+                                                    <div key={asignacion.id} className="list-group-item d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                                                        <span className="fw-semibold">
+                                                            {asignacion.usuario?.nombre} {asignacion.usuario?.apellido || ''}
+                                                        </span>
+                                                        <span className="small text-muted text-end">
+                                                            Asignado: {asignacion.fechaAsignacion ? new Date(asignacion.fechaAsignacion).toLocaleString('es-AR') : 'Sin fecha'}
+                                                            {' · '}
+                                                            Devuelto: {asignacion.fechaDevolucion ? new Date(asignacion.fechaDevolucion).toLocaleString('es-AR') : 'Pendiente'}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            {(!currentTerritorioFull.asignaciones || currentTerritorioFull.asignaciones.length === 0) && (
+                                                <div className="list-group-item text-muted small">Este territorio todavía no tiene asignaciones registradas.</div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-body-secondary me-2"></i>Manzanas</h5>
+                                        <button className="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm" onClick={() => agregarManzana(currentTerritorioFull.id)}>
+                                            <i className="bi bi-plus-lg me-1"></i> Nueva Manzana
+                                        </button>
+                                    </div>
+
+                                    {(!currentTerritorioFull.manzanas || currentTerritorioFull.manzanas.length === 0) ? (
+                                        <div className="alert alert-light border text-center py-4 text-muted">
+                                            <i className="bi bi-building fs-1 d-block mb-2 text-body-secondary opacity-50"></i>
+                                            No hay manzanas creadas en este territorio.
+                                        </div>
+                                    ) : (
+                                        <div className="row g-3">
+                                            {currentTerritorioFull.manzanas.map(m => (
+                                                <div className="col-12 col-xl-6" key={m.id}>
+                                                    <div className="card h-100 border bg-body rounded-3 shadow-sm position-relative">
+                                                        <div className="card-body">
+                                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                                                <h6 className="fw-bold text-primary m-0">{m.nombre}</h6>
+                                                                <button className="btn btn-link text-danger p-0" onClick={() => borrarManzana(m.id)}>
+                                                                    <i className="bi bi-x-circle-fill fs-5"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div className="text-muted small lh-sm mb-3">
+                                                                <div><span className="fw-semibold">Calles:</span> {m.calleNorte}, {m.calleSur}, {m.calleEste}, {m.calleOeste}</div>
+                                                            </div>
+                                                            <button className="btn btn-primary btn-sm w-100 fw-semibold" onClick={() => setManzanaSeleccionada(m)}>
+                                                                Gestionar Edificios ({m.edificios?.length || 0})
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                        
+                ) : (
+                <div className="card shadow-sm border-0 h-100 bg-body-tertiary d-flex align-items-center justify-content-center py-5">
+                    <div className="text-center text-muted">
+                        <i className="bi bi-map fs-1 mb-3 d-block opacity-50"></i>
+                        <h5>Selecciona un territorio</h5>
                     </div>
                 </div>
-            )}
+                    )}
+            </div>
         </div>
+
+            {
+        mapaViewer && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
+                    <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <i className="bi bi-x-lg"></i>
+                    </button>
+                    <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
+                </div>
+            </div>
+        )
+    }
+        </div >
     );
 };
 
