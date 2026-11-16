@@ -286,81 +286,102 @@ const PredicacionEdificios = () => {
                 </div>
             )}
 
-            {/* VISTA 1: TERRITORIOS */}
-            {vistaActual === 'territorios' && (
-                <div className="row g-3">
-                    {territorios.length === 0 ? (
-                        <div className="col-12 text-center text-muted py-5">No hay territorios creados.</div>
-                    ) : (
-                        territorios.map(t => {
-                            const hoy = new Date();
-                            const estadoAsignacion = obtenerEstadoAsignacion(t, hoy);
-                            const asignacionesRecientes = [...(Array.isArray(t.asignaciones) ? t.asignaciones : [])]
-                                .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
-                                .slice(0, 3);
-                            let diffDays = null;
-                            let tieneAlarma = false;
-                            let textoAlarma = '';
+          {/* VISTA 1: TERRITORIOS */}
+{vistaActual === 'territorios' && (
+    <>
+        <div className="row g-3">
+            {territorios.length === 0 ? (
+                <div className="col-12 text-center text-muted py-5">No hay territorios creados.</div>
+            ) : (
+                territorios.map(t => {
+                    const hoy = new Date();
+                    const estadoAsignacion = obtenerEstadoAsignacion(t, hoy);
+                    const asignacionesRecientes = [...(Array.isArray(t.asignaciones) ? t.asignaciones : [])]
+                        .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
+                        .slice(0, 3);
+                    let diffDays = null;
+                    let tieneAlarma = false;
+                    let textoAlarma = '';
 
-                            if (!t.ultimaFechaTrabajada) {
-                                tieneAlarma = true;
-                                textoAlarma = '¡Alarma! Sin trabajar';
-                            } else {
-                                const f = new Date(t.ultimaFechaTrabajada);
-                                diffDays = Math.ceil(Math.abs(hoy - f) / (1000 * 60 * 60 * 24));
-                                if (diffDays >= 120) {
-                                    tieneAlarma = true;
-                                    textoAlarma = `¡Alarma! Hace ${Math.floor(diffDays / 30)} meses`;
-                                }
-                            }
+                    if (!t.ultimaFechaTrabajada) {
+                        tieneAlarma = true;
+                        textoAlarma = '¡Alarma! Sin trabajar';
+                    } else {
+                        const f = new Date(t.ultimaFechaTrabajada);
+                        diffDays = Math.ceil(Math.abs(hoy - f) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 120) {
+                            tieneAlarma = true;
+                            textoAlarma = `¡Alarma! Hace ${Math.floor(diffDays / 30)} meses`;
+                        }
+                    }
 
-                            return (
-                                <div className="col-12 col-md-6 col-lg-4" key={t.id}>
-                                    <div 
-                                        className={`card h-100 border-0 shadow-sm ${!isPublicador && tieneAlarma ? 'border-start border-4 border-danger' : ''}`}
-                                        onClick={() => irAManzanas(t)} 
-                                        style={{cursor: 'pointer'}}
-                                    >
-                                        <div className="card-body d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                                    <h5 className="fw-bold mb-0">Territorio {t.numero}</h5>
-                                                    {!isPublicador && tieneAlarma && (
-                                                        <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
-                                                            <i className="bi bi-bell-fill me-1"></i> {textoAlarma}
-                                                        </span>
-                                                    )}
-                                                    {!isPublicador && !tieneAlarma && diffDays !== null && diffDays <= 30 && (
-                                                        <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
-                                                            <i className="bi bi-check-circle-fill me-1"></i> Al día ({diffDays}d)
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="text-muted small mt-1">
-                                                    <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
-                                                </div>
-                                                {!isPublicador && <div className="text-muted small mt-1">
-                                                    <i className="bi bi-calendar-check me-1"></i> 
-                                                    Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
-                                                </div>}
-                                                <div className={`badge mt-2 ${estadoAsignacion ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
-                                                    <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                                    {estadoAsignacion
-                                                        ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
-                                                        : 'Sin asignar'}
-                                                </div>
-                                              
-                                               
+                    return (
+                        <div className="col-12 col-md-6 col-lg-4" key={t.id}>
+                            <div 
+                                className={`card h-100 border-0 shadow-sm ${!isPublicador && tieneAlarma ? 'border-start border-4 border-danger' : ''}`}
+                                onClick={() => irAManzanas(t)} 
+                                style={{cursor: 'pointer'}}
+                            >
+                                <div className="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                            <h5 className="fw-bold mb-0">Territorio {t.numero}</h5>
+                                            {!isPublicador && tieneAlarma && (
+                                                <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                    <i className="bi bi-bell-fill me-1"></i> {textoAlarma}
+                                                </span>
+                                            )}
+                                            {!isPublicador && !tieneAlarma && diffDays !== null && diffDays <= 30 && (
+                                                <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                    <i className="bi bi-check-circle-fill me-1"></i> Al día ({diffDays}d)
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-muted small mt-1">
+                                            <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
+                                        </div>
+                                        {!isPublicador && (
+                                            <div className="text-muted small mt-1">
+                                                <i className="bi bi-calendar-check me-1"></i> 
+                                                Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
                                             </div>
-                                            <i className="bi bi-chevron-right text-primary fs-4"></i>
+                                        )}
+                                        <div className={`badge mt-2 ${estadoAsignacion ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
+                                            <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                            {estadoAsignacion
+                                                ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
+                                                : 'Sin asignar'}
                                         </div>
                                     </div>
+                                    <i className="bi bi-chevron-right text-primary fs-4"></i>
                                 </div>
-                            );
-                        })
-                    )}
-                </div>
+                            </div>
+                        </div>
+                    );
+                })
             )}
+        </div>
+
+        {/* PAGINACIÓN FUERA DEL MAP Y DE LA FILA */}
+        <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
+            <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={paginaTerritorios === 0 || loading}
+                onClick={() => setPaginaTerritorios(paginaTerritorios - 1)}
+            >
+                <i className="bi bi-chevron-left me-1"></i>Anterior
+            </button>
+            <span className="small text-muted">Página {paginaTerritorios + 1}</span>
+            <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={!hayMasTerritorios || loading}
+                onClick={() => setPaginaTerritorios(paginaTerritorios + 1)}
+            >
+                Siguiente<i className="bi bi-chevron-right ms-1"></i>
+            </button>
+        </div>
+    </>
+)}
 
             {/* VISTA 2: MANZANAS */}
             {vistaActual === 'manzanas' && tActual && (
