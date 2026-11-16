@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loading from './Loading';
 import { obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
 import { fetchConCsrf } from '../utils/csrf';
+import { TAMANO_PAGINA_TERRITORIOS, traerPaginaTerritorios } from '../utils/territorios';
 
 
 const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto }) => {
@@ -30,8 +31,12 @@ const DptoButton = ({ dpto, btnClass, icon, abrirMenuDpto }) => {
 
 const PredicacionEdificios = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [paginaTerritorios, setPaginaTerritorios] = useState(0);
+    const [paginaTerritoriosCargada, setPaginaTerritoriosCargada] = useState(-1);
+    const [hayMasTerritorios, setHayMasTerritorios] = useState(false);
     
     // Rutas de navegación
     const [vistaActual, setVistaActual] = useState('territorios'); // territorios, manzanas, edificios, portero
@@ -45,66 +50,88 @@ const PredicacionEdificios = () => {
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
     });
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
+    const cargarPaginaTerritorios = useCallback(async (pagina, mostrarCarga = true) => {
+        if (mostrarCarga) setLoading(true);
         try {
-            const timestamp = new Date().getTime();
-            const res = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
-            if (res.ok) {
-                const data = await res.json();
-                setTerritorios(data);
+            const data = await traerPaginaTerritorios(api, pagina);
+            if (data.length === 0 && pagina > 0) {
+                setHayMasTerritorios(false);
+                setPaginaTerritorios(pagina - 1);
+                return [];
             }
+            setTerritorios(data);
+            setHayMasTerritorios(data.length === TAMANO_PAGINA_TERRITORIOS);
+            setPaginaTerritoriosCargada(pagina);
+            return data;
         } catch (error) {
-            console.error(error);
+            console.error('Error al cargar territorios', error);
+            Swal.fire('Error', error.message || 'No se pudieron cargar los territorios.', 'error');
+            return [];
         } finally {
-            setLoading(false);
+            if (mostrarCarga) setLoading(false);
         }
     }, [api]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        cargarPaginaTerritorios(paginaTerritorios);
+    }, [cargarPaginaTerritorios, paginaTerritorios]);
 
     // Manejar navegación directa por estado (Buscador Global o enlaces externos)
     useEffect(() => {
-        if (!territorios || territorios.length === 0 || !location.state) return;
+        if (
+            paginaTerritoriosCargada !== paginaTerritorios ||
+            !location.state ||
+            !(location.state.edificioId || location.state.manzanaId || location.state.territorioId)
+        ) return;
 
+        let encontrado = false;
         if (location.state.edificioId) {
-            buscarEdificio:
             for (const t of territorios) {
                 for (const m of (t.manzanas || [])) {
-                    const ed = (m.edificios || []).find(e => e.id === location.state.edificioId);
+                    const ed = (m.edificios || []).find(e => String(e.id) === String(location.state.edificioId));
                     if (ed) {
                         setTerritorioSel(t);
                         setManzanaSel(m);
                         setEdificioSel(ed);
                         setVistaActual('portero');
-                        break buscarEdificio;
+                        encontrado = true;
+                        break;
                     }
                 }
+                if (encontrado) break;
             }
-            window.history.replaceState({}, document.title);
         } else if (location.state.manzanaId) {
-            buscarManzana:
             for (const t of territorios) {
-                const m = (t.manzanas || []).find(man => man.id === location.state.manzanaId);
+                const m = (t.manzanas || []).find(man => String(man.id) === String(location.state.manzanaId));
                 if (m) {
                     setTerritorioSel(t);
                     setManzanaSel(m);
                     setVistaActual('edificios');
-                    break buscarManzana;
+                    encontrado = true;
+                    break;
                 }
             }
-            window.history.replaceState({}, document.title);
         } else if (location.state.territorioId) {
-            const t = territorios.find(ter => ter.id === location.state.territorioId || ter.numero === location.state.territorioNumero);
+            const t = territorios.find(ter =>
+                String(ter.id) === String(location.state.territorioId) ||
+                (location.state.territorioNumero != null &&
+                    String(ter.numero) === String(location.state.territorioNumero))
+            );
             if (t) {
                 setTerritorioSel(t);
                 setVistaActual('manzanas');
-                window.history.replaceState({}, document.title);
+                encontrado = true;
             }
         }
-    }, [location.state, territorios]);
+
+        if (encontrado) {
+            navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+        } else if (hayMasTerritorios) {
+            setPaginaTerritorios(pagina => pagina + 1);
+        } else {
+            navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+        }
+    }, [hayMasTerritorios, location, navigate, paginaTerritorios, paginaTerritoriosCargada, territorios]);
 
     // Funciones de navegación
     const irAManzanas = (t) => { setTerritorioSel(t); setVistaActual('manzanas'); };
@@ -152,8 +179,7 @@ const PredicacionEdificios = () => {
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Guardado' });
                 // Refetch silencioso para actualizar en pantalla
-                const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
-                if (resTerr.ok) setTerritorios(await resTerr.json());
+                await cargarPaginaTerritorios(paginaTerritorios, false);
             }
         } catch {
             Toast.fire({ icon: 'error', title: 'Error al guardar' });
@@ -356,7 +382,7 @@ const PredicacionEdificios = () => {
                                         <div className="d-flex justify-content-between">
                                             <h5 className="fw-bold text-primary">
                                                 {m.nombre} 
-                                                {m.completada && <span className="ms-2 badge bg-success align-middle" style={{fontSize: '0.6rem'}}>COMPLETADA</span>}
+                                                {m.completada && <span className="ms-2 badge bg-success align-middle" style={{fontSize: '0.6rem'}}>COMPLETADA ${m.ultima_fecha_trabajada}</span>}
                                             </h5>
                                             <i className="bi bi-chevron-right text-muted"></i>
                                         </div>
@@ -393,8 +419,7 @@ const PredicacionEdificios = () => {
                                         });
                                         if (res.ok) {
                                             Toast.fire({ icon: 'success', title: 'Territorio actualizado' });
-                                            const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
-                                            if (resTerr.ok) setTerritorios(await resTerr.json());
+                                            await cargarPaginaTerritorios(paginaTerritorios, false);
                                         }
                                     } catch {
                                         Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
@@ -405,6 +430,23 @@ const PredicacionEdificios = () => {
                             </button>
                         </div>
                     )}
+                    <div className="col-12 d-flex justify-content-center align-items-center gap-3 mt-3">
+                        <button
+                            className="btn btn-outline-secondary"
+                            disabled={paginaTerritorios === 0 || loading}
+                            onClick={() => setPaginaTerritorios(paginaTerritorios - 1)}
+                        >
+                            <i className="bi bi-chevron-left me-1"></i>Anterior
+                        </button>
+                        <span className="small text-muted">Página {paginaTerritorios + 1}</span>
+                        <button
+                            className="btn btn-outline-secondary"
+                            disabled={!hayMasTerritorios || loading}
+                            onClick={() => setPaginaTerritorios(paginaTerritorios + 1)}
+                        >
+                            Siguiente<i className="bi bi-chevron-right ms-1"></i>
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -430,15 +472,11 @@ const PredicacionEdificios = () => {
                                         });
                                         if (res.ok) {
                                             Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
-                                            const resTerr = await fetch(`${api}/territorios/traer?t=${new Date().getTime()}`, { credentials: 'include' });
-                                            if (resTerr.ok) {
-                                                const terrs = await resTerr.json();
-                                                setTerritorios(terrs);
-                                                const tNew = terrs.find(t => t.id === tActual.id);
-                                                if (tNew) {
-                                                    const mNew = tNew.manzanas.find(m => m.id === mActual.id);
-                                                    if (mNew) setManzanaSel(mNew);
-                                                }
+                                            const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
+                                            const tNew = territoriosActualizados.find(t => t.id === tActual.id);
+                                            if (tNew) {
+                                                const mNew = tNew.manzanas.find(m => m.id === mActual.id);
+                                                if (mNew) setManzanaSel(mNew);
                                             }
                                         }
                                     } catch {

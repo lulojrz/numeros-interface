@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { exportarS13 } from '../utils/exportS13';
 import { obtenerConflictoAsignacion, obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
 import { fetchConCsrf } from '../utils/csrf';
+import { TAMANO_PAGINA_TERRITORIOS, traerPaginaTerritorios, traerTodosLosTerritorios } from '../utils/territorios';
 
 const GestionEdificios = () => {
     const [territorios, setTerritorios] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [paginaTerritorios, setPaginaTerritorios] = useState(0);
+    const [hayMasTerritorios, setHayMasTerritorios] = useState(false);
     const [exportandoS13, setExportandoS13] = useState(false);
     
     const [territorioSeleccionado, setTerritorioSeleccionado] = useState(null);
@@ -21,27 +24,38 @@ const GestionEdificios = () => {
         toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true
     });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async (pagina = paginaTerritorios) => {
         setLoading(true);
         try {
             const timestamp = new Date().getTime();
-            const resTerr = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
-            if (resTerr.ok) setTerritorios(await resTerr.json());
+            const territoriosPagina = await traerPaginaTerritorios(api, pagina);
+            if (territoriosPagina.length === 0 && pagina > 0) {
+                setPaginaTerritorios(pagina - 1);
+            } else {
+                setTerritorios(territoriosPagina);
+                setHayMasTerritorios(territoriosPagina.length === TAMANO_PAGINA_TERRITORIOS);
+            }
 
             const resUsu = await fetch(`${api}/usuarios?t=${timestamp}`, { credentials: 'include' });
             if (resUsu.ok) setUsuarios(await resUsu.json());
         } catch (error) {
             console.error("Error cargando datos:", error);
+            await Swal.fire({
+                icon: 'error',
+                title: 'No se pudieron cargar los datos',
+                text: error.message || 'Intenta nuevamente.'
+            });
         } finally {
             setLoading(false);
         }
-    };
+    }, [api, paginaTerritorios]);
 
     const handleExportarS13 = async () => {
         if (exportandoS13) return;
         setExportandoS13(true);
         try {
-            await exportarS13(territorios);
+            const todosLosTerritorios = await traerTodosLosTerritorios(api);
+            await exportarS13(todosLosTerritorios);
         } catch (error) {
             console.error('Error al generar el registro S-13:', error);
             await Swal.fire({
@@ -56,7 +70,7 @@ const GestionEdificios = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     // ... (Mantener las funciones de territorio y manzana intactas) ...
     const agregarTerritorio = async () => {
@@ -428,6 +442,33 @@ const GestionEdificios = () => {
                                         })}
                                     </div>
                                 )}
+                                <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
+                                    <button
+                                        className="btn btn-sm btn-outline-secondary"
+                                        disabled={paginaTerritorios === 0 || loading}
+                                        onClick={() => {
+                                            setTerritorioSeleccionado(null);
+                                            setManzanaSeleccionada(null);
+                                            setEdificioSeleccionado(null);
+                                            setPaginaTerritorios(paginaTerritorios - 1);
+                                        }}
+                                    >
+                                        <i className="bi bi-chevron-left me-1"></i>Anterior
+                                    </button>
+                                    <span className="small text-muted">Página {paginaTerritorios + 1}</span>
+                                    <button
+                                        className="btn btn-sm btn-outline-secondary"
+                                        disabled={!hayMasTerritorios || loading}
+                                        onClick={() => {
+                                            setTerritorioSeleccionado(null);
+                                            setManzanaSeleccionada(null);
+                                            setEdificioSeleccionado(null);
+                                            setPaginaTerritorios(paginaTerritorios + 1);
+                                        }}
+                                    >
+                                        Siguiente<i className="bi bi-chevron-right ms-1"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
