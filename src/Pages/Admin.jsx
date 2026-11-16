@@ -33,8 +33,18 @@ const Admin = () => {
   const [isTelefonicaAdmin, setIsTelefonicaAdmin] = useState(initialPermissions.puedeAdministrarTelefonica)
   const [isPublicaAdmin, setIsPublicaAdmin] = useState(initialPermissions.puedeAdministrarPublica)
   const [isEdificiosAdmin, setIsEdificiosAdmin] = useState(initialPermissions.puedeAdministrarEdificios)
-  const [tabActiva, setTabActiva] = useState('telefonica')
+  const clavePestanaAdmin = `adminTab:${localStorage.getItem('usuarioId') || localStorage.getItem('usuario') || 'session'}`
+  const [pestanaSeleccionada, setPestanaSeleccionada] = useState(() => sessionStorage.getItem(clavePestanaAdmin) || 'telefonica')
+  const pestanaPermitida = pestanaSeleccionada === 'telefonica' ||
+    (pestanaSeleccionada === 'publica' && isPublicaAdmin) ||
+    (pestanaSeleccionada === 'edificios' && isEdificiosAdmin) ||
+    (['salidas', 'estadisticas'].includes(pestanaSeleccionada) && isFullAdmin)
+  const tabActiva = pestanaPermitida ? pestanaSeleccionada : 'telefonica'
   const [subTabPublica, setSubTabPublica] = useState('puntos')
+  const cambiarPestana = (pestana) => {
+    sessionStorage.setItem(clavePestanaAdmin, pestana)
+    setPestanaSeleccionada(pestana)
+  }
 
   useEffect(() => {
     const fetchPrivilegio = async () => {
@@ -87,7 +97,7 @@ const Admin = () => {
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'telefonica' ? 'active' : 'text-body-secondary'}`} 
-                    onClick={() => setTabActiva('telefonica')}
+                    onClick={() => cambiarPestana('telefonica')}
                     style={tabActiva === 'telefonica' ? { color: '#0d6efd' } : {}}
                 >
                     <i className="bi bi-telephone-fill me-2"></i>Predicación Telefónica
@@ -97,7 +107,7 @@ const Admin = () => {
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'publica' ? 'active' : 'text-body-secondary'}`} 
-                    onClick={() => setTabActiva('publica')}
+                    onClick={() => cambiarPestana('publica')}
                     style={tabActiva === 'publica' ? { color: '#198754' } : {}}
                 >
                     <i className="bi bi-geo-alt-fill me-2"></i>Predicación Pública
@@ -108,7 +118,7 @@ const Admin = () => {
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'edificios' ? 'active' : 'text-body-secondary'}`} 
-                    onClick={() => setTabActiva('edificios')}
+                    onClick={() => cambiarPestana('edificios')}
                     style={tabActiva === 'edificios' ? { color: '#fd7e14' } : {}}
                 >
                     <i className="bi bi-building me-2"></i>Predicación de Edificios
@@ -119,7 +129,7 @@ const Admin = () => {
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'salidas' ? 'active' : 'text-body-secondary'}`} 
-                    onClick={() => setTabActiva('salidas')}
+                    onClick={() => cambiarPestana('salidas')}
                     style={tabActiva === 'salidas' ? { color: '#0dcaf0' } : {}}
                 >
                     <i className="bi bi-calendar-range me-2"></i>Salidas de Predicación
@@ -130,7 +140,7 @@ const Admin = () => {
             <li className="nav-item">
                 <button 
                     className={`nav-link fw-bold ${tabActiva === 'estadisticas' ? 'active' : 'text-body-secondary'}`} 
-                    onClick={() => setTabActiva('estadisticas')}
+                    onClick={() => cambiarPestana('estadisticas')}
                     style={tabActiva === 'estadisticas' ? { color: '#6f42c1' } : {}}
                 >
                     <i className="bi bi-graph-up me-2"></i>Estadísticas

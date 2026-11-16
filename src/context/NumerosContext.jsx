@@ -1,7 +1,8 @@
 import React from 'react'
-import { createContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useState, useEffect, useCallback, useRef } from 'react'
 import Swal from 'sweetalert2'
 import { fetchConCsrf } from '../utils/csrf'
+import { traerTodosLosTerritorios } from '../utils/territorios'
 
 export const NumerosContext = createContext()
 
@@ -10,6 +11,8 @@ export const NumerosProvider = ({ children }) => {
 
     const [numero, setNumero] = useState()
     const [numeros, setNumeros] = useState([])
+    const [paginaNumeros, setPaginaNumeros] = useState(0)
+    const paginaNumerosRef = useRef(0)
     const [error, setError] = useState(false)
     const [loading, setLoading] = useState(true)
     const [isAuthenticated, setIsAuth] = useState(false)
@@ -56,7 +59,7 @@ export const NumerosProvider = ({ children }) => {
     const api = `${import.meta.env.VITE_API_URL}`
 
     const limpiarSesionLocal = useCallback(() => {
-        ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica']
+        ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica', 'conductor']
             .forEach(key => localStorage.removeItem(key));
         setIsAuth(false);
     }, []);
@@ -106,6 +109,10 @@ export const NumerosProvider = ({ children }) => {
                     if (usuarioActual.habilitacionPublica !== undefined) {
                         localStorage.setItem('habilitacionPublica', usuarioActual.habilitacionPublica);
                     }
+                    localStorage.setItem(
+                        'conductor',
+                        String(usuarioActual.conductor === true || usuarioActual.conductor === 'true' || usuarioActual.conductor === 1 || usuarioActual.conductor === '1')
+                    );
                     setIsAuth(true);
                     setAuthReady(true);
                 }
@@ -140,15 +147,16 @@ export const NumerosProvider = ({ children }) => {
         if (!force && territorios.length > 0) return territorios;
         setLoadingTerritorios(true);
         try {
-            const timestamp = new Date().getTime();
-            const res = await fetch(`${api}/territorios/traer?t=${timestamp}`, { credentials: 'include' });
-            if (res.ok) {
-                const data = await res.json();
-                setTerritorios(data);
-                return data;
-            }
+            const data = await traerTodosLosTerritorios(api);
+            setTerritorios(data);
+            return data;
         } catch (e) {
             console.error("Error al cargar territorios:", e);
+            await Swal.fire({
+                icon: 'error',
+                title: 'No se pudieron cargar los territorios',
+                text: e.message || 'Intenta nuevamente.'
+            });
         } finally {
             setLoadingTerritorios(false);
         }
@@ -166,15 +174,6 @@ export const NumerosProvider = ({ children }) => {
             toast.onmouseleave = Swal.resumeTimer;
         }
     });
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            cargarProductos();
-        } else {
-            setNumeros([]);
-            setLoading(false);
-        }
-    }, [isAuthenticated])
 
     const actualizarNumero = async (objetoActualizado) => {
         // Actualización optimista de la UI
@@ -207,14 +206,17 @@ export const NumerosProvider = ({ children }) => {
     }
 
 
-        const cargarProductos = async () => {
+        const cargarProductos = useCallback(async (page = paginaNumerosRef.current) => {
             setLoading(true)
             try {
-                const response = await fetch(api + '/api/numeros', { credentials: 'include' })
+                const response = await fetch(`${api}/api/numeros?page=${page}&size=50`, { credentials: 'include' })
                 if (response.ok) {
                     const data = await response.json()
                     if (Array.isArray(data)) {
                         setNumeros(data)
+                        setPaginaNumeros(page)
+                        paginaNumerosRef.current = page
+                        return data
                     } else {
                         setNumeros([])
                     }
@@ -227,7 +229,19 @@ export const NumerosProvider = ({ children }) => {
             } finally {
                 setLoading(false)
             }
+            return []
+        }, [api])
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            cargarProductos(0);
+        } else {
+            setNumeros([]);
+            setPaginaNumeros(0);
+            paginaNumerosRef.current = 0
+            setLoading(false);
         }
+    }, [isAuthenticated, cargarProductos])
 
 
         const productosFiltrados = numeros.filter((num) => {
@@ -457,6 +471,7 @@ export const NumerosProvider = ({ children }) => {
         return (
             <NumerosContext.Provider value={{ 
                 numero, setNumero, actualizarNumero, numeros, setNumeros, error, loading, 
+                paginaNumeros,
                 isAuthenticated, setIsAuth, authReady, authCheckError, reintentarVerificacionSesion,
                 limpiarSesionLocal, eliminarNumero, seleccionado, setSeleccionado,
                 agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, 

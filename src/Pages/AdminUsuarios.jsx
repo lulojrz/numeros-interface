@@ -61,6 +61,9 @@ const AdminUsuarios = () => {
     const [clickAgregar, setClickAgregar] = useState(false);
     const [usuarioEditando, setUsuarioEditando] = useState(null);
     const [filtroReservas, setFiltroReservas] = useState('todos');
+    const [filtroGrupo, setFiltroGrupo] = useState('todos');
+    const [filtroPrivilegio, setFiltroPrivilegio] = useState('todos');
+    const [paginaUsuarios, setPaginaUsuarios] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     
@@ -271,6 +274,8 @@ const AdminUsuarios = () => {
     const usuariosFiltrados = usuarios.filter(u => {
         if (filtroInventario === 'conCarrito' && !u.carrito) return false;
         if (filtroInventario === 'conBanner' && !u.banner) return false;
+        if (filtroGrupo !== 'todos' && (u.grupo || '') !== filtroGrupo) return false;
+        if (filtroPrivilegio !== 'todos' && u.privilegio !== filtroPrivilegio) return false;
 
         if (filtroReservas === 'todos') return true;
         
@@ -280,6 +285,23 @@ const AdminUsuarios = () => {
         if (filtroReservas === 'sinReservas') return !tieneReservas;
         return true;
     });
+    const usuariosPorPagina = 20;
+    const totalPaginasUsuarios = Math.ceil(usuariosFiltrados.length / usuariosPorPagina);
+    const paginaActualUsuarios = Math.min(paginaUsuarios, Math.max(totalPaginasUsuarios, 1));
+    const usuariosVisibles = usuariosFiltrados.slice(
+        (paginaActualUsuarios - 1) * usuariosPorPagina,
+        paginaActualUsuarios * usuariosPorPagina
+    );
+    const gruposExistentes = [...new Set(usuarios.map(usuario => usuario.grupo).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'es'));
+
+    useEffect(() => {
+        setPaginaUsuarios(1);
+    }, [filtroInventario, filtroReservas, filtroGrupo, filtroPrivilegio]);
+
+    useEffect(() => {
+        if (paginaUsuarios !== paginaActualUsuarios) setPaginaUsuarios(paginaActualUsuarios);
+    }, [paginaActualUsuarios, paginaUsuarios]);
 
     return (
         <div className='container my-5'>
@@ -343,6 +365,32 @@ const AdminUsuarios = () => {
                                                 <option value="conBanner">Con Banner 🏳️</option>
                                             </select>
                                         </div>
+                                        <div className="w-100 w-sm-auto mt-2 mt-sm-0">
+                                            <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Grupo:</label>
+                                            <select
+                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block"
+                                                value={filtroGrupo}
+                                                onChange={e => setFiltroGrupo(e.target.value)}
+                                            >
+                                                <option value="todos">Todos</option>
+                                                <option value="">Sin grupo</option>
+                                                {gruposExistentes.map(grupo => <option key={grupo} value={grupo}>{grupo}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="w-100 w-sm-auto mt-2 mt-sm-0">
+                                            <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Privilegio:</label>
+                                            <select
+                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block"
+                                                value={filtroPrivilegio}
+                                                onChange={e => setFiltroPrivilegio(e.target.value)}
+                                            >
+                                                <option value="todos">Todos</option>
+                                                <option value="ROLE_PUB">PUB</option>
+                                                <option value="ROLE_PR">PR</option>
+                                                <option value="ROLE_SM">SM</option>
+                                                <option value="ROLE_ANC">ANC</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -365,7 +413,7 @@ const AdminUsuarios = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {usuariosFiltrados.map(u => {
+                                            {usuariosVisibles.map(u => {
                                                 const tieneNumero = u.telefono && u.telefono.trim() !== "";
                                                 const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
                                                 return (
@@ -411,7 +459,7 @@ const AdminUsuarios = () => {
                                                 </tr>
                                                 );
                                             })}
-                                            {usuariosFiltrados.length === 0 && (
+                                            {usuariosVisibles.length === 0 && (
                                                 <tr>
                                                     <td colSpan="11" className="text-center py-4 text-muted">No se encontraron usuarios.</td>
                                                 </tr>
@@ -422,7 +470,7 @@ const AdminUsuarios = () => {
 
                                 {/* Vista Mobile */}
                                 <div className="d-md-none">
-                                    {usuariosFiltrados.map(u => {
+                                    {usuariosVisibles.map(u => {
                                         const tieneNumero = u.telefono && u.telefono.trim() !== "";
                                         const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
                                         return (
@@ -469,12 +517,39 @@ const AdminUsuarios = () => {
                                         </div>
                                         );
                                     })}
-                                    {usuariosFiltrados.length === 0 && (
+                                    {usuariosVisibles.length === 0 && (
                                         <div className="text-center py-4 text-muted border rounded shadow-sm bg-body">
                                             No se encontraron usuarios.
                                         </div>
                                     )}
                                 </div>
+                                {totalPaginasUsuarios > 1 && (
+                                    <nav className="d-flex justify-content-center mt-3" aria-label="Paginación de usuarios">
+                                        <ul className="pagination pagination-sm">
+                                            <li className={`page-item ${paginaActualUsuarios === 1 ? 'disabled' : ''}`}>
+                                                <button
+                                                    className="page-link"
+                                                    disabled={paginaActualUsuarios === 1}
+                                                    onClick={() => setPaginaUsuarios(paginaActualUsuarios - 1)}
+                                                >
+                                                    Anterior
+                                                </button>
+                                            </li>
+                                            <li className="page-item active">
+                                                <span className="page-link">{paginaActualUsuarios} / {totalPaginasUsuarios}</span>
+                                            </li>
+                                            <li className={`page-item ${paginaActualUsuarios === totalPaginasUsuarios ? 'disabled' : ''}`}>
+                                                <button
+                                                    className="page-link"
+                                                    disabled={paginaActualUsuarios === totalPaginasUsuarios}
+                                                    onClick={() => setPaginaUsuarios(paginaActualUsuarios + 1)}
+                                                >
+                                                    Siguiente
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                )}
                             </div>
                         )}
 

@@ -456,23 +456,6 @@ const PredicacionEdificios = () => {
                     </button>
                 </div>
             )}
-            <div className="col-12 d-flex justify-content-center align-items-center gap-3 mt-3">
-                <button
-                    className="btn btn-outline-secondary"
-                    disabled={paginaTerritorios === 0 || loading}
-                    onClick={() => setPaginaTerritorios(paginaTerritorios - 1)}
-                >
-                    <i className="bi bi-chevron-left me-1"></i>Anterior
-                </button>
-                <span className="small text-muted">Página {paginaTerritorios + 1}</span>
-                <button
-                    className="btn btn-outline-secondary"
-                    disabled={!hayMasTerritorios || loading}
-                    onClick={() => setPaginaTerritorios(paginaTerritorios + 1)}
-                >
-                    Siguiente<i className="bi bi-chevron-right ms-1"></i>
-                </button>
-            </div>
         </div>
     )
 }

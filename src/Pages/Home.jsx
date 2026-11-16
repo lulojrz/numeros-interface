@@ -76,7 +76,7 @@ const Home = () => {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [numeroSeleccionadoId, setNumeroSeleccionadoId] = useState(null)
-  const [esConductor, setEsConductor] = useState(false)
+  const [esConductor, setEsConductor] = useState(() => localStorage.getItem('conductor') === 'true')
 
   useEffect(() => {
     let isMounted = true;
@@ -85,28 +85,23 @@ const Home = () => {
       setEsConductor(false);
       return () => { isMounted = false; };
     }
+    setEsConductor(localStorage.getItem('conductor') === 'true');
 
     const cargarConductor = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/me`, { credentials: 'include' });
         if (!response.ok) {
           throw new Error(`Error al consultar el usuario: ${response.status}`);
         }
 
-        const usuarios = await response.json();
-        if (!Array.isArray(usuarios)) {
-          throw new Error('La respuesta de usuarios no tiene el formato esperado');
-        }
-
-        const usuarioActual = usuarios.find(u => u.usuario === localStorage.getItem('usuario'));
+        const usuarioActual = await response.json();
+        const conductorHabilitado = estaHabilitado(usuarioActual?.conductor);
         if (isMounted) {
-          setEsConductor(estaHabilitado(usuarioActual?.conductor));
+          localStorage.setItem('conductor', String(conductorHabilitado));
+          setEsConductor(conductorHabilitado);
         }
       } catch (error) {
         console.error('Error verificando si el usuario es conductor:', error);
-        if (isMounted) {
-          setEsConductor(false);
-        }
       }
     };
 

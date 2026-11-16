@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { fetchConCsrf } from '../utils/csrf';
 import { esSoporte } from '../utils/permisos';
-import { traerTodosLosUsuarios } from '../utils/usuarios';
 
 const CambiarContrasena = () => {
     const [formData, setFormData] = useState({
@@ -24,10 +23,11 @@ const CambiarContrasena = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const data = await traerTodosLosUsuarios(api);
-                const loggedIn = data.find(u => u.usuario === usuarioLogueado);
-                if (!loggedIn) throw new Error('No se encontró el usuario conectado en la lista recibida.');
-                setUserData(loggedIn);
+                const response = await fetch(`${api}/usuarios/me`, { credentials: 'include' });
+                if (!response.ok) {
+                    throw new Error(`No se pudieron cargar los datos del perfil (HTTP ${response.status}).`);
+                }
+                setUserData(await response.json());
             } catch (error) {
                 console.error('Error al cargar los datos del perfil', error);
                 Swal.fire('Error', error.message || 'No se pudieron cargar los datos del perfil.', 'error');
@@ -205,6 +205,13 @@ const CambiarContrasena = () => {
                         <hr />
                         
                         <p className="text-muted mb-4">Usuario: <strong>{usuarioLogueado}</strong></p>
+                        {userData && (
+                            <div className="alert alert-primary d-flex align-items-center gap-2 py-2">
+                                <i className="bi bi-people-fill"></i>
+                                <span>Grupo de servicio:</span>
+                                <strong>{userData.grupo || 'Sin grupo asignado'}</strong>
+                            </div>
+                        )}
 
                         {loadingProfile ? (
                             <div className="text-center py-3" role="status">Cargando datos del perfil...</div>
@@ -252,8 +259,22 @@ const CambiarContrasena = () => {
                                     </div>
                                     <div className="col-12 col-md-6">
                                         <label className="form-label fw-medium" htmlFor="perfilGrupo">Grupo de Servicio</label>
-                                        <input id="perfilGrupo" className="form-control" value={userData.grupo || ''} disabled={!puedeEditarPerfil}
-                                            onChange={e => setUserData({ ...userData, grupo: e.target.value })} />
+                                        {puedeEditarPerfil ? (
+                                            <select id="perfilGrupo" className="form-select" value={userData.grupo || ''}
+                                                onChange={e => setUserData({ ...userData, grupo: e.target.value })}>
+                                                <option value="">Sin grupo asignado</option>
+                                                {userData.grupo && !['Grupo 1', 'Grupo 2', 'Grupo 3', 'Grupo 4', 'Grupo 5'].includes(userData.grupo) && (
+                                                    <option value={userData.grupo}>{userData.grupo}</option>
+                                                )}
+                                                {[1, 2, 3, 4, 5].map(grupo => (
+                                                    <option key={grupo} value={`Grupo ${grupo}`}>Grupo {grupo}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <div id="perfilGrupo" className="form-control bg-body-secondary">
+                                                {userData.grupo || 'Sin grupo asignado'}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="mb-4 d-flex flex-wrap gap-4">

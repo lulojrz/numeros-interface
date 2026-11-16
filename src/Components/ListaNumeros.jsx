@@ -25,7 +25,9 @@ const ListaNumeros = () => {
         setFiltroFechaDesde,
         filtroFechaHasta,
         setFiltroFechaHasta,
-        loading // <-- Extraemos 'loading' que viene del contexto de números
+        loading,
+        cargarProductos,
+        paginaNumeros
     } = useContext(NumerosContext);
     
     const [mostrarModal, setMostrarModal] = useState(false);
@@ -34,11 +36,21 @@ const ListaNumeros = () => {
 
     // Paginación
     const [paginaActual, setPaginaActual] = useState(1);
-    const itemsPorPagina = 50;
 
     useEffect(() => {
         setPaginaActual(1);
     }, [busqueda, filtroTerritorio, filtroEdificio, filtroReservado, filtroFechaDesde, filtroFechaHasta]);
+
+    useEffect(() => {
+        const paginaSolicitada = paginaActual - 1;
+        if (paginaSolicitada === paginaNumeros) return;
+
+        cargarProductos(paginaSolicitada).then(numerosPagina => {
+            if (numerosPagina.length === 0 && paginaSolicitada > 0) {
+                setPaginaActual(paginaSolicitada);
+            }
+        });
+    }, [paginaActual, paginaNumeros, cargarProductos]);
 
     useEffect(() => {
         const fetchUsuarios = async () => {
@@ -78,10 +90,7 @@ const ListaNumeros = () => {
     const hayFiltrosActivos = busqueda.trim() !== "" || filtroTerritorio !== "" || filtroEdificio !== "" || filtroReservado !== "" || filtroFechaDesde !== "" || filtroFechaHasta !== "";
     const puedeModificarBloque = hayFiltrosActivos && productosFiltrados && productosFiltrados.length > 0;
 
-    const totalPaginas = Math.ceil((productosFiltrados?.length || 0) / itemsPorPagina);
-    const indiceUltimoItem = paginaActual * itemsPorPagina;
-    const indicePrimerItem = indiceUltimoItem - itemsPorPagina;
-    const itemsActuales = productosFiltrados ? productosFiltrados.slice(indicePrimerItem, indiceUltimoItem) : [];
+    const itemsActuales = productosFiltrados || [];
 
     const handleReiniciarContesta = async () => {
         const result = await Swal.fire({
@@ -105,6 +114,7 @@ const ListaNumeros = () => {
             <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
                 <div className="card shadow-sm p-3 border-0 bg-body-tertiary" style={{ borderRadius: '0.75rem' }}>
                     <h6 className="mb-3 text-body-secondary fw-bold">Filtros de Búsqueda</h6>
+                    <p className="small text-muted mb-0">Los resultados se filtran dentro de la página cargada; usa la paginación para recorrer los demás números.</p>
                     <div className="row g-3">
                         <div className="col-md-3">
                             <label className="form-label text-muted small fw-semibold mb-1">Dirección</label>
@@ -338,26 +348,17 @@ const ListaNumeros = () => {
                 </div>
 
                 {/* Paginación */}
-                {!loading && totalPaginas > 1 && (
+                {!loading && (paginaActual > 1 || numeros.length === 50) && (
                     <nav className="d-flex justify-content-center mt-4">
                         <ul className="pagination pagination-sm shadow-sm">
                             <li className={`page-item ${paginaActual === 1 ? 'disabled' : ''}`}>
-                                <button className="page-link" onClick={() => setPaginaActual(paginaActual - 1)}>Anterior</button>
+                                <button className="page-link" disabled={paginaActual === 1 || loading} onClick={() => setPaginaActual(paginaActual - 1)}>Anterior</button>
                             </li>
-                            {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                                let startPage = Math.max(1, paginaActual - 2);
-                                if (startPage + 4 > totalPaginas) {
-                                    startPage = Math.max(1, totalPaginas - 4);
-                                }
-                                const pageNum = startPage + i;
-                                return (
-                                    <li key={pageNum} className={`page-item ${paginaActual === pageNum ? 'active' : ''}`}>
-                                        <button className="page-link" onClick={() => setPaginaActual(pageNum)}>{pageNum}</button>
-                                    </li>
-                                );
-                            })}
-                            <li className={`page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`}>
-                                <button className="page-link" onClick={() => setPaginaActual(paginaActual + 1)}>Siguiente</button>
+                            <li className="page-item active">
+                                <span className="page-link">{paginaActual}</span>
+                            </li>
+                            <li className={`page-item ${numeros.length < 50 ? 'disabled' : ''}`}>
+                                <button className="page-link" disabled={numeros.length < 50 || loading} onClick={() => setPaginaActual(paginaActual + 1)}>Siguiente</button>
                             </li>
                         </ul>
                     </nav>

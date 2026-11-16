@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { obtenerConflictoAsignacion } from '../utils/territorioAsignaciones';
 import { fetchConCsrf } from '../utils/csrf';
+import { traerTodosLosUsuarios } from '../utils/usuarios';
 
 const AdminSalidas = () => {
     const api = import.meta.env.VITE_API_URL;
@@ -9,6 +10,7 @@ const AdminSalidas = () => {
     const [conductores, setConductores] = useState([]);
     const [salidas, setSalidas] = useState([]);
     const [territorios, setTerritorios] = useState([]);
+    const [paginaConductores, setPaginaConductores] = useState(1);
     const [loading, setLoading] = useState(true);
     const [mapaViewer, setMapaViewer] = useState(false);
 
@@ -23,22 +25,19 @@ const AdminSalidas = () => {
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
     });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [resDisp, resUsuarios, resSalidas, resTerr] = await Promise.all([
+            const [resDisp, usuarios, resSalidas, resTerr] = await Promise.all([
                 fetch(`${api}/disponibilidades/traer`, { credentials: 'include' }),
-                fetch(`${api}/usuarios`, { credentials: 'include' }),
+                traerTodosLosUsuarios(api),
                 fetch(`${api}/salidas/traer`, { credentials: 'include' }),
                 fetch(`${api}/territorios/traer`, { credentials: 'include' })
             ]);
             if (resDisp.ok) setDisponibilidades(await resDisp.json());
-            if (resUsuarios.ok) {
-                const usuarios = await resUsuarios.json();
-                setConductores(usuarios
-                    .filter(usuario => usuario.conductor === true || usuario.conductor === 'true' || usuario.conductor === 1 || usuario.conductor === '1')
-                    .sort((a, b) => `${a.apellido || ''} ${a.nombre || ''}`.localeCompare(`${b.apellido || ''} ${b.nombre || ''}`, 'es')));
-            }
+            setConductores(usuarios
+                .filter(usuario => usuario.conductor === true || usuario.conductor === 'true' || usuario.conductor === 1 || usuario.conductor === '1')
+                .sort((a, b) => `${a.apellido || ''} ${a.nombre || ''}`.localeCompare(`${b.apellido || ''} ${b.nombre || ''}`, 'es')));
             if (resSalidas.ok) setSalidas(await resSalidas.json());
             if (resTerr.ok) setTerritorios(await resTerr.json());
         } catch (e) {
@@ -46,11 +45,24 @@ const AdminSalidas = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [api]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
+
+    const conductoresPorPagina = 8;
+    const totalPaginasConductores = Math.ceil(conductores.length / conductoresPorPagina);
+    const conductoresVisibles = conductores.slice(
+        (paginaConductores - 1) * conductoresPorPagina,
+        paginaConductores * conductoresPorPagina
+    );
+
+    useEffect(() => {
+        if (totalPaginasConductores > 0 && paginaConductores > totalPaginasConductores) {
+            setPaginaConductores(totalPaginasConductores);
+        }
+    }, [paginaConductores, totalPaginasConductores]);
 
     const crearSalida = async (e) => {
         e.preventDefault();
@@ -171,7 +183,7 @@ const AdminSalidas = () => {
                             {conductores.length === 0 ? (
                                 <div className="list-group-item text-center text-muted py-4">No hay conductores habilitados.</div>
                             ) : (
-                                conductores.map(usuario => (
+                                conductoresVisibles.map(usuario => (
                                     <div key={usuario.id} className="list-group-item d-flex align-items-center">
                                         <i className="bi bi-person-fill text-success me-2"></i>
                                         {usuario.nombre} {usuario.apellido}
@@ -179,6 +191,27 @@ const AdminSalidas = () => {
                                 ))
                             )}
                         </div>
+                        {totalPaginasConductores > 1 && (
+                            <div className="card-footer bg-transparent d-flex justify-content-center align-items-center gap-3">
+                                <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    disabled={paginaConductores === 1}
+                                    onClick={() => setPaginaConductores(page => page - 1)}
+                                >
+                                    Anterior
+                                </button>
+                                <span className="small text-muted">
+                                    Página {paginaConductores} de {totalPaginasConductores}
+                                </span>
+                                <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    disabled={paginaConductores === totalPaginasConductores}
+                                    onClick={() => setPaginaConductores(page => page + 1)}
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 

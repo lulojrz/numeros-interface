@@ -297,6 +297,7 @@ const EstadisticasDashboard = () => {
             noEnCasa,
             ocupados,
             revisitas,
+            totalTocados,
             noTocar,
             noVisitados,
             tasaEfectividad,
@@ -469,9 +470,14 @@ const EstadisticasDashboard = () => {
                                 <i className="bi bi-building-check fs-5"></i>
                             </span>
                         </div>
-                        <h2 className="fw-bold text-success mb-1">{edificiosStats.tasaEfectividad}%</h2>
+                        <h2
+                            className="fw-bold text-success mb-1"
+                            title="(Atendió + Revisita) / (Atendió + Revisita + No en casa + Ocupado)"
+                        >
+                            {edificiosStats.tasaEfectividad}%
+                        </h2>
                         <span className="text-body-secondary small mb-3">
-                            {edificiosStats.atendieron + edificiosStats.revisitas} respuestas en {edificiosStats.totalDeptos} timbres
+                            {edificiosStats.atendieron + edificiosStats.revisitas} respuestas de {edificiosStats.totalTocados} timbres visitados
                         </span>
                         <div className="progress mt-auto" style={{ height: '8px' }}>
                             <div 
