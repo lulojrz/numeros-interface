@@ -19,6 +19,7 @@ const GestionEdificios = () => {
     const [edificioSeleccionado, setEdificioSeleccionado] = useState(null);
 
     const [mapaViewer, setMapaViewer] = useState(null);
+    const [busquedaTerritorio, setBusquedaTerritorio] = useState('');
 
     const api = import.meta.env.VITE_API_URL;
     const Toast = Swal.mixin({
@@ -415,76 +416,93 @@ const agregarTerritorio = async () => {
             <div className="row g-4">
                 {/* LISTA DE TERRITORIOS (Se oculta si entramos a una manzana) */}
                 {!manzanaSeleccionada && (
-                    <div className="col-12 col-md-5 col-lg-4">
-                        <div className="card shadow-sm border-0 bg-body-tertiary">
-                            <div className="card-header bg-transparent border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-                                <h5 className="fw-bold m-0"><i className="bi bi-map text-warning me-2"></i>Territorios</h5>
-                                <button className="btn btn-sm btn-outline-success rounded-circle" onClick={agregarTerritorio} title="Agregar Territorio">
-                                    <i className="bi bi-plus-lg"></i>
+        <div className="col-12 col-md-5 col-lg-4">
+            <div className="card shadow-sm border-0 bg-body-tertiary">
+                <div className="card-header bg-transparent border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 className="fw-bold m-0">
+                        <i className="bi bi-map text-warning me-2"></i>
+                        Territorios <span className="badge bg-secondary-subtle text-body-emphasis ms-1">{territorios.length}</span>
+                    </h5>
+                    <button className="btn btn-sm btn-outline-success rounded-circle" onClick={agregarTerritorio} title="Agregar Territorio">
+                        <i className="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                <div className="card-body">
+                    {/* Buscador instantáneo en memoria */}
+                    {territorios.length > 0 && (
+                        <div className="input-group input-group-sm mb-3">
+                            <span className="input-group-text bg-body border-end-0">
+                                <i className="bi bi-search text-muted"></i>
+                            </span>
+                            <input
+                                type="text"
+                                className="form-control bg-body border-start-0"
+                                placeholder="Buscar territorio o persona..."
+                                value={busquedaTerritorio}
+                                onChange={(e) => setBusquedaTerritorio(e.target.value)}
+                            />
+                            {busquedaTerritorio && (
+                                <button
+                                    className="btn btn-outline-secondary border-start-0"
+                                    type="button"
+                                    onClick={() => setBusquedaTerritorio('')}
+                                >
+                                    <i className="bi bi-x"></i>
                                 </button>
-                            </div>
-                            <div className="card-body">
-                                {territorios.length === 0 ? (
-                                    <p className="text-muted small text-center">No hay territorios creados.</p>
-                                ) : (
-                                    <div className="list-group list-group-flush border-0">
-                                        {territorios.map(t => {
-                                            const estadoAsignacion = obtenerEstadoAsignacion(t);
-                                            return (
-                                                <button
-                                                    key={t.id}
-                                                    onClick={() => setTerritorioSeleccionado(t)}
-                                                    className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
-                                                >
-                                                    <div>
-                                                        <div className="fw-bold">Territorio {t.numero}</div>
-                                                        <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
-                                                            {t.manzanas?.length || 0} manzanas
-                                                        </small>
-                                                        <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
-                                                            <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                                            {estadoAsignacion
-                                                                ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
-                                                                : 'Sin asignar'}
-                                                        </div>
-                                                    </div>
-                                                    <i className="bi bi-chevron-right"></i>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                                <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
-                                    <button
-                                        className="btn btn-sm btn-outline-secondary"
-                                        disabled={paginaTerritorios === 0 || loading}
-                                        onClick={() => {
-                                            setTerritorioSeleccionado(null);
-                                            setManzanaSeleccionada(null);
-                                            setEdificioSeleccionado(null);
-                                            setPaginaTerritorios(paginaTerritorios - 1);
-                                        }}
-                                    >
-                                        <i className="bi bi-chevron-left me-1"></i>Anterior
-                                    </button>
-                                    <span className="small text-muted">Página {paginaTerritorios + 1}</span>
-                                    <button
-                                        className="btn btn-sm btn-outline-secondary"
-                                        disabled={!hayMasTerritorios || loading}
-                                        onClick={() => {
-                                            setTerritorioSeleccionado(null);
-                                            setManzanaSeleccionada(null);
-                                            setEdificioSeleccionado(null);
-                                            setPaginaTerritorios(paginaTerritorios + 1);
-                                        }}
-                                    >
-                                        Siguiente<i className="bi bi-chevron-right ms-1"></i>
-                                    </button>
-                                </div>
-                            </div>
+                            )}
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {territorios.length === 0 ? (
+                        <p className="text-muted small text-center">No hay territorios creados.</p>
+                    ) : (
+                        <div
+                            className="list-group list-group-flush border-0 pe-1"
+                            style={{ maxHeight: '65vh', overflowY: 'auto' }}
+                        >
+                            {territorios
+                                .filter(t => {
+                                    if (!busquedaTerritorio.trim()) return true;
+                                    const q = busquedaTerritorio.toLowerCase();
+                                    const estado = obtenerEstadoAsignacion(t);
+                                    const asignado = estado
+                                        ? `${estado.usuario.nombre || ''} ${estado.usuario.apellido || ''}`.toLowerCase()
+                                        : 'sin asignar';
+                                    return (
+                                        String(t.numero).toLowerCase().includes(q) ||
+                                        asignado.includes(q)
+                                    );
+                                })
+                                .map(t => {
+                                    const estadoAsignacion = obtenerEstadoAsignacion(t);
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setTerritorioSeleccionado(t)}
+                                            className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
+                                        >
+                                            <div>
+                                                <div className="fw-bold">Territorio {t.numero}</div>
+                                                <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
+                                                    {t.manzanas?.length || 0} manzanas
+                                                </small>
+                                                <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
+                                                    <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                    {estadoAsignacion
+                                                        ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
+                                                        : 'Sin asignar'}
+                                                </div>
+                                            </div>
+                                            <i className="bi bi-chevron-right"></i>
+                                        </button>
+                                    );
+                                })}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    )}
 
                 {/* DETALLE DEL TERRITORIO O MANZANA */}
                 <div className={manzanaSeleccionada ? "col-12" : "col-12 col-md-7 col-lg-8"}>
