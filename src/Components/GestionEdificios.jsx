@@ -72,70 +72,77 @@ const GestionEdificios = () => {
         fetchData();
     }, [fetchData]);
 
-    // ... (Mantener las funciones de territorio y manzana intactas) ...
-    const agregarTerritorio = async () => {
-        const { value: formValues } = await Swal.fire({
-            title: 'Nuevo Territorio (Edificios)',
-            html: `
-                <input id="swal-num" class="swal2-input" placeholder="Número o Nombre (Ej: 15)">
-                <div class="mt-3 text-start" style="width: 80%; margin: 0 auto;">
-                    <label class="form-label text-muted small mb-1">Imagen del mapa (Opcional)</label>
-                    <input type="file" id="swal-img-file" class="form-control" accept="image/*">
-                </div>
-            `,
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: 'Crear',
-            preConfirm: () => {
-                const numero = document.getElementById('swal-num').value;
-                const fileInput = document.getElementById('swal-img-file');
+   const agregarTerritorio = async () => {
+    const { value: formValues } = await Swal.fire({
+        title: 'Nuevo Territorio (Edificios)',
+        html: `
+            <input id="swal-num" class="swal2-input" placeholder="Número o Nombre (Ej: 15)">
+            <div class="mt-3 text-start" style="width: 80%; margin: 0 auto;">
+                <label class="form-label text-muted small mb-1">Imagen del mapa (Opcional)</label>
+                <input type="file" id="swal-img-file" class="form-control" accept="image/*">
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Crear',
+        preConfirm: () => {
+            const numero = document.getElementById('swal-num').value.trim();
+            const fileInput = document.getElementById('swal-img-file');
 
-                if (!numero) {
-                    Swal.showValidationMessage('El número de territorio es obligatorio');
+            if (!numero) {
+                Swal.showValidationMessage('El número de territorio es obligatorio');
+                return false;
+            }
+
+            let imagenFile = null;
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.showValidationMessage('La imagen es muy pesada (Máximo 5MB)');
                     return false;
                 }
-
-                return new Promise((resolve) => {
-                    if (fileInput.files.length > 0) {
-                        const file = fileInput.files[0];
-                        if (file.size > 5 * 1024 * 1024) {
-                            Swal.showValidationMessage('La imagen es muy pesada (Máximo 5MB)');
-                            resolve(false);
-                            return;
-                        }
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            resolve({ numero: numero, imagen: e.target.result });
-                        };
-                        reader.onerror = () => {
-                            Swal.showValidationMessage('Error al leer la imagen');
-                            resolve(false);
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        resolve({ numero: numero, imagen: null });
-                    }
-                });
+                imagenFile = file;
             }
-        });
 
-        if (formValues && formValues.numero) {
-            try {
-                const res = await fetchConCsrf(`${api}/territorios/agregar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(formValues)
-                });
-                if (res.ok) {
-                    Toast.fire({ icon: 'success', title: 'Territorio creado' });
-                    fetchData();
-                } else throw new Error("Error backend");
-            } catch (e) {
-                Toast.fire({ icon: 'error', title: 'No se pudo crear el territorio' });
-            }
+            return { numero, imagenFile };
         }
-    };
+    });
+
+    if (formValues && formValues.numero) {
+        try {
+            const formData = new FormData();
+
+            // 1. Parte "territorio" como JSON (coincide con @RequestPart("territorio"))
+            formData.append(
+                'territorio',
+                new Blob([JSON.stringify({ numero: formValues.numero })], {
+                    type: 'application/json'
+                })
+            );
+
+            // 2. Parte "imagen" como archivo crudo (coincide con @RequestPart("imagen"))
+            if (formValues.imagenFile) {
+                formData.append('imagen', formValues.imagenFile);
+            }
+
+            const res = await fetchConCsrf(`${api}/territorios/agregar`, {
+                method: 'POST',
+                // NO pongas 'Content-Type': 'application/json', el navegador lo configura solo para FormData
+                credentials: 'include',
+                body: formData
+            });
+
+            if (res.ok) {
+                Toast.fire({ icon: 'success', title: 'Territorio creado' });
+                fetchData();
+            } else {
+                throw new Error("Error backend");
+            }
+        } catch (e) {
+            Toast.fire({ icon: 'error', title: 'No se pudo crear el territorio' });
+        }
+    }
+};
 
     const editarAsignacion = async (territorio, asignadoAId) => {
         const usuarioAsignado = usuarios.find(u => u.id === parseInt(asignadoAId));
