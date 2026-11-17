@@ -15,6 +15,7 @@ import AdminSalidas from '../Components/AdminSalidas.jsx'
 import { Link } from 'react-router-dom'
 import { obtenerPermisosAdmin } from '../utils/permisos'
 import { traerTodosLosUsuarios } from '../utils/usuarios'
+import imageCompression from 'browser-image-compression';
 
 const Admin = () => {
   const {numeros}= useContext(NumerosContext)

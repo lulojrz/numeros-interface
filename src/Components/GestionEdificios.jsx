@@ -72,7 +72,7 @@ const GestionEdificios = () => {
         fetchData();
     }, [fetchData]);
 
-  const agregarTerritorio = async () => {
+const agregarTerritorio = async () => {
     const { value: formValues } = await Swal.fire({
         title: 'Nuevo Territorio (Edificios)',
         html: `
@@ -97,8 +97,8 @@ const GestionEdificios = () => {
             let imagenFile = null;
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                if (file.size > 5 * 1024 * 1024) {
-                    Swal.showValidationMessage('La imagen es muy pesada (Máximo 5MB)');
+                if (file.size > 10 * 1024 * 1024) {
+                    Swal.showValidationMessage('La imagen es muy pesada (Máximo 10MB)');
                     return false;
                 }
                 imagenFile = file;
@@ -115,9 +115,16 @@ const GestionEdificios = () => {
             // 1. Parte "territorio" como String JSON (coincide con @RequestParam("territorio"))
             formData.append('territorio', JSON.stringify({ numero: formValues.numero }));
 
-            // 2. Parte "imagen" como archivo crudo (coincide con @RequestPart("imagen"))
+            // 2. Comprime a WebP (máx ~400 KB) y adjunta al FormData
             if (formValues.imagenFile) {
-                formData.append('imagen', formValues.imagenFile);
+                const opciones = {
+                    maxSizeMB: 0.4,
+                    maxWidthOrHeight: 1600,
+                    useWebWorker: true,
+                    fileType: 'image/webp'
+                };
+                const imagenOptimizada = await imageCompression(formValues.imagenFile, opciones);
+                formData.append('imagen', imagenOptimizada, 'mapa.webp');
             }
 
             const res = await fetchConCsrf(`${api}/territorios/agregar`, {
