@@ -151,7 +151,7 @@ const AdminSalidas = () => {
                                             <div className="accordion-item" key={dia}>
                                                 <h2 className="accordion-header">
                                                     <button className="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target={`#col-${dia}`}>
-                                                        {dia}s ({lista.length})
+                                                        {dia} ({lista.length})
                                                     </button>
                                                 </h2>
                                                 <div id={`col-${dia}`} className="accordion-collapse collapse" data-bs-parent="#accordionDisp">
