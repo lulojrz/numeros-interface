@@ -72,7 +72,7 @@ const GestionEdificios = () => {
         fetchData();
     }, [fetchData]);
 
-   const agregarTerritorio = async () => {
+  const agregarTerritorio = async () => {
     const { value: formValues } = await Swal.fire({
         title: 'Nuevo Territorio (Edificios)',
         html: `
@@ -112,13 +112,8 @@ const GestionEdificios = () => {
         try {
             const formData = new FormData();
 
-            // 1. Parte "territorio" como JSON (coincide con @RequestPart("territorio"))
-            formData.append(
-                'territorio',
-                new Blob([JSON.stringify({ numero: formValues.numero })], {
-                    type: 'application/json'
-                })
-            );
+            // 1. Parte "territorio" como String JSON (coincide con @RequestParam("territorio"))
+            formData.append('territorio', JSON.stringify({ numero: formValues.numero }));
 
             // 2. Parte "imagen" como archivo crudo (coincide con @RequestPart("imagen"))
             if (formValues.imagenFile) {
@@ -127,7 +122,6 @@ const GestionEdificios = () => {
 
             const res = await fetchConCsrf(`${api}/territorios/agregar`, {
                 method: 'POST',
-                // NO pongas 'Content-Type': 'application/json', el navegador lo configura solo para FormData
                 credentials: 'include',
                 body: formData
             });
@@ -136,7 +130,9 @@ const GestionEdificios = () => {
                 Toast.fire({ icon: 'success', title: 'Territorio creado' });
                 fetchData();
             } else {
-                throw new Error("Error backend");
+                const errorText = await res.text();
+                console.error("Detalle error backend:", errorText);
+                throw new Error(errorText || "Error backend");
             }
         } catch (e) {
             Toast.fire({ icon: 'error', title: 'No se pudo crear el territorio' });
