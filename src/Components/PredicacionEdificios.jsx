@@ -44,6 +44,9 @@ const PredicacionEdificios = () => {
     const [manzanaSel, setManzanaSel] = useState(null);
     const [edificioSel, setEdificioSel] = useState(null);
     const [mapaViewer, setMapaViewer] = useState(null);
+    const [busquedaVistaTerritorios, setBusquedaVistaTerritorios] = useState('');
+    const [paginaLocal, setPaginaLocal] = useState(0);
+    const POR_PAGINA = 12;
 
     const api = import.meta.env.VITE_API_URL;
     const Toast = Swal.mixin({
@@ -286,378 +289,445 @@ const PredicacionEdificios = () => {
                 </div>
             )}
             {/* VISTA 1: TERRITORIOS */}
-{vistaActual === 'territorios' && (
-    <>
-        <div className="row g-3">
-            {territorios.length === 0 ? (
-                <div className="col-12 text-center text-muted py-5">No hay territorios creados.</div>
-            ) : (
-                territorios.map(t => {
-                    const hoy = new Date();
+            {vistaActual === 'territorios' && (() => {
+                const hoy = new Date();
+
+                // 1. Filtrado solo por buscador en memoria
+                const territoriosFiltrados = territorios.filter(t => {
+                    if (!busquedaVistaTerritorios.trim()) return true;
+                    const q = busquedaVistaTerritorios.toLowerCase();
                     const estadoAsignacion = obtenerEstadoAsignacion(t, hoy);
-                    const asignacionesRecientes = [...(Array.isArray(t.asignaciones) ? t.asignaciones : [])]
-                        .sort((a, b) => new Date(b.fechaAsignacion || 0) - new Date(a.fechaAsignacion || 0))
-                        .slice(0, 3);
-                    let diffDays = null;
-                    let tieneAlarma = false;
-                    let textoAlarma = '';
+                    const nombreAsignado = estadoAsignacion
+                        ? `${estadoAsignacion.usuario.nombre || ''} ${estadoAsignacion.usuario.apellido || ''}`.toLowerCase()
+                        : '';
+                    return String(t.numero).toLowerCase().includes(q) || nombreAsignado.includes(q);
+                });
 
-                    if (!t.ultimaFechaTrabajada) {
-                        tieneAlarma = true;
-                        textoAlarma = '¡Alarma! Sin trabajar';
-                    } else {
-                        const f = new Date(t.ultimaFechaTrabajada);
-                        diffDays = Math.ceil(Math.abs(hoy - f) / (1000 * 60 * 60 * 24));
-                        if (diffDays >= 120) {
-                            tieneAlarma = true;
-                            textoAlarma = `¡Alarma! Hace ${Math.floor(diffDays / 30)} meses`;
-                        }
-                    }
+                // 2. Paginación en memoria (de a 12 tarjetas)
+                const totalPaginas = Math.max(1, Math.ceil(territoriosFiltrados.length / POR_PAGINA));
+                const paginaSegura = Math.min(paginaLocal, totalPaginas - 1);
+                const territoriosPaginados = territoriosFiltrados.slice(
+                    paginaSegura * POR_PAGINA,
+                    (paginaSegura + 1) * POR_PAGINA
+                );
 
-                    return (
-                        <div className="col-12 col-md-6 col-lg-4" key={t.id}>
-                            <div 
-                                className={`card h-100 border-0 shadow-sm ${!isPublicador && tieneAlarma ? 'border-start border-4 border-danger' : ''}`}
-                                onClick={() => irAManzanas(t)} 
-                                style={{cursor: 'pointer'}}
-                            >
-                                <div className="card-body d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                            <h5 className="fw-bold mb-0">Territorio {t.numero}</h5>
-                                            {!isPublicador && tieneAlarma && (
-                                                <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
-                                                    <i className="bi bi-bell-fill me-1"></i> {textoAlarma}
-                                                </span>
-                                            )}
-                                            {!isPublicador && !tieneAlarma && diffDays !== null && diffDays <= 30 && (
-                                                <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
-                                                    <i className="bi bi-check-circle-fill me-1"></i> Al día ({diffDays}d)
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="text-muted small mt-1">
-                                            <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
-                                        </div>
-                                        {!isPublicador && (
-                                            <div className="text-muted small mt-1">
-                                                <i className="bi bi-calendar-check me-1"></i> 
-                                                Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
-                                            </div>
+                return (
+                    <>
+                        {/* BUSCADOR */}
+                        {territorios.length > 0 && (
+                            <div className="row mb-3">
+                                <div className="col-12 col-md-6 col-lg-4">
+                                    <div className="input-group input-group-sm shadow-sm">
+                                        <span className="input-group-text bg-body border-end-0">
+                                            <i className="bi bi-search text-muted"></i>
+                                        </span>
+                                        <input
+                                            type="text"
+                                            className="form-control bg-body border-start-0"
+                                            placeholder="Buscar territorio o persona..."
+                                            value={busquedaVistaTerritorios}
+                                            onChange={(e) => {
+                                                setBusquedaVistaTerritorios(e.target.value);
+                                                setPaginaLocal(0);
+                                            }}
+                                        />
+                                        {busquedaVistaTerritorios && (
+                                            <button
+                                                className="btn btn-outline-secondary border-start-0"
+                                                type="button"
+                                                onClick={() => {
+                                                    setBusquedaVistaTerritorios('');
+                                                    setPaginaLocal(0);
+                                                }}
+                                            >
+                                                <i className="bi bi-x"></i>
+                                            </button>
                                         )}
-                                        <div className={`badge mt-2 ${estadoAsignacion ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
-                                            <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                            {estadoAsignacion
-                                                ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
-                                                : 'Sin asignar'}
-                                        </div>
                                     </div>
-                                    <i className="bi bi-chevron-right text-primary fs-4"></i>
                                 </div>
                             </div>
+                        )}
+
+                        {/* GRILLA DE TARJETAS */}
+                        <div className="row g-3">
+                            {territoriosPaginados.length === 0 ? (
+                                <div className="col-12 text-center text-muted py-5">
+                                    {territorios.length === 0 ? 'No hay territorios creados.' : 'No se encontraron territorios con esa búsqueda.'}
+                                </div>
+                            ) : (
+                                territoriosPaginados.map(t => {
+                                    const estadoAsignacion = obtenerEstadoAsignacion(t, hoy);
+                                    let diffDays = null;
+                                    let tieneAlarma = false;
+                                    let textoAlarma = '';
+
+                                    if (!t.ultimaFechaTrabajada) {
+                                        tieneAlarma = true;
+                                        textoAlarma = '¡Alarma! Sin trabajar';
+                                    } else {
+                                        const f = new Date(t.ultimaFechaTrabajada);
+                                        diffDays = Math.ceil(Math.abs(hoy - f) / (1000 * 60 * 60 * 24));
+                                        if (diffDays >= 120) {
+                                            tieneAlarma = true;
+                                            textoAlarma = `¡Alarma! Hace ${Math.floor(diffDays / 30)} meses`;
+                                        }
+                                    }
+
+                                    return (
+                                        <div className="col-12 col-md-6 col-lg-4" key={t.id}>
+                                            <div
+                                                className={`card h-100 border-0 shadow-sm ${!isPublicador && tieneAlarma ? 'border-start border-4 border-danger' : ''}`}
+                                                onClick={() => irAManzanas(t)}
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                <div className="card-body d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                            <h5 className="fw-bold mb-0">Territorio {t.numero}</h5>
+                                                            {!isPublicador && tieneAlarma && (
+                                                                <span className="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                                    <i className="bi bi-bell-fill me-1"></i> {textoAlarma}
+                                                                </span>
+                                                            )}
+                                                            {!isPublicador && !tieneAlarma && diffDays !== null && diffDays <= 30 && (
+                                                                <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                                    <i className="bi bi-check-circle-fill me-1"></i> Al día ({diffDays}d)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-muted small mt-1">
+                                                            <i className="bi bi-grid-3x3 me-1"></i> {t.manzanas?.length || 0} Manzanas
+                                                        </div>
+                                                        {!isPublicador && (
+                                                            <div className="text-muted small mt-1">
+                                                                <i className="bi bi-calendar-check me-1"></i>
+                                                                Última visita: {t.ultimaFechaTrabajada ? new Date(t.ultimaFechaTrabajada).toLocaleDateString() : 'Ninguna'}
+                                                            </div>
+                                                        )}
+                                                        <div className={`badge mt-2 ${estadoAsignacion ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-body-tertiary text-body-secondary border'}`}>
+                                                            <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                            {estadoAsignacion
+                                                                ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
+                                                                : 'Sin asignar'}
+                                                        </div>
+                                                    </div>
+                                                    <i className="bi bi-chevron-right text-primary fs-4"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
-                    );
-                })
-            )}
-        </div>
 
-        {/* PAGINACIÓN FUERA DEL MAP Y DE LA FILA */}
-        <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
-            <button
-                className="btn btn-sm btn-outline-secondary"
-                disabled={paginaTerritorios === 0 || loading}
-                onClick={() => setPaginaTerritorios(paginaTerritorios - 1)}
-            >
-                <i className="bi bi-chevron-left me-1"></i>Anterior
-            </button>
-            <span className="small text-muted">Página {paginaTerritorios + 1}</span>
-            <button
-                className="btn btn-sm btn-outline-secondary"
-                disabled={!hayMasTerritorios || loading}
-                onClick={() => setPaginaTerritorios(paginaTerritorios + 1)}
-            >
-                Siguiente<i className="bi bi-chevron-right ms-1"></i>
-            </button>
-        </div>
-    </>
-)}
+                        {/* PAGINACIÓN INSTANTÁNEA EN MEMORIA */}
+                        {totalPaginas > 1 && (
+                            <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
+                                <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    disabled={paginaSegura === 0}
+                                    onClick={() => {
+                                        setPaginaLocal(paginaSegura - 1);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                >
+                                    <i className="bi bi-chevron-left me-1"></i>Anterior
+                                </button>
+                                <span className="small text-muted">
+                                    Página <strong>{paginaSegura + 1}</strong> de {totalPaginas}
+                                </span>
+                                <button
+                                    className="btn btn-sm btn-outline-secondary"
+                                    disabled={paginaSegura >= totalPaginas - 1}
+                                    onClick={() => {
+                                        setPaginaLocal(paginaSegura + 1);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                >
+                                    Siguiente<i className="bi bi-chevron-right ms-1"></i>
+                                </button>
+                            </div>
+                        )}
+                    </>
+                );
+            })()}
 
 
-          
-    
 
 
-{/* VISTA 2: MANZANAS */ }
-{
-    vistaActual === 'manzanas' && tActual && (
-        <div className="row g-3">
-            <div className="col-12">
-                {tActual.imagen && (
-                    <button onClick={() => setMapaViewer(tActual.imagen)} className="btn btn-outline-info w-100 bg-body shadow-sm fw-bold mb-3">
-                        <i className="bi bi-map me-2"></i> Ver Mapa del Territorio
-                    </button>
-                )}
-            </div>
-            {(!tActual.manzanas || tActual.manzanas.length === 0) ? (
-                <div className="col-12 text-center text-muted py-5">Este territorio no tiene manzanas.</div>
-            ) : (
-                tActual.manzanas.map(m => (
-                    <div className="col-12 col-md-6" key={m.id}>
-                        <div className="card h-100 border-0 shadow-sm" onClick={() => irAEdificios(m)} style={{ cursor: 'pointer' }}>
-                            <div className="card-body">
-                                <div className="d-flex justify-content-between">
-                                    <h5 className="fw-bold text-primary">
-                                        {m.nombre}
-                                        {m.completada && <span className="ms-2 badge bg-success align-middle" style={{ fontSize: '0.6rem' }}>COMPLETADA ${m.ultima_fecha_trabajada}</span>}
-                                    </h5>
-                                    <i className="bi bi-chevron-right text-muted"></i>
+
+
+            {/* VISTA 2: MANZANAS */}
+            {
+                vistaActual === 'manzanas' && tActual && (
+                    <div className="row g-3">
+                        <div className="col-12">
+                            {tActual.imagen && (
+                                <button onClick={() => setMapaViewer(tActual.imagen)} className="btn btn-outline-info w-100 bg-body shadow-sm fw-bold mb-3">
+                                    <i className="bi bi-map me-2"></i> Ver Mapa del Territorio
+                                </button>
+                            )}
+                        </div>
+                        {(!tActual.manzanas || tActual.manzanas.length === 0) ? (
+                            <div className="col-12 text-center text-muted py-5">Este territorio no tiene manzanas.</div>
+                        ) : (
+                            tActual.manzanas.map(m => (
+                                <div className="col-12 col-md-6" key={m.id}>
+                                    <div className="card h-100 border-0 shadow-sm" onClick={() => irAEdificios(m)} style={{ cursor: 'pointer' }}>
+                                        <div className="card-body">
+                                            <div className="d-flex justify-content-between">
+                                                <h5 className="fw-bold text-primary">
+                                                    {m.nombre}
+                                                    {m.completada && <span className="ms-2 badge bg-success align-middle" style={{ fontSize: '0.6rem' }}>COMPLETADA ${m.ultima_fecha_trabajada}</span>}
+                                                </h5>
+                                                <i className="bi bi-chevron-right text-muted"></i>
+                                            </div>
+                                            <div className="text-muted small mt-2">
+                                                N: {m.calleNorte} | S: {m.calleSur} <br />
+                                                E: {m.calleEste} | O: {m.calleOeste}
+                                            </div>
+                                            <div className="mt-3">
+                                                <span className="badge bg-primary rounded-pill">{m.edificios?.length || 0} Edificios</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="text-muted small mt-2">
-                                    N: {m.calleNorte} | S: {m.calleSur} <br />
-                                    E: {m.calleEste} | O: {m.calleOeste}
-                                </div>
-                                <div className="mt-3">
-                                    <span className="badge bg-primary rounded-pill">{m.edificios?.length || 0} Edificios</span>
-                                </div>
+                            ))
+                        )}
+                        {!isPublicador && (
+                            <div className="col-12 mt-4 text-center">
+                                <button
+                                    className="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
+                                    onClick={async () => {
+                                        try {
+                                            const nuevaFecha = new Date().toISOString();
+                                            const nuevasFechas = tActual.fechasTrabajado ? [...tActual.fechasTrabajado, nuevaFecha] : [nuevaFecha];
+
+                                            const res = await fetchConCsrf(`${api}/territorios/editar/${tActual.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                credentials: 'include',
+                                                body: JSON.stringify({
+                                                    ...tActual,
+                                                    ultimaFechaTrabajada: nuevaFecha,
+                                                    fechasTrabajado: nuevasFechas
+                                                })
+                                            });
+                                            if (res.ok) {
+                                                Toast.fire({ icon: 'success', title: 'Territorio actualizado' });
+                                                await cargarPaginaTerritorios(paginaTerritorios, false);
+                                            }
+                                        } catch {
+                                            Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
+                                        }
+                                    }}
+                                >
+                                    <i className="bi bi-calendar-check me-2"></i>Marcar Territorio como Trabajado Hoy
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )
+            }
+
+            {/* VISTA 3: EDIFICIOS */}
+            {
+                vistaActual === 'edificios' && mActual && (
+                    <div className="row g-3">
+                        {!isPublicador && (
+                            <div className="col-12 mb-3 d-flex justify-content-end">
+                                <button
+                                    className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
+                                    onClick={async () => {
+                                        const nuevoEstado = !mActual.completada;
+                                        try {
+                                            const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                credentials: 'include',
+                                                body: JSON.stringify({
+                                                    ...mActual,
+                                                    completada: nuevoEstado,
+                                                    ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
+                                                })
+                                            });
+                                            if (res.ok) {
+                                                Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
+                                                const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
+                                                const tNew = territoriosActualizados.find(t => t.id === tActual.id);
+                                                if (tNew) {
+                                                    const mNew = tNew.manzanas.find(m => m.id === mActual.id);
+                                                    if (mNew) setManzanaSel(mNew);
+                                                }
+                                            }
+                                        } catch {
+                                            Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
+                                        }
+                                    }}
+                                >
+                                    {mActual.completada ? (
+                                        <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
+                                    ) : (
+                                        <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                        {(!mActual.edificios || mActual.edificios.length === 0) ? (
+                            <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
+                        ) : (
+                            mActual.edificios.map(e => {
+                                const total = e.departamentos?.length || 0;
+                                const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
+                                const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
+                                const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
+                                const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
+
+                                return (
+                                    <div className="col-12 col-lg-6" key={e.id}>
+                                        <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{ cursor: 'pointer' }}>
+                                            <div className="card-body">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 className="fw-bold m-0">{e.direccion}</h5>
+                                                    <span className="badge bg-secondary">{e.categoria}</span>
+                                                </div>
+                                                <div className="text-muted small mb-3">
+                                                    <i className="bi bi-bell me-1"></i> {total} timbres en total
+                                                </div>
+                                                <div className="progress" style={{ height: '8px' }}>
+                                                    <div className="progress-bar bg-success" style={{ width: `${progreso}%` }}></div>
+                                                </div>
+                                                <div className="d-flex justify-content-between small fw-bold mt-2">
+                                                    <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
+                                                    <span className="text-success">{progreso}% Cubierto</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        )}
+                    </div>
+                )
+            }
+
+            {/* VISTA 4: PORTERO ELÉCTRICO */}
+            {
+                vistaActual === 'portero' && eActual && (
+                    <div className="card border-0 shadow-sm bg-body-tertiary">
+                        <div className="card-body">
+                            <div className="alert alert-info text-center fw-bold shadow-sm">
+                                <i className="bi bi-door-open me-2"></i> Portero Eléctrico de {eActual.direccion}
+                            </div>
+
+                            <div className="row g-2 justify-content-center mt-4">
+                                {(eActual.departamentos || []).sort((a, b) => {
+                                    // Ordenar por piso (PB primero, luego numérico invertido para que pisos altos queden arriba)
+                                    // Esto es complejo, pero simplificamos con sort alfanumérico estandar
+                                    return a.piso.localeCompare(b.piso) || a.letra.localeCompare(b.letra);
+                                }).map(dpto => {
+                                    let btnClass = "btn-light border shadow-sm";
+                                    let icon = "bi-bell";
+
+                                    if (!dpto.tocar) {
+                                        btnClass = "btn-danger text-white shadow";
+                                        icon = "bi-slash-circle";
+                                    } else if (dpto.estado === 'Atendió') {
+                                        btnClass = "btn-success text-white shadow-sm";
+                                        icon = "bi-check-circle";
+                                    } else if (dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
+                                        btnClass = "btn-warning text-body shadow-sm";
+                                        icon = "bi-house-x";
+                                    }
+
+                                    return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} />;
+                                })}
                             </div>
                         </div>
                     </div>
-                ))
-            )}
-            {!isPublicador && (
-                <div className="col-12 mt-4 text-center">
-                    <button
-                        className="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
-                        onClick={async () => {
-                            try {
-                                const nuevaFecha = new Date().toISOString();
-                                const nuevasFechas = tActual.fechasTrabajado ? [...tActual.fechasTrabajado, nuevaFecha] : [nuevaFecha];
+                )
+            }
 
-                                const res = await fetchConCsrf(`${api}/territorios/editar/${tActual.id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: JSON.stringify({
-                                        ...tActual,
-                                        ultimaFechaTrabajada: nuevaFecha,
-                                        fechasTrabajado: nuevasFechas
-                                    })
-                                });
-                                if (res.ok) {
-                                    Toast.fire({ icon: 'success', title: 'Territorio actualizado' });
-                                    await cargarPaginaTerritorios(paginaTerritorios, false);
-                                }
-                            } catch {
-                                Toast.fire({ icon: 'error', title: 'Error al actualizar territorio' });
-                            }
-                        }}
-                    >
-                        <i className="bi bi-calendar-check me-2"></i>Marcar Territorio como Trabajado Hoy
-                    </button>
-                </div>
-            )}
-        </div>
-    )
-}
+            {/* VISTA 5: ESTADISTICAS */}
+            {
+                vistaActual === 'estadisticas' && (
+                    <div className="card border-0 shadow-sm mb-4">
+                        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 className="m-0 fw-bold"><i className="bi bi-graph-up me-2"></i>Cobertura por Territorios</h5>
+                        </div>
+                        <div className="card-body p-0">
+                            <div className="table-responsive">
+                                <table className="table table-hover align-middle m-0">
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th className="fw-bold text-body-secondary">Territorio</th>
+                                            <th className="fw-bold text-body-secondary">Manzanas Completadas</th>
+                                            <th className="fw-bold text-body-secondary">Última vez trabajado</th>
+                                            <th className="fw-bold text-body-secondary">Historial de fechas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {territorios.sort((a, b) => parseInt(a.numero || 0) - parseInt(b.numero || 0)).map(t => {
+                                            const totalManzanas = t.manzanas?.length || 0;
+                                            const completadas = t.manzanas?.filter(m => m.completada).length || 0;
+                                            const progreso = totalManzanas === 0 ? 0 : Math.round((completadas / totalManzanas) * 100);
 
-{/* VISTA 3: EDIFICIOS */ }
-{
-    vistaActual === 'edificios' && mActual && (
-        <div className="row g-3">
-            {!isPublicador && (
-                <div className="col-12 mb-3 d-flex justify-content-end">
-                    <button
-                        className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
-                        onClick={async () => {
-                            const nuevoEstado = !mActual.completada;
-                            try {
-                                const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: JSON.stringify({
-                                        ...mActual,
-                                        completada: nuevoEstado,
-                                        ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
-                                    })
-                                });
-                                if (res.ok) {
-                                    Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
-                                    const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
-                                    const tNew = territoriosActualizados.find(t => t.id === tActual.id);
-                                    if (tNew) {
-                                        const mNew = tNew.manzanas.find(m => m.id === mActual.id);
-                                        if (mNew) setManzanaSel(mNew);
-                                    }
-                                }
-                            } catch {
-                                Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
-                            }
-                        }}
-                    >
-                        {mActual.completada ? (
-                            <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
-                        ) : (
-                            <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
-                        )}
-                    </button>
-                </div>
-            )}
-            {(!mActual.edificios || mActual.edificios.length === 0) ? (
-                <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
-            ) : (
-                mActual.edificios.map(e => {
-                    const total = e.departamentos?.length || 0;
-                    const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
-                    const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
-                    const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
-                    const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
+                                            // Últimas 3 fechas
+                                            const historial = t.fechasTrabajado ? [...t.fechasTrabajado].sort((a, b) => new Date(b) - new Date(a)).slice(0, 3) : [];
 
-                    return (
-                        <div className="col-12 col-lg-6" key={e.id}>
-                            <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{ cursor: 'pointer' }}>
-                                <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <h5 className="fw-bold m-0">{e.direccion}</h5>
-                                        <span className="badge bg-secondary">{e.categoria}</span>
-                                    </div>
-                                    <div className="text-muted small mb-3">
-                                        <i className="bi bi-bell me-1"></i> {total} timbres en total
-                                    </div>
-                                    <div className="progress" style={{ height: '8px' }}>
-                                        <div className="progress-bar bg-success" style={{ width: `${progreso}%` }}></div>
-                                    </div>
-                                    <div className="d-flex justify-content-between small fw-bold mt-2">
-                                        <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
-                                        <span className="text-success">{progreso}% Cubierto</span>
-                                    </div>
-                                </div>
+                                            return (
+                                                <tr key={t.id}>
+                                                    <td className="fw-bold text-primary">Territorio {t.numero}</td>
+                                                    <td>
+                                                        <div className="d-flex align-items-center">
+                                                            <span className="me-2 fw-semibold" style={{ minWidth: '40px' }}>{completadas}/{totalManzanas}</span>
+                                                            <div className="progress flex-grow-1" style={{ height: '8px', maxWidth: '100px' }}>
+                                                                <div className={`progress-bar ${progreso === 100 ? 'bg-success' : 'bg-primary'}`} style={{ width: `${progreso}%` }}></div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        {t.ultimaFechaTrabajada ? (
+                                                            <span className="badge bg-body-tertiary text-body border">
+                                                                <i className="bi bi-calendar-check me-1"></i>
+                                                                {new Date(t.ultimaFechaTrabajada).toLocaleDateString()}
+                                                            </span>
+                                                        ) : <span className="text-muted small">Nunca</span>}
+                                                    </td>
+                                                    <td>
+                                                        {historial.length > 0 ? (
+                                                            <div className="d-flex flex-wrap gap-1">
+                                                                {historial.map((f, i) => (
+                                                                    <span key={i} className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>
+                                                                        {new Date(f).toLocaleDateString()}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        ) : <span className="text-muted small">-</span>}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                    )
-                })
-            )}
-        </div>
-    )
-}
+                    </div>
+                )
+            }
 
-{/* VISTA 4: PORTERO ELÉCTRICO */ }
-{
-    vistaActual === 'portero' && eActual && (
-        <div className="card border-0 shadow-sm bg-body-tertiary">
-            <div className="card-body">
-                <div className="alert alert-info text-center fw-bold shadow-sm">
-                    <i className="bi bi-door-open me-2"></i> Portero Eléctrico de {eActual.direccion}
-                </div>
-
-                <div className="row g-2 justify-content-center mt-4">
-                    {(eActual.departamentos || []).sort((a, b) => {
-                        // Ordenar por piso (PB primero, luego numérico invertido para que pisos altos queden arriba)
-                        // Esto es complejo, pero simplificamos con sort alfanumérico estandar
-                        return a.piso.localeCompare(b.piso) || a.letra.localeCompare(b.letra);
-                    }).map(dpto => {
-                        let btnClass = "btn-light border shadow-sm";
-                        let icon = "bi-bell";
-
-                        if (!dpto.tocar) {
-                            btnClass = "btn-danger text-white shadow";
-                            icon = "bi-slash-circle";
-                        } else if (dpto.estado === 'Atendió') {
-                            btnClass = "btn-success text-white shadow-sm";
-                            icon = "bi-check-circle";
-                        } else if (dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
-                            btnClass = "btn-warning text-body shadow-sm";
-                            icon = "bi-house-x";
-                        }
-
-                        return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} />;
-                    })}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-{/* VISTA 5: ESTADISTICAS */ }
-{
-    vistaActual === 'estadisticas' && (
-        <div className="card border-0 shadow-sm mb-4">
-            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 className="m-0 fw-bold"><i className="bi bi-graph-up me-2"></i>Cobertura por Territorios</h5>
-            </div>
-            <div className="card-body p-0">
-                <div className="table-responsive">
-                    <table className="table table-hover align-middle m-0">
-                        <thead className="table-light">
-                            <tr>
-                                <th className="fw-bold text-body-secondary">Territorio</th>
-                                <th className="fw-bold text-body-secondary">Manzanas Completadas</th>
-                                <th className="fw-bold text-body-secondary">Última vez trabajado</th>
-                                <th className="fw-bold text-body-secondary">Historial de fechas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {territorios.sort((a, b) => parseInt(a.numero || 0) - parseInt(b.numero || 0)).map(t => {
-                                const totalManzanas = t.manzanas?.length || 0;
-                                const completadas = t.manzanas?.filter(m => m.completada).length || 0;
-                                const progreso = totalManzanas === 0 ? 0 : Math.round((completadas / totalManzanas) * 100);
-
-                                // Últimas 3 fechas
-                                const historial = t.fechasTrabajado ? [...t.fechasTrabajado].sort((a, b) => new Date(b) - new Date(a)).slice(0, 3) : [];
-
-                                return (
-                                    <tr key={t.id}>
-                                        <td className="fw-bold text-primary">Territorio {t.numero}</td>
-                                        <td>
-                                            <div className="d-flex align-items-center">
-                                                <span className="me-2 fw-semibold" style={{ minWidth: '40px' }}>{completadas}/{totalManzanas}</span>
-                                                <div className="progress flex-grow-1" style={{ height: '8px', maxWidth: '100px' }}>
-                                                    <div className={`progress-bar ${progreso === 100 ? 'bg-success' : 'bg-primary'}`} style={{ width: `${progreso}%` }}></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {t.ultimaFechaTrabajada ? (
-                                                <span className="badge bg-body-tertiary text-body border">
-                                                    <i className="bi bi-calendar-check me-1"></i>
-                                                    {new Date(t.ultimaFechaTrabajada).toLocaleDateString()}
-                                                </span>
-                                            ) : <span className="text-muted small">Nunca</span>}
-                                        </td>
-                                        <td>
-                                            {historial.length > 0 ? (
-                                                <div className="d-flex flex-wrap gap-1">
-                                                    {historial.map((f, i) => (
-                                                        <span key={i} className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>
-                                                            {new Date(f).toLocaleDateString()}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            ) : <span className="text-muted small">-</span>}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-{
-    mapaViewer && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
-                <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <i className="bi bi-x-lg"></i>
-                </button>
-                <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
-            </div>
-        </div>
-    )
-}
+            {
+                mapaViewer && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
+                            <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <i className="bi bi-x-lg"></i>
+                            </button>
+                            <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
+                        </div>
+                    </div>
+                )
+            }
         </div >
     );
 };
