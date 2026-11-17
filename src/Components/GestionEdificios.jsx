@@ -143,6 +143,7 @@ const agregarTerritorio = async () => {
             }
         } catch (e) {
             Toast.fire({ icon: 'error', title: 'No se pudo crear el territorio' });
+            console.error("Error al crear territorio:", e);
         }
     }
 };
