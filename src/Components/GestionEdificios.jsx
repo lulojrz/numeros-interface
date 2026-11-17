@@ -578,7 +578,6 @@ const agregarTerritorio = async () => {
                                         <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
                                             <div>
                                                 <h4 className="fw-bold text-primary m-0">Territorio {currentTerritorioFull.numero}</h4>
-                                                <p className="text-muted mb-0 small">ID: {currentTerritorioFull.id}</p>
                                                 <span className={`badge mt-2 ${estadoAsignacionTerritorio ? 'bg-primary' : 'bg-secondary'}`}>
                                                     <i className={`bi ${estadoAsignacionTerritorio ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
                                                     {estadoAsignacionTerritorio
