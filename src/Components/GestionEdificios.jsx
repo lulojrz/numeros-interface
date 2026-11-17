@@ -4,6 +4,7 @@ import { exportarS13 } from '../utils/exportS13';
 import { obtenerConflictoAsignacion, obtenerEstadoAsignacion } from '../utils/territorioAsignaciones';
 import { fetchConCsrf } from '../utils/csrf';
 import { TAMANO_PAGINA_TERRITORIOS, traerPaginaTerritorios, traerTodosLosTerritorios } from '../utils/territorios';
+import imageCompression from 'browser-image-compression';
 
 const GestionEdificios = () => {
     const [territorios, setTerritorios] = useState([]);
