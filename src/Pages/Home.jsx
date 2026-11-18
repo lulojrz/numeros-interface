@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import Header from '../Components/Header'
-import Numeros from '../Components/Numeros'
-import { useContext } from 'react'
 import { NumerosContext } from '../context/NumerosContext'
-import Loading from '../Components/Loading'
-import TerritoriosPersonales from '../Components/TerritoriosPersonales'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 const estaHabilitado = (valor) => valor === true || valor === 'true' || valor === 1 || valor === '1';
 
@@ -27,9 +23,9 @@ const MisSalidasBanner = () => {
           const salidasFuturas = data.filter(s => s.conductor?.id.toString() === usuarioId && s.fecha >= hoy)
                                      .sort((a,b) => a.fecha.localeCompare(b.fecha));
           
-          // Mostrar solo la próxima (o todas si queremos, pero la más urgente es mejor)
+          // Mostrar solo la más próxima
           if (salidasFuturas.length > 0) {
-            setMisSalidas([salidasFuturas[0]]); // Mostramos solo la más próxima
+            setMisSalidas([salidasFuturas[0]]);
           }
         }
       } catch (e) {
@@ -72,11 +68,19 @@ const MisSalidasBanner = () => {
 };
 
 const Home = () => {
-  const {loading, setNumero, isAuthenticated, abrirBuscador} = useContext(NumerosContext)
-  const location = useLocation()
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [numeroSeleccionadoId, setNumeroSeleccionadoId] = useState(null)
-  const [esConductor, setEsConductor] = useState(() => localStorage.getItem('conductor') === 'true')
+  const { isAuthenticated, abrirBuscador } = useContext(NumerosContext);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [esConductor, setEsConductor] = useState(() => localStorage.getItem('conductor') === 'true');
+
+  // Redireccionar si venía con estado previo apuntado a llamadas o territorios
+  useEffect(() => {
+    if (location.state?.activeTab === 'llamar' || location.state?.numeroId) {
+      navigate('/telefonica', { state: location.state, replace: true });
+    } else if (location.state?.activeTab === 'territorios') {
+      navigate('/territorios-personales', { state: location.state, replace: true });
+    }
+  }, [location.state, navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,17 +113,9 @@ const Home = () => {
     return () => { isMounted = false; };
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (location.state?.activeTab) {
-      setActiveTab(location.state.activeTab);
-    }
-    if (location.state?.numeroId) {
-      setNumeroSeleccionadoId(location.state.numeroId);
-    }
-  }, [location.state]);
   return (
     <>
-      <Header></Header>
+      <Header />
       <main className="min-vh-100 bg-body-tertiary pb-5">
         {!isAuthenticated ? (
             <div className="container py-5 mt-5 text-center">
@@ -127,7 +123,7 @@ const Home = () => {
                     <div className="col-lg-8">
                         <h1 className="display-4 fw-bold text-primary mb-4">Bienvenido a Colegiales Panel</h1>
                         <p className="lead text-body-secondary mb-5">
-                            La herramienta definitiva para disfrutar de la predicación, en todas sus facetas 
+                            La herramienta definitiva para disfrutar de la predicación, en todas sus facetas. 
                             Inicia sesión para acceder. 
                         </p>
                         <Link to="/login" className="btn btn-primary btn-lg px-5 rounded-pill shadow">
@@ -136,10 +132,9 @@ const Home = () => {
                     </div>
                 </div>
             </div>
-        ) : activeTab === 'dashboard' ? (
+        ) : (
             <div className="container py-5" style={{ maxWidth: '900px' }}>
                 <div className="mb-4">
-                 
                     <h1 className="fw-bold text-body" style={{ fontSize: '2.5rem' }}>
                         ¡Hola, {localStorage.getItem('usuario') || 'Usuario'}!
                     </h1>
@@ -209,6 +204,23 @@ const Home = () => {
                         </Link>
                     </div>
 
+                    {/* Botón Predicación Telefónica */}
+                    <div className="col-12 col-md-6">
+                        <Link 
+                            to="/telefonica" 
+                            className="btn w-100 text-start shadow-sm d-flex justify-content-between align-items-center text-decoration-none"
+                            style={{ backgroundColor: '#4b6cb7', color: 'white', borderRadius: '12px', padding: '24px 20px', border: 'none', transition: 'transform 0.2s' }}
+                            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <div className="d-flex align-items-center fw-bold fs-5">
+                                <i className="bi bi-telephone-fill me-3 fs-4"></i>
+                                Predicación Telefónica
+                            </div>
+                            <i className="bi bi-chevron-right fs-5 fw-bold"></i>
+                        </Link>
+                    </div>
+
                     {/* Botón Programa de Salidas */}
                     <div className="col-12 col-md-6">
                         <Link 
@@ -262,27 +274,10 @@ const Home = () => {
                         </Link>
                     </div>
 
-                    {/* Botón Llamados Telefónicos */}
-                    <div className="col-12 col-md-6">
-                        <button 
-                            onClick={() => setActiveTab('llamar')}
-                            className="btn w-100 text-start shadow-sm d-flex justify-content-between align-items-center text-decoration-none"
-                            style={{ backgroundColor: '#4b6cb7', color: 'white', borderRadius: '12px', padding: '24px 20px', border: 'none', transition: 'transform 0.2s' }}
-                            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                            onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                            <div className="d-flex align-items-center fw-bold fs-5">
-                                <i className="bi bi-telephone-fill me-3 fs-4"></i>
-                                Llamados Telefónicos
-                            </div>
-                            <i className="bi bi-chevron-right fs-5 fw-bold"></i>
-                        </button>
-                    </div>
-
                     {/* Botón Territorios Personales */}
                     <div className="col-12 col-md-6">
-                        <button 
-                            onClick={() => setActiveTab('territorios')}
+                        <Link 
+                            to="/territorios-personales" 
                             className="btn w-100 text-start shadow-sm d-flex justify-content-between align-items-center text-decoration-none"
                             style={{ backgroundColor: '#4b6cb7', color: 'white', borderRadius: '12px', padding: '24px 20px', border: 'none', transition: 'transform 0.2s' }}
                             onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
@@ -293,7 +288,7 @@ const Home = () => {
                                 Territorios Personales
                             </div>
                             <i className="bi bi-chevron-right fs-5 fw-bold"></i>
-                        </button>
+                        </Link>
                     </div>
 
                     {/* Botón Administración */}
@@ -313,27 +308,6 @@ const Home = () => {
                         </Link>
                     </div>
                 </div>
-            </div>
-        ) : (
-            <div className="container py-4">
-                <div className="mb-4">
-                    <button 
-                        onClick={() => { setActiveTab('dashboard'); setNumeroSeleccionadoId(null); }} 
-                        className="btn btn-outline-secondary rounded-pill shadow-sm px-4 fw-semibold d-inline-flex align-items-center"
-                    >
-                        <i className="bi bi-arrow-left me-2"></i> Volver al Inicio
-                    </button>
-                </div>
-                {activeTab === 'llamar' ? (
-                    <>
-                        <div className="text-center mb-4">
-                            <h3 className="fw-semibold text-body-secondary">Número a llamar:</h3>
-                        </div>
-                        {loading ? <Loading /> : <Numeros setNumero={setNumero} numeroSeleccionadoId={numeroSeleccionadoId} onLimpiarSeleccionado={() => setNumeroSeleccionadoId(null)} />}
-                    </>
-                ) : (
-                    <TerritoriosPersonales />
-                )}
             </div>
         )}
       </main>

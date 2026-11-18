@@ -161,9 +161,9 @@ const BuscadorGlobal = () => {
                         numero: num,
                         accion: () => {
                             cerrarBuscador();
-                            navigate('/', { 
+                            navigate('/telefonica', { 
                                 state: { 
-                                    activeTab: 'llamar', 
+                                    tab: 'llamar', 
                                     numeroId: num.id, 
                                     timestamp: Date.now() 
                                 } 
