@@ -174,316 +174,272 @@ export const NumerosProvider = ({ children }) => {
             toast.onmouseleave = Swal.resumeTimer;
         }
     });
-
     const actualizarNumero = async (objetoActualizado) => {
         // Actualización optimista de la UI
         setNumeros(prev => prev.map(n => n.id === objetoActualizado.id ? objetoActualizado : n));
 
         try {
-            await fetchConCsrf(`${api}/api/editar/${objetoActualizado.id}`, {
+            const res = await fetchConCsrf(`${api}/api/editar/${objetoActualizado.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify(objetoActualizado)
-            })
+            });
+            if (!res.ok) throw new Error('Error al editar');
+
             Toast.fire({
                 icon: 'success',
                 title: 'Número actualizado con éxito'
             });
-            cargarProductos();
-        }   
-        catch (error) {
+        } catch (error) {
             Toast.fire({
                 icon: 'error',
                 title: 'Error al actualizar el número'
             });
-            // Revertir en caso de error
-            cargarProductos();
+            // Revertir en caso de error manteniendo la página actual
+            cargarProductos(paginaNumerosRef.current);
         }
+    };
 
-    }
-
-
-        const cargarProductos = useCallback(async (page = paginaNumerosRef.current) => {
-            setLoading(true)
-            try {
-                const response = await fetch(`${api}/api/numeros?page=${page}&size=50`, { credentials: 'include' })
-                if (response.ok) {
-                    const data = await response.json()
-                    if (Array.isArray(data)) {
-                        setNumeros(data)
-                        setPaginaNumeros(page)
-                        paginaNumerosRef.current = page
-                        return data
-                    } else {
-                        setNumeros([])
-                    }
-                } else {
-                    setNumeros([])
-                }
-            }
-            catch (error) {
-                setNumeros([])
-            } finally {
-                setLoading(false)
-            }
-            return []
-        }, [api])
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            cargarProductos(0);
-        } else {
-            setNumeros([]);
-            setPaginaNumeros(0);
-            paginaNumerosRef.current = 0
-            setLoading(false);
-        }
-    }, [isAuthenticated, cargarProductos])
-
-
-        const productosFiltrados = numeros.filter((num) => {
-            const matchesDireccion = num?.direccion?.toLowerCase().includes(busqueda.toLowerCase()) ?? false;
-            const matchesTerritorio = filtroTerritorio === "" || (num?.territorio && num.territorio.toString().toLowerCase() === filtroTerritorio.toLowerCase());
-            const matchesEdificio = filtroEdificio === "" || (num?.edificio && num.edificio.toString().toLowerCase() === filtroEdificio.toLowerCase());
-
-            let matchesReservado = true;
-            if (filtroReservado === "si") matchesReservado = num?.reservado === true;
-            if (filtroReservado === "no") matchesReservado = num?.reservado === false;
-
-            let matchesFecha = true;
-            if (filtroFechaDesde || filtroFechaHasta) {
-                if (!num.ultimaFecha) {
-                    matchesFecha = false;
-                } else {
-                    const fechaNum = num.ultimaFecha.slice(0, 10);
-                    if (filtroFechaDesde && fechaNum < filtroFechaDesde) matchesFecha = false;
-                    if (filtroFechaHasta && fechaNum > filtroFechaHasta) matchesFecha = false;
-                }
-            }
-
-            return matchesDireccion && matchesTerritorio && matchesEdificio && matchesReservado && matchesFecha;
-        }).sort((a, b) => {
-            const terrA = String(a.territorio || '');
-            const terrB = String(b.territorio || '');
-            const diffTerr = terrA.localeCompare(terrB, undefined, { numeric: true, sensitivity: 'base' });
-            if (diffTerr !== 0) return diffTerr;
-
-            const edificioA = String(a.edificio || '');
-            const edificioB = String(b.edificio || '');
-            return edificioA.localeCompare(edificioB, undefined, { numeric: true, sensitivity: 'base' });
-        });
-
-
-        const eliminarNumero = async (id) => {
-            const result = await Swal.fire({
-                title: '¿Estás seguro?',
-                text: "Deseas eliminar este número? Esta acción no se puede revertir.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#0d6efd',
-                cancelButtonColor: '#dc3545',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
+    const cargarProductos = useCallback(async (page = 0) => {
+        setLoading(true);
+        try {
+            const params = new URLSearchParams({
+                page: String(page),
+                size: '50'
             });
 
-            if (!result.isConfirmed) return;
+            if (busqueda.trim()) params.append('direccion', busqueda.trim());
+            if (filtroTerritorio.trim()) params.append('territorio', filtroTerritorio.trim());
+            if (filtroEdificio.trim()) params.append('edificio', filtroEdificio.trim());
+            if (filtroReservado === 'si') params.append('reservado', 'true');
+            if (filtroReservado === 'no') params.append('reservado', 'false');
+            if (filtroFechaDesde) params.append('fechaDesde', filtroFechaDesde);
+            if (filtroFechaHasta) params.append('fechaHasta', filtroFechaHasta);
 
-            try {
-                await fetchConCsrf(`${api}/api/borrar/${id}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+            const response = await fetch(`${api}/api/numeros?${params.toString()}`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    setNumeros(data);
+                    setPaginaNumeros(page);
+                    paginaNumerosRef.current = page;
+                    return data;
+                }
+            }
+            setNumeros([]);
+        } catch (error) {
+            setNumeros([]);
+        } finally {
+            setLoading(false);
+        }
+        return [];
+    }, [api, busqueda, filtroTerritorio, filtroEdificio, filtroReservado, filtroFechaDesde, filtroFechaHasta]);
+
+    // Único useEffect para cargar y filtrar con debounce de 350 ms
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setNumeros([]);
+            setPaginaNumeros(0);
+            paginaNumerosRef.current = 0;
+            setLoading(false);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            cargarProductos(0);
+        }, 350);
+
+        return () => clearTimeout(timer);
+    }, [isAuthenticated, cargarProductos]);
+
+    const productosFiltrados = [...numeros].sort((a, b) => {
+        const terrA = String(a.territorio || '');
+        const terrB = String(b.territorio || '');
+        const diffTerr = terrA.localeCompare(terrB, undefined, { numeric: true, sensitivity: 'base' });
+        if (diffTerr !== 0) return diffTerr;
+
+        const edificioA = String(a.edificio || '');
+        const edificioB = String(b.edificio || '');
+        return edificioA.localeCompare(edificioB, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    const eliminarNumero = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Deseas eliminar este número? Esta acción no se puede revertir.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            await fetchConCsrf(`${api}/api/borrar/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Número eliminado con éxito'
+            });
+            cargarProductos(paginaNumerosRef.current);
+        } catch (error) {
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al eliminar el número'
+            });
+        }
+    };
+
+    const agregarNumero = async (number) => {
+        try {
+            await fetchConCsrf(`${api}/api/agregar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(number)
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Número agregado con éxito'
+            });
+            cargarProductos(paginaNumerosRef.current);
+        } catch (error) {
+            Toast.fire({
+                icon: 'error',
+                title: 'Error al agregar el número'
+            });
+        }
+    };
+
+
+
+
+
+    const actualizarReserva = async (filtrados, usuarioSeleccionado) => {
+        if (!filtrados || filtrados.length === 0) return;
+
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const currentDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+        const ids = filtrados.map(num => num.id);
+        const idsSet = new Set(ids);
+
+        // Actualización optimista en la UI
+        setNumeros(prev => prev.map(n => idsSet.has(n.id) ? {
+            ...n,
+            reservado: true,
+            fechaReserva: currentDate,
+            reservadoA: usuarioSeleccionado ? { usuario: usuarioSeleccionado.usuario } : null
+        } : n));
+
+        try {
+            const res = await fetchConCsrf(`${api}/api/numeros/reservar-lote`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    ids,
+                    usuario: usuarioSeleccionado ? usuarioSeleccionado.usuario : null
                 })
-                Toast.fire({
-                    icon: 'success',
-                    title: 'Número eliminado con éxito'
-                });
-                cargarProductos();
-            }
-            catch (error) {
-    
-                Toast.fire({
-                    icon: 'error',
-                    title: 'Error al eliminar el número'
-                });
-            }
+            });
+            if (!res.ok) throw new Error('Error al reservar lote');
+
+            Toast.fire({ icon: 'success', title: 'Números reservados con éxito' });
+        } catch (error) {
+            Toast.fire({ icon: 'error', title: 'Error en el servidor al guardar reservas' });
+            cargarProductos(paginaNumerosRef.current);
         }
+    };
 
+    const sacarReservados = async (filtrados) => {
+        if (!filtrados || filtrados.length === 0) return;
 
+        const ids = filtrados.map(num => num.id);
+        const idsSet = new Set(ids);
 
+        // Actualización optimista en la UI
+        setNumeros(prev => prev.map(n => idsSet.has(n.id) ? {
+            ...n,
+            reservado: false,
+            reservadoA: null,
+            fechaReserva: null
+        } : n));
 
+        try {
+            const res = await fetchConCsrf(`${api}/api/numeros/liberar-lote`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ ids })
+            });
+            if (!res.ok) throw new Error('Error al liberar lote');
 
-        const agregarNumero = async (number) => {
-
-            try {
-                await fetchConCsrf(`${api}/api/agregar`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(number)
-                })
-                Toast.fire({
-                    icon: 'success',
-                    title: 'Número agregado con éxito'
-                });
-                cargarProductos();
-            }
-            catch (error) {
-    
-                Toast.fire({
-                    icon: 'error',
-                    title: 'Error al agregar el número'
-                });
-            }
+            Toast.fire({ icon: 'success', title: 'Reservados sacados con éxito' });
+        } catch (error) {
+            Toast.fire({ icon: 'error', title: 'Error en el servidor al liberar reservas' });
+            cargarProductos(paginaNumerosRef.current);
         }
+    };
 
+    const reiniciarContesta = async (filtrados) => {
+        if (!filtrados || filtrados.length === 0) return;
 
+        const ids = filtrados.map(num => num.id);
+        const idsSet = new Set(ids);
 
+        // Actualización optimista en la UI
+        setNumeros(prev => prev.map(n => idsSet.has(n.id) ? {
+            ...n,
+            contesta: false
+        } : n));
 
-        const actualizarReserva = async (filtrados, usuarioSeleccionado) => {
+        try {
+            const res = await fetchConCsrf(`${api}/api/numeros/reiniciar-contesta-lote`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ ids })
+            });
+            if (!res.ok) throw new Error('Error al reiniciar contesta');
 
-            const d = new Date();
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            const hours = String(d.getHours()).padStart(2, '0');
-            const minutes = String(d.getMinutes()).padStart(2, '0');
-            const seconds = String(d.getSeconds()).padStart(2, '0');
-            const currentDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-            
-            let filtraditos = filtrados.map((num) => ({
-                ...num,
-                reservado: true,
-                fechaReserva: currentDate,
-                ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
-                reservadoA: usuarioSeleccionado ? { usuario: usuarioSeleccionado.usuario } : null,
-                tocar: num.tocar !== undefined ? num.tocar : true
-            }));
-
-
-            // Optimistic UI update
-            setNumeros(prev => prev.map(n => {
-                const updated = filtraditos.find(f => f.id === n.id);
-                return updated ? updated : n;
-            }));
-
-            try {
-                // Wait for all PUT requests in parallel
-                await Promise.all(filtraditos.map(num => 
-                    fetchConCsrf(`${api}/api/editar/${num.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify(num)
-                    })
-                ));
-                
-                Toast.fire({
-                    icon: 'success',
-                    title: 'Números reservados con éxito'
-                });
-            } catch (error) {
-    ;
-                Toast.fire({
-                    icon: 'error',
-                    title: 'Error en el servidor al guardar reservas'
-                });
-                cargarProductos(); // Sync with server again in case of failure
-            }
+            Toast.fire({ icon: 'success', title: 'Números marcados como "No contesta"' });
+        } catch (error) {
+            Toast.fire({ icon: 'error', title: 'Error al reiniciar contesta' });
+            cargarProductos(paginaNumerosRef.current);
         }
-        
-        const sacarReservados = async (filtrados) => {
-            let noReservados = filtrados.map((num) => ({
-                ...num,
-                reservado: false,
-                reservadoA: null,
-                fechaReserva: null,
-                ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
-                tocar: num.tocar !== undefined ? num.tocar : true
-            }));
-
-            // Optimistic UI update
-            setNumeros(prev => prev.map(n => {
-                const updated = noReservados.find(f => f.id === n.id);
-                return updated ? updated : n;
-            }));
-
-            try {
-                // Wait for all PUT requests in parallel
-                await Promise.all(noReservados.map(num => 
-                    fetchConCsrf(`${api}/api/editar/${num.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify(num)
-                    })
-                ));
-                
-                Toast.fire({
-                    icon: 'success',
-                    title: 'Reservados sacados con éxito'
-                });
-            } catch (error) {
-    ;
-                Toast.fire({
-                    icon: 'error',
-                    title: 'Error en el servidor al liberar reservas'
-                });
-                cargarProductos(); // Sync with server again in case of failure
-            }
-        }
-
-        const reiniciarContesta = async (filtrados) => {
-            let reiniciados = filtrados.map((num) => ({
-                ...num,
-                contesta: false,
-                tocar: num.tocar !== undefined ? num.tocar : true,
-                ultUsuario: num.ultUsuario && num.ultUsuario.usuario ? { usuario: num.ultUsuario.usuario } : null,
-                reservadoA: num.reservadoA && num.reservadoA.usuario ? { usuario: num.reservadoA.usuario } : null
-            }));
-
-            setNumeros(prev => prev.map(n => {
-                const updated = reiniciados.find(f => f.id === n.id);
-                return updated ? updated : n;
-            }));
-
-            try {
-                await Promise.all(reiniciados.map(num => 
-                    fetchConCsrf(`${api}/api/editar/${num.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify(num)
-                    })
-                ));
-                Toast.fire({ icon: 'success', title: 'Números marcados como "No contesta"' });
-            } catch (error) {
-                Toast.fire({ icon: 'error', title: 'Error al reiniciar contesta' });
-                cargarProductos();
-            }
-        }
+    };
 
 
-        return (
-            <NumerosContext.Provider value={{ 
-                numero, setNumero, actualizarNumero, numeros, setNumeros, error, loading, 
-                paginaNumeros,
-                isAuthenticated, setIsAuth, authReady, authCheckError, reintentarVerificacionSesion,
-                limpiarSesionLocal, eliminarNumero, seleccionado, setSeleccionado,
-                agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda, 
-                filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio, 
-                filtroReservado, setFiltroReservado, filtroFechaDesde, setFiltroFechaDesde, 
-                filtroFechaHasta, setFiltroFechaHasta, actualizarReserva, sacarReservados, 
-                reiniciarContesta, theme, setTheme,
-                isSearchOpen, setIsSearchOpen, abrirBuscador, cerrarBuscador,
-                territorios, setTerritorios, loadingTerritorios, cargarTerritorios
-            }}>
-                {children}
-            </NumerosContext.Provider>
-        )
+    return (
+        <NumerosContext.Provider value={{
+            numero, setNumero, actualizarNumero, numeros, setNumeros, error, loading,
+            paginaNumeros,
+            isAuthenticated, setIsAuth, authReady, authCheckError, reintentarVerificacionSesion,
+            limpiarSesionLocal, eliminarNumero, seleccionado, setSeleccionado,
+            agregarNumero, cargarProductos, productosFiltrados, busqueda, setBusqueda,
+            filtroTerritorio, setFiltroTerritorio, filtroEdificio, setFiltroEdificio,
+            filtroReservado, setFiltroReservado, filtroFechaDesde, setFiltroFechaDesde,
+            filtroFechaHasta, setFiltroFechaHasta, actualizarReserva, sacarReservados,
+            reiniciarContesta, theme, setTheme,
+            isSearchOpen, setIsSearchOpen, abrirBuscador, cerrarBuscador,
+            territorios, setTerritorios, loadingTerritorios, cargarTerritorios
+        }}>
+            {children}
+        </NumerosContext.Provider>
+    )
 
-    }
+}
