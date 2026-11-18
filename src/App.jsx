@@ -17,6 +17,7 @@ const AdminUsuarios = lazy(() => import('./Pages/AdminUsuarios'))
 const CambiarContrasena = lazy(() => import('./Pages/CambiarContrasena'))
 const PredicacionPublica = lazy(() => import('./Pages/PredicacionPublica'))
 const PredicacionEdificios = lazy(() => import('./Pages/PredicacionEdificios'))
+const PredicacionTelefonica = lazy(() => import('./Pages/PredicacionTelefonica'))
 const MisRevisitas = lazy(() => import('./Pages/MisRevisitas'))
 const MisDisponibilidades = lazy(() => import('./Components/MisDisponibilidades'))
 const ProgramaPredicacion = lazy(() => import('./Components/ProgramaPredicacion'))
@@ -85,7 +86,6 @@ function App() {
           <Route path='/admin/perfil' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><CambiarContrasena /></RutasProtegidas>
           } />
-          
 
           <Route path='/predicacion' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionPublica /></RutasProtegidas>
@@ -93,6 +93,22 @@ function App() {
 
           <Route path='/edificios' element={
             <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionEdificios /></RutasProtegidas>
+          } />
+
+          <Route path='/telefonica' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionTelefonica /></RutasProtegidas>
+          } />
+
+          <Route path='/predicacion-telefonica' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionTelefonica /></RutasProtegidas>
+          } />
+
+          <Route path='/territorios-personales' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionTelefonica defaultTab="territorios" /></RutasProtegidas>
+          } />
+
+          <Route path='/territorios' element={
+            <RutasProtegidas isAuthenticated={isAuthenticated}><PredicacionTelefonica defaultTab="territorios" /></RutasProtegidas>
           } />
 
           <Route path='/revisitas' element={
