@@ -63,14 +63,7 @@ const PredicacionTelefonica = ({ defaultTab = 'llamar' }) => {
                     </div>
                 </div>
 
-                <Link 
-                    to="/" 
-                    className="btn btn-outline-secondary rounded-pill shadow-sm px-3 py-1 fw-semibold d-none d-md-inline-flex align-items-center gap-2 text-decoration-none"
-                    style={{ fontSize: '0.9rem' }}
-                >
-                    <i className="bi bi-house-door-fill"></i>
-                    <span>Ir al Inicio</span>
-                </Link>
+                
             </div>
 
             {/* Pestañas de Navegación */}
