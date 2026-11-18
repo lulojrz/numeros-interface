@@ -341,18 +341,7 @@ const AdminUsuarios = () => {
                                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                                     <h4 className="mb-0">Lista de Usuarios</h4>
                                     <div className="mt-2 mt-md-0 d-flex flex-column flex-sm-row align-items-start align-items-sm-center flex-wrap gap-2 w-100 w-md-auto">
-                                        <div className="w-100 w-sm-auto">
-                                            <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Reservas:</label>
-                                            <select 
-                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block" 
-                                                value={filtroReservas}
-                                                onChange={(e) => setFiltroReservas(e.target.value)}
-                                            >
-                                                <option value="todos">Todos</option>
-                                                <option value="conReservas">Con reservas</option>
-                                                <option value="sinReservas">Sin reservas</option>
-                                            </select>
-                                        </div>
+                                       
                                         <div className="w-100 w-sm-auto mt-2 mt-sm-0">
                                             <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Inventario:</label>
                                             <select 
