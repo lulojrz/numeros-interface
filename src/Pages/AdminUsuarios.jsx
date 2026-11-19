@@ -302,7 +302,7 @@ const AdminUsuarios = () => {
 
     useEffect(() => {
         setPaginaUsuarios(1);
-    }, [busquedaUsuario, filtroInventario, filtroReservas, filtroGrupo, filtroPrivilegio]);
+    }, [busquedaUsuario, filtroInventario, filtroGrupo, filtroPrivilegio]);
 
     useEffect(() => {
         if (paginaUsuarios !== paginaActualUsuarios) setPaginaUsuarios(paginaActualUsuarios);
