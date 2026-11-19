@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { NumerosContext } from '../context/NumerosContext';
 import { fetchConCsrf } from '../utils/csrf';
 import { esSoporte } from '../utils/permisos';
 import { traerTodosLosUsuarios } from '../utils/usuarios';
@@ -55,18 +54,17 @@ const asignacionesDisponibles = [
 const gruposDisponibles = ['Grupo 1', 'Grupo 2', 'Grupo 3', 'Grupo 4', 'Grupo 5'];
 
 const AdminUsuarios = () => {
-    const { numeros } = useContext(NumerosContext);
+  
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [clickAgregar, setClickAgregar] = useState(false);
     const [usuarioEditando, setUsuarioEditando] = useState(null);
-    const [filtroReservas, setFiltroReservas] = useState('todos');
     const [filtroGrupo, setFiltroGrupo] = useState('todos');
     const [filtroPrivilegio, setFiltroPrivilegio] = useState('todos');
     const [paginaUsuarios, setPaginaUsuarios] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
-    
+
     // Form state
     const [formData, setFormData] = useState(formularioVacio);
     const [filtroInventario, setFiltroInventario] = useState('todos');
@@ -121,7 +119,7 @@ const AdminUsuarios = () => {
 
     const handleAgregar = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.usuario.trim() || !formData.telefono.trim() || !formData.contrasena.trim()) {
             Toast.fire({ icon: 'warning', title: 'Por favor, no dejes campos obligatorios en blanco.' });
             return;
@@ -137,7 +135,7 @@ const AdminUsuarios = () => {
                 credentials: 'include',
                 body: JSON.stringify(formData)
             });
-            
+
             if (response.ok) {
                 Toast.fire({
                     icon: 'success',
@@ -183,7 +181,7 @@ const AdminUsuarios = () => {
                 credentials: 'include',
                 body: JSON.stringify({ ...usuarioEditando, ...datosEdicion })
             });
-            
+
             if (response.ok) {
                 if (usuarioEditando.usuario === loggedInUsername && formData.usuario !== loggedInUsername) {
                     localStorage.setItem('usuario', formData.usuario);
@@ -192,7 +190,7 @@ const AdminUsuarios = () => {
                     icon: 'success',
                     title: 'Usuario editado con éxito'
                 });
-                
+
                 // Only reset the form if the user is ANC, otherwise keep them on the edit form
                 if (puedeGestionarUsuarios) {
                     setFormData(formularioVacio());
@@ -271,18 +269,25 @@ const AdminUsuarios = () => {
         setFormData(formularioVacio());
     };
 
+    const [busquedaUsuario, setBusquedaUsuario] = useState('');
+
+    // 2. Dentro de usuariosFiltrados:
     const usuariosFiltrados = usuarios.filter(u => {
+        if (busquedaUsuario.trim() !== '') {
+            const q = busquedaUsuario.trim().toLowerCase();
+            const coincide =
+                (u.nombre && u.nombre.toLowerCase().includes(q)) ||
+                (u.apellido && u.apellido.toLowerCase().includes(q)) ||
+                (u.usuario && u.usuario.toLowerCase().includes(q)) ||
+                (`${u.nombre || ''} ${u.apellido || ''}`.toLowerCase().includes(q));
+            if (!coincide) return false;
+        }
+
         if (filtroInventario === 'conCarrito' && !u.carrito) return false;
         if (filtroInventario === 'conBanner' && !u.banner) return false;
         if (filtroGrupo !== 'todos' && (u.grupo || '') !== filtroGrupo) return false;
         if (filtroPrivilegio !== 'todos' && u.privilegio !== filtroPrivilegio) return false;
 
-        if (filtroReservas === 'todos') return true;
-        
-        const tieneReservas = numeros.some(n => n.reservado === true && n.reservadoA?.usuario === u.usuario);
-        
-        if (filtroReservas === 'conReservas') return tieneReservas;
-        if (filtroReservas === 'sinReservas') return !tieneReservas;
         return true;
     });
     const usuariosPorPagina = 20;
@@ -297,7 +302,7 @@ const AdminUsuarios = () => {
 
     useEffect(() => {
         setPaginaUsuarios(1);
-    }, [filtroInventario, filtroReservas, filtroGrupo, filtroPrivilegio]);
+    }, [busquedaUsuario, filtroInventario, filtroReservas, filtroGrupo, filtroPrivilegio]);
 
     useEffect(() => {
         if (paginaUsuarios !== paginaActualUsuarios) setPaginaUsuarios(paginaActualUsuarios);
@@ -341,11 +346,21 @@ const AdminUsuarios = () => {
                                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                                     <h4 className="mb-0">Lista de Usuarios</h4>
                                     <div className="mt-2 mt-md-0 d-flex flex-column flex-sm-row align-items-start align-items-sm-center flex-wrap gap-2 w-100 w-md-auto">
-                                       
+
+
+                                        <div className="w-100 w-sm-auto">
+                                            <input
+                                                type="search"
+                                                className="form-control form-control-sm"
+                                                placeholder="Buscar por nombre o usuario..."
+                                                value={busquedaUsuario}
+                                                onChange={(e) => setBusquedaUsuario(e.target.value)}
+                                            />
+                                        </div>
                                         <div className="w-100 w-sm-auto mt-2 mt-sm-0">
                                             <label className="me-2 fw-semibold text-muted small d-block d-sm-inline">Inventario:</label>
-                                            <select 
-                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block" 
+                                            <select
+                                                className="form-select form-select-sm w-100 w-sm-auto d-inline-block"
                                                 value={filtroInventario}
                                                 onChange={(e) => setFiltroInventario(e.target.value)}
                                             >
@@ -382,7 +397,7 @@ const AdminUsuarios = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 {/* Vista Desktop */}
                                 <div className="table-responsive shadow-sm rounded d-none d-md-block">
                                     <table className="table table-hover table-striped align-middle mb-0">
@@ -405,45 +420,45 @@ const AdminUsuarios = () => {
                                                 const tieneNumero = u.telefono && u.telefono.trim() !== "";
                                                 const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
                                                 return (
-                                                <tr key={u.id}>
-                                                    <td>{u.nombre}</td>
-                                                    <td>{u.apellido}</td>
-                                                    <td>{u.usuario}</td>
-                                                    <td>
-                                                        {tieneNumero ? (
-                                                            <a 
-                                                                href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${u.nombre}, `)}`}
-                                                                target="_blank" rel="noopener noreferrer"
-                                                                className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-2 py-0"
-                                                                title={u.telefono}
-                                                            >
-                                                                <i className="bi bi-whatsapp"></i>
-                                                            </a>
-                                                        ) : (
-                                                            <span className="text-muted small fst-italic">Sin tel</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="text-center">
-                                                        {u.carrito && <span title="Tiene Carrito" className="me-1">🛒</span>}
-                                                        {u.banner && <span title="Tiene Banner">🏳️</span>}
-                                                    </td>
-                                                    <td className="text-center">
-                                                        {estaHabilitado(u.conductor) ? <span className="badge bg-success">Sí</span> : <span className="text-muted">No</span>}
-                                                    </td>
-                                                    <td><span className="badge bg-secondary">{u.privilegio}</span></td>
-                                                    <td>{u.asignacion ? <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
-                                                    <td>{u.grupo ? <span className="badge border border-primary text-primary">{u.grupo}</span> : <span className="text-muted small">-</span>}</td>
-                                                    <td className="text-center">
-                                                        <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
-                                                            <i className="bi bi-pencil"></i> Editar
-                                                        </button>
-                                                        {puedeGestionarUsuarios && u.usuario !== loggedInUsername && (
-                                                            <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
-                                                                {deletingId === u.id ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-trash"></i>}
+                                                    <tr key={u.id}>
+                                                        <td>{u.nombre}</td>
+                                                        <td>{u.apellido}</td>
+                                                        <td>{u.usuario}</td>
+                                                        <td>
+                                                            {tieneNumero ? (
+                                                                <a
+                                                                    href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${u.nombre}, `)}`}
+                                                                    target="_blank" rel="noopener noreferrer"
+                                                                    className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-2 py-0"
+                                                                    title={u.telefono}
+                                                                >
+                                                                    <i className="bi bi-whatsapp"></i>
+                                                                </a>
+                                                            ) : (
+                                                                <span className="text-muted small fst-italic">Sin tel</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="text-center">
+                                                            {u.carrito && <span title="Tiene Carrito" className="me-1">🛒</span>}
+                                                            {u.banner && <span title="Tiene Banner">🏳️</span>}
+                                                        </td>
+                                                        <td className="text-center">
+                                                            {estaHabilitado(u.conductor) ? <span className="badge bg-success">Sí</span> : <span className="text-muted">No</span>}
+                                                        </td>
+                                                        <td><span className="badge bg-secondary">{u.privilegio}</span></td>
+                                                        <td>{u.asignacion ? <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span> : <span className="text-muted small fst-italic">Ninguna</span>}</td>
+                                                        <td>{u.grupo ? <span className="badge border border-primary text-primary">{u.grupo}</span> : <span className="text-muted small">-</span>}</td>
+                                                        <td className="text-center">
+                                                            <button className="btn btn-sm btn-primary me-2" onClick={() => abrirFormularioEditar(u)}>
+                                                                <i className="bi bi-pencil"></i> Editar
                                                             </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
+                                                            {puedeGestionarUsuarios && u.usuario !== loggedInUsername && (
+                                                                <button className="btn btn-sm btn-danger" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
+                                                                    {deletingId === u.id ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-trash"></i>}
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
                                                 );
                                             })}
                                             {usuariosVisibles.length === 0 && (
@@ -461,47 +476,47 @@ const AdminUsuarios = () => {
                                         const tieneNumero = u.telefono && u.telefono.trim() !== "";
                                         const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
                                         return (
-                                        <div key={u.id} className="card shadow-sm mb-3">
-                                            <div className="card-body">
-                                                <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
-                                                    <h5 className="card-title mb-0 text-primary fw-bold text-break" style={{maxWidth: '100%'}}>{u.usuario}</h5>
-                                                    <div className="d-flex flex-wrap gap-1">
-                                                        <span className="badge bg-secondary">{u.privilegio}</span>
-                                                        {estaHabilitado(u.conductor) && <span className="badge bg-success">Conductor</span>}
-                                                        {u.asignacion && <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span>}
-                                                        {u.grupo && <span className="badge border border-primary text-primary">{u.grupo}</span>}
+                                            <div key={u.id} className="card shadow-sm mb-3">
+                                                <div className="card-body">
+                                                    <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                                                        <h5 className="card-title mb-0 text-primary fw-bold text-break" style={{ maxWidth: '100%' }}>{u.usuario}</h5>
+                                                        <div className="d-flex flex-wrap gap-1">
+                                                            <span className="badge bg-secondary">{u.privilegio}</span>
+                                                            {estaHabilitado(u.conductor) && <span className="badge bg-success">Conductor</span>}
+                                                            {u.asignacion && <span className="badge bg-info text-body text-capitalize">{u.asignacion}</span>}
+                                                            {u.grupo && <span className="badge border border-primary text-primary">{u.grupo}</span>}
+                                                        </div>
+                                                    </div>
+                                                    <p className="card-text mb-1 text-muted small">
+                                                        <strong>Nombre:</strong> {u.nombre} {u.apellido}
+                                                    </p>
+                                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                                        <p className="card-text mb-0 text-muted small">
+                                                            <strong>ID:</strong> {u.id} {u.carrito && '🛒'} {u.banner && '🏳️'}
+                                                        </p>
+                                                        {tieneNumero && (
+                                                            <a
+                                                                href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${u.nombre}, `)}`}
+                                                                target="_blank" rel="noopener noreferrer"
+                                                                className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-2 py-0"
+                                                                title={u.telefono}
+                                                            >
+                                                                <i className="bi bi-whatsapp"></i> Wpp
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                    <div className="d-flex gap-2">
+                                                        <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
+                                                            <i className="bi bi-pencil"></i> Editar
+                                                        </button>
+                                                        {puedeGestionarUsuarios && u.usuario !== loggedInUsername && (
+                                                            <button className="btn btn-outline-danger btn-sm flex-fill fw-semibold" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
+                                                                {deletingId === u.id ? <><span className="spinner-border spinner-border-sm me-1"></span> Borrando...</> : <><i className="bi bi-trash"></i> Eliminar</>}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <p className="card-text mb-1 text-muted small">
-                                                    <strong>Nombre:</strong> {u.nombre} {u.apellido}
-                                                </p>
-                                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                                    <p className="card-text mb-0 text-muted small">
-                                                        <strong>ID:</strong> {u.id} {u.carrito && '🛒'} {u.banner && '🏳️'}
-                                                    </p>
-                                                    {tieneNumero && (
-                                                        <a 
-                                                            href={`https://wa.me/${numLimpiado}?text=${encodeURIComponent(`Hola ${u.nombre}, `)}`}
-                                                            target="_blank" rel="noopener noreferrer"
-                                                            className="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-2 py-0"
-                                                            title={u.telefono}
-                                                        >
-                                                            <i className="bi bi-whatsapp"></i> Wpp
-                                                        </a>
-                                                    )}
-                                                </div>
-                                                <div className="d-flex gap-2">
-                                                    <button className="btn btn-outline-primary btn-sm flex-fill fw-semibold" onClick={() => abrirFormularioEditar(u)}>
-                                                        <i className="bi bi-pencil"></i> Editar
-                                                    </button>
-                                                    {puedeGestionarUsuarios && u.usuario !== loggedInUsername && (
-                                                        <button className="btn btn-outline-danger btn-sm flex-fill fw-semibold" onClick={() => eliminarUsuario(u.id)} disabled={deletingId === u.id}>
-                                                            {deletingId === u.id ? <><span className="spinner-border spinner-border-sm me-1"></span> Borrando...</> : <><i className="bi bi-trash"></i> Eliminar</>}
-                                                        </button>
-                                                    )}
-                                                </div>
                                             </div>
-                                        </div>
                                         );
                                     })}
                                     {usuariosVisibles.length === 0 && (
@@ -544,153 +559,153 @@ const AdminUsuarios = () => {
                             <form onSubmit={usuarioEditando ? handleEditar : handleAgregar} className="mt-4">
                                 <h4 className="mb-3">{usuarioEditando ? (puedeGestionarUsuarios ? 'Editar Usuario' : 'Editar Mi Perfil') : 'Nuevo Usuario'}</h4>
                                 <div className="row g-3">
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Nombre</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="nombre"
-                                        value={formData.nombre}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Apellido</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="apellido"
-                                        value={formData.apellido}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Usuario</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="usuario"
-                                        value={formData.usuario}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Teléfono</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="telefono"
-                                        placeholder="Ej: 1139562904"
-                                        value={formData.telefono}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                {!usuarioEditando && (
                                     <div className="col-12 col-md-6">
-                                        <label className="form-label">Contraseña inicial</label>
+                                        <label className="form-label">Nombre</label>
                                         <input
-                                            type="password"
+                                            type="text"
                                             className="form-control"
-                                            name="contrasena"
-                                            value={formData.contrasena}
+                                            name="nombre"
+                                            value={formData.nombre}
                                             onChange={handleInputChange}
-                                            autoComplete="new-password"
                                             required
                                         />
                                     </div>
-                                )}
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Privilegio</label>
-                                    <select
-                                        className="form-select"
-                                        name="privilegio"
-                                        value={formData.privilegio}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={!puedeGestionarUsuarios}
-                                    >
-                                        <option value="ROLE_PUB">PUB</option>
-                                        <option value="ROLE_SM">SM</option>
-                                        <option value="ROLE_ANC">ANC</option>
-                                        <option value="ROLE_PR">PR</option>
-                                    </select>
-                                </div>
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Asignación</label>
-                                    <select
-                                        className="form-select"
-                                        name="asignacion"
-                                        value={formData.asignacion}
-                                        onChange={handleInputChange}
-                                        disabled={!puedeGestionarUsuarios}
-                                    >
-                                        <option value="">Ninguna</option>
-                                        {formData.asignacion && !asignacionesDisponibles.some(option => option.value === formData.asignacion) && (
-                                            <option value={formData.asignacion}>{formData.asignacion}</option>
-                                        )}
-                                        {asignacionesDisponibles.map(option => (
-                                            <option key={option.value} value={option.value}>{option.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="col-12 col-md-6">
-                                    <label className="form-label">Grupo de Servicio</label>
-                                    <select
-                                        className="form-select"
-                                        name="grupo"
-                                        value={formData.grupo}
-                                        onChange={handleInputChange}
-                                        disabled={!puedeGestionarUsuarios}
-                                    >
-                                        <option value="">Ninguno</option>
-                                        {formData.grupo && !gruposDisponibles.includes(formData.grupo) && (
-                                            <option value={formData.grupo}>{formData.grupo}</option>
-                                        )}
-                                        <option value="Grupo 1">Grupo 1</option>
-                                        <option value="Grupo 2">Grupo 2</option>
-                                        <option value="Grupo 3">Grupo 3</option>
-                                        <option value="Grupo 4">Grupo 4</option>
-                                        <option value="Grupo 5">Grupo 5</option>
-                                    </select>
-                                </div>
-                                <div className="col-12 d-flex flex-wrap gap-3">
-                                    <div className="form-check form-switch">
-                                        <input className="form-check-input" type="checkbox" name="carrito" id="checkCarrito" checked={formData.carrito} onChange={(e) => setFormData({...formData, carrito: e.target.checked})} />
-                                        <label className="form-check-label" htmlFor="checkCarrito">Tiene Carrito 🛒</label>
-                                    </div>
-                                    <div className="form-check form-switch">
-                                        <input className="form-check-input" type="checkbox" name="banner" id="checkBanner" checked={formData.banner} onChange={(e) => setFormData({...formData, banner: e.target.checked})} />
-                                        <label className="form-check-label" htmlFor="checkBanner">Tiene Banner 🏳️</label>
-                                    </div>
-                                    <div className="form-check form-switch">
-                                        <input 
-                                            className="form-check-input border-primary" 
-                                            type="checkbox" 
-                                            name="habilitacionPublica" 
-                                            id="checkHabilitacion" 
-                                            checked={formData.habilitacionPublica} 
-                                            onChange={(e) => setFormData({...formData, habilitacionPublica: e.target.checked})} 
-                                            disabled={!puedeGestionarUsuarios}
-                                        />
-                                        <label className="form-check-label fw-semibold text-primary" htmlFor="checkHabilitacion">Apto Pública 🌟</label>
-                                    </div>
-                                    <div className="form-check form-switch">
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Apellido</label>
                                         <input
-                                            className="form-check-input border-success"
-                                            type="checkbox"
-                                            name="conductor"
-                                            id="checkConductor"
-                                            checked={formData.conductor}
-                                            onChange={(e) => setFormData({...formData, conductor: e.target.checked})}
-                                            disabled={!puedeGestionarUsuarios}
+                                            type="text"
+                                            className="form-control"
+                                            name="apellido"
+                                            value={formData.apellido}
+                                            onChange={handleInputChange}
+                                            required
                                         />
-                                        <label className="form-check-label fw-semibold text-success" htmlFor="checkConductor">Conductor</label>
                                     </div>
-                                </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Usuario</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            name="usuario"
+                                            value={formData.usuario}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Teléfono</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            name="telefono"
+                                            placeholder="Ej: 1139562904"
+                                            value={formData.telefono}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    {!usuarioEditando && (
+                                        <div className="col-12 col-md-6">
+                                            <label className="form-label">Contraseña inicial</label>
+                                            <input
+                                                type="password"
+                                                className="form-control"
+                                                name="contrasena"
+                                                value={formData.contrasena}
+                                                onChange={handleInputChange}
+                                                autoComplete="new-password"
+                                                required
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Privilegio</label>
+                                        <select
+                                            className="form-select"
+                                            name="privilegio"
+                                            value={formData.privilegio}
+                                            onChange={handleInputChange}
+                                            required
+                                            disabled={!puedeGestionarUsuarios}
+                                        >
+                                            <option value="ROLE_PUB">PUB</option>
+                                            <option value="ROLE_SM">SM</option>
+                                            <option value="ROLE_ANC">ANC</option>
+                                            <option value="ROLE_PR">PR</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Asignación</label>
+                                        <select
+                                            className="form-select"
+                                            name="asignacion"
+                                            value={formData.asignacion}
+                                            onChange={handleInputChange}
+                                            disabled={!puedeGestionarUsuarios}
+                                        >
+                                            <option value="">Ninguna</option>
+                                            {formData.asignacion && !asignacionesDisponibles.some(option => option.value === formData.asignacion) && (
+                                                <option value={formData.asignacion}>{formData.asignacion}</option>
+                                            )}
+                                            {asignacionesDisponibles.map(option => (
+                                                <option key={option.value} value={option.value}>{option.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="col-12 col-md-6">
+                                        <label className="form-label">Grupo de Servicio</label>
+                                        <select
+                                            className="form-select"
+                                            name="grupo"
+                                            value={formData.grupo}
+                                            onChange={handleInputChange}
+                                            disabled={!puedeGestionarUsuarios}
+                                        >
+                                            <option value="">Ninguno</option>
+                                            {formData.grupo && !gruposDisponibles.includes(formData.grupo) && (
+                                                <option value={formData.grupo}>{formData.grupo}</option>
+                                            )}
+                                            <option value="Grupo 1">Grupo 1</option>
+                                            <option value="Grupo 2">Grupo 2</option>
+                                            <option value="Grupo 3">Grupo 3</option>
+                                            <option value="Grupo 4">Grupo 4</option>
+                                            <option value="Grupo 5">Grupo 5</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-12 d-flex flex-wrap gap-3">
+                                        <div className="form-check form-switch">
+                                            <input className="form-check-input" type="checkbox" name="carrito" id="checkCarrito" checked={formData.carrito} onChange={(e) => setFormData({ ...formData, carrito: e.target.checked })} />
+                                            <label className="form-check-label" htmlFor="checkCarrito">Tiene Carrito 🛒</label>
+                                        </div>
+                                        <div className="form-check form-switch">
+                                            <input className="form-check-input" type="checkbox" name="banner" id="checkBanner" checked={formData.banner} onChange={(e) => setFormData({ ...formData, banner: e.target.checked })} />
+                                            <label className="form-check-label" htmlFor="checkBanner">Tiene Banner 🏳️</label>
+                                        </div>
+                                        <div className="form-check form-switch">
+                                            <input
+                                                className="form-check-input border-primary"
+                                                type="checkbox"
+                                                name="habilitacionPublica"
+                                                id="checkHabilitacion"
+                                                checked={formData.habilitacionPublica}
+                                                onChange={(e) => setFormData({ ...formData, habilitacionPublica: e.target.checked })}
+                                                disabled={!puedeGestionarUsuarios}
+                                            />
+                                            <label className="form-check-label fw-semibold text-primary" htmlFor="checkHabilitacion">Apto Pública 🌟</label>
+                                        </div>
+                                        <div className="form-check form-switch">
+                                            <input
+                                                className="form-check-input border-success"
+                                                type="checkbox"
+                                                name="conductor"
+                                                id="checkConductor"
+                                                checked={formData.conductor}
+                                                onChange={(e) => setFormData({ ...formData, conductor: e.target.checked })}
+                                                disabled={!puedeGestionarUsuarios}
+                                            />
+                                            <label className="form-check-label fw-semibold text-success" htmlFor="checkConductor">Conductor</label>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="d-grid d-sm-flex gap-2 mt-3">
                                     <button type="submit" className={`btn ${usuarioEditando ? 'btn-primary' : 'btn-success'}`} disabled={isSubmitting}>
