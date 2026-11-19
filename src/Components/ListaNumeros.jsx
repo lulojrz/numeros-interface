@@ -29,10 +29,16 @@ const ListaNumeros = () => {
         cargarProductos,
         paginaNumeros
     } = useContext(NumerosContext);
-    
+
     const [mostrarModal, setMostrarModal] = useState(false);
     const [usuariosLista, setUsuariosLista] = useState([]);
     const [usuarioElegido, setUsuarioElegido] = useState("");
+
+    // Opciones completas de territorios y edificios de la base telefónica
+    const [opcionesFiltros, setOpcionesFiltros] = useState({
+        territorios: [],
+        edificios: []
+    });
 
     // Paginación
     const [paginaActual, setPaginaActual] = useState(1);
@@ -41,30 +47,56 @@ const ListaNumeros = () => {
         setPaginaActual(1);
     }, [busqueda, filtroTerritorio, filtroEdificio, filtroReservado, filtroFechaDesde, filtroFechaHasta]);
 
-    useEffect(() => {
-        const paginaSolicitada = paginaActual - 1;
-        if (paginaSolicitada === paginaNumeros) return;
-
-        cargarProductos(paginaSolicitada).then(numerosPagina => {
-            if (numerosPagina.length === 0 && paginaSolicitada > 0) {
-                setPaginaActual(paginaSolicitada);
+    const handleCambiarPagina = (nuevaPagina) => {
+        if (nuevaPagina < 1) return;
+        setPaginaActual(nuevaPagina);
+        cargarProductos(nuevaPagina - 1).then(numerosPagina => {
+            if (numerosPagina.length === 0 && nuevaPagina > 1) {
+                setPaginaActual(nuevaPagina - 1);
             }
         });
-    }, [paginaActual, paginaNumeros, cargarProductos]);
+    };
 
     useEffect(() => {
+        const api = import.meta.env.VITE_API_URL;
+
         const fetchUsuarios = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, {
+                const response = await fetch(`${api}/usuarios`, {
                     credentials: 'include'
                 });
                 if (response.ok) {
                     const data = await response.json();
                     setUsuariosLista(data);
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error al cargar usuarios:', error);
+            }
         };
+
+        const fetchOpcionesFiltros = async () => {
+            try {
+                const response = await fetch(`${api}/api/numeros/filtros`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setOpcionesFiltros({
+                        territorios: (data.territorios || []).sort((a, b) =>
+                            String(a).localeCompare(String(b), undefined, { numeric: true })
+                        ),
+                        edificios: (data.edificios || []).sort((a, b) =>
+                            String(a).localeCompare(String(b), undefined, { numeric: true })
+                        )
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar opciones de filtros:', error);
+            }
+        };
+
         fetchUsuarios();
+        fetchOpcionesFiltros();
     }, []);
 
     const handleConfirmarReserva = () => {
@@ -80,8 +112,8 @@ const ListaNumeros = () => {
 
     const numeroSeleccionado = numeros.find((num) => num.id === seleccionado);
 
-    const territoriosUnicos = [...new Set(numeros.map(n => n.territorio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
-    const edificiosUnicos = [...new Set(numeros.map(n => n.edificio).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+    const territoriosUnicos = opcionesFiltros.territorios;
+    const edificiosUnicos = opcionesFiltros.edificios;
 
     const handleCancelarEdicion = () => {
         setSeleccionado(null);
@@ -114,7 +146,6 @@ const ListaNumeros = () => {
             <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
                 <div className="card shadow-sm p-3 border-0 bg-body-tertiary" style={{ borderRadius: '0.75rem' }}>
                     <h6 className="mb-3 text-body-secondary fw-bold">Filtros de Búsqueda</h6>
-                    <p className="small text-muted mb-0">Los resultados se filtran dentro de la página cargada; usa la paginación para recorrer los demás números.</p>
                     <div className="row g-3">
                         <div className="col-md-3">
                             <label className="form-label text-muted small fw-semibold mb-1">Dirección</label>
@@ -190,27 +221,27 @@ const ListaNumeros = () => {
                                 }}>
                                     Limpiar Filtros
                                 </button>
-                                <button 
-                                    type="button" 
-                                    className="btn btn-success btn-sm px-3 shadow-sm" 
+                                <button
+                                    type="button"
+                                    className="btn btn-success btn-sm px-3 shadow-sm"
                                     onClick={() => setMostrarModal(true)}
                                     disabled={!puedeModificarBloque}
                                     title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para reservar" : ""}
                                 >
                                     Reservar Filtrados
                                 </button>
-                                <button 
-                                    type="button" 
-                                    className="btn btn-danger btn-sm px-3 shadow-sm" 
+                                <button
+                                    type="button"
+                                    className="btn btn-danger btn-sm px-3 shadow-sm"
                                     onClick={() => sacarReservados(productosFiltrados)}
                                     disabled={!puedeModificarBloque}
                                     title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para liberar" : ""}
                                 >
                                     Liberar Filtrados
                                 </button>
-                                <button 
-                                    type="button" 
-                                    className="btn btn-warning btn-sm px-3 shadow-sm text-body" 
+                                <button
+                                    type="button"
+                                    className="btn btn-warning btn-sm px-3 shadow-sm text-body"
                                     onClick={handleReiniciarContesta}
                                     disabled={!puedeModificarBloque}
                                     title={!puedeModificarBloque ? "Debes aplicar al menos un filtro para reiniciar" : ""}
@@ -222,6 +253,7 @@ const ListaNumeros = () => {
                     </div>
                 </div>
             </form>
+
 
             <div>
                 <div className="container mt-4">
@@ -352,13 +384,25 @@ const ListaNumeros = () => {
                     <nav className="d-flex justify-content-center mt-4">
                         <ul className="pagination pagination-sm shadow-sm">
                             <li className={`page-item ${paginaActual === 1 ? 'disabled' : ''}`}>
-                                <button className="page-link" disabled={paginaActual === 1 || loading} onClick={() => setPaginaActual(paginaActual - 1)}>Anterior</button>
+                                <button
+                                    className="page-link"
+                                    disabled={paginaActual === 1 || loading}
+                                    onClick={() => handleCambiarPagina(paginaActual - 1)}
+                                >
+                                    Anterior
+                                </button>
                             </li>
                             <li className="page-item active">
                                 <span className="page-link">{paginaActual}</span>
                             </li>
                             <li className={`page-item ${numeros.length < 50 ? 'disabled' : ''}`}>
-                                <button className="page-link" disabled={numeros.length < 50 || loading} onClick={() => setPaginaActual(paginaActual + 1)}>Siguiente</button>
+                                <button
+                                    className="page-link"
+                                    disabled={numeros.length < 50 || loading}
+                                    onClick={() => handleCambiarPagina(paginaActual + 1)}
+                                >
+                                    Siguiente
+                                </button>
                             </li>
                         </ul>
                     </nav>
@@ -371,7 +415,7 @@ const ListaNumeros = () => {
                     />
                 )}
             </div>
-            
+
             {/* Modal para agregar */}
             {mostrarModal && (
                 <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
