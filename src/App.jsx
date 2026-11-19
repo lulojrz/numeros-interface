@@ -120,7 +120,7 @@ function App() {
           } />
 
           <Route path='/admin/disponibilidad' element={
-            <RutasProtegidas isAuthenticated={isAuthenticated}><MisDisponibilidades /></RutasProtegidas>
+            <RutasProtegidas isAuthenticated={isAuthenticated}  rolesPermitidos={['ROLE_ANC', 'ROLE_SM']}><MisDisponibilidades /></RutasProtegidas>
           } />
 
           <Route path='*' element={<NotFound />} />
