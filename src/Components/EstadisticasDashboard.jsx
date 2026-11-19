@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NumerosContext } from '../context/NumerosContext';
-import { 
+import {
     PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
-
-// Función para calcular el año de servicio (Septiembre - Agosto)
+//Función para calcular el año de servicio (Septiembre - Agosto)
 const getServiceYear = (date = new Date()) => {
     const month = date.getMonth(); // 0 a 11 (8 = Septiembre)
     const year = date.getFullYear();
@@ -14,41 +13,61 @@ const getServiceYear = (date = new Date()) => {
 };
 
 const EstadisticasDashboard = () => {
-    const { numeros } = useContext(NumerosContext);
     const navigate = useNavigate();
     const [turnos, setTurnos] = useState([]);
     const [territorios, setTerritorios] = useState([]);
     const [loading, setLoading] = useState(true);
     const api = import.meta.env.VITE_API_URL;
-    
+
     // Año de servicio actual (ej: Oct 2026 -> Año de servicio 2027)
     const currentServiceYear = getServiceYear();
     const [yearSelected, setYearSelected] = useState(currentServiceYear.toString());
 
     // --- Telefónica Stats ---
-    const numerosContestados = numeros.filter(numero => numero.contesta);
-    const totalNumeros = numeros.length;
-    const progresoTelefonica = totalNumeros > 0 ? Math.round((numerosContestados.length / totalNumeros) * 100) : 0;
-    const necesitaReinicio = progresoTelefonica >= 70;
+    const [statsTelefonica, setStatsTelefonica] = useState({
+        total: 0,
+        contestados: 0,
+        pendientes: 0,
+        reservados: 0
+    });
+
+    const totalNumeros = statsTelefonica.total;
+    const cantidadContestados = statsTelefonica.contestados;
+    const cantidadPendientes = statsTelefonica.pendientes;
+
+    const progresoTelefonica = totalNumeros > 0
+        ? Math.round((cantidadContestados / totalNumeros) * 100)
+        : 0;
+
+    const necesitaReinicio = progresoTelefonica >= 80;
 
     const dataPieTelefonica = [
-        { name: 'Contactados', value: numerosContestados.length },
-        { name: 'Pendientes/No Contestan', value: totalNumeros - numerosContestados.length }
+        { name: 'Contestados', value: cantidadContestados },
+        { name: 'Sin Contestar', value: cantidadPendientes }
     ];
     const COLORS_TELEFONICA = ['#10b981', '#cbd5e1'];
 
-    // Cargar datos del año de servicio seleccionado
+    // Cargar todos los datos del dashboard en paralelo
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [resTurnos, resTerritorios] = await Promise.all([
+                const [resTurnos, resTerritorios, resStatsTel] = await Promise.all([
                     fetch(`${api}/api/turnos/todos?year=${yearSelected}`, { credentials: 'include' }),
-                    fetch(`${api}/territorios/traer`, { credentials: 'include' })
+                    fetch(`${api}/territorios/traer?page=0&size=100`, { credentials: 'include' }),
+                    fetch(`${api}/api/numeros/estadisticas`, { credentials: 'include' })
                 ]);
-                
-                if (resTurnos.ok) setTurnos(await resTurnos.json());
-                if (resTerritorios.ok) setTerritorios(await resTerritorios.json());
+
+                if (resTurnos.ok) {
+                    setTurnos(await resTurnos.json());
+                }
+                if (resTerritorios.ok) {
+                    const dataTerr = await resTerritorios.json();
+                    setTerritorios(Array.isArray(dataTerr) ? dataTerr : (dataTerr.content || []));
+                }
+                if (resStatsTel.ok) {
+                    setStatsTelefonica(await resStatsTel.json());
+                }
             } catch (error) {
                 console.error("Error al cargar datos", error);
             } finally {
@@ -80,7 +99,7 @@ const EstadisticasDashboard = () => {
             const tYear = turnoDate.getFullYear();
 
             const cuposOcupados = (turno.publicador1 ? 1 : 0) + (turno.publicador2 ? 1 : 0);
-            
+
             if (tYear === añoActual && tMonth === mesActual) {
                 cubiertosEsteMes += cuposOcupados;
             } else if (tYear === añoMesPasado && tMonth === mesPasado) {
@@ -117,7 +136,7 @@ const EstadisticasDashboard = () => {
         const total = territorios.length;
         const asignados = territorios.filter(t => t.asignadoA).length;
         const sinAsignar = total - asignados;
-        
+
         const dataAsignacion = [
             { name: 'Asignados', value: asignados },
             { name: 'Sin Asignar', value: sinAsignar }
@@ -167,8 +186,8 @@ const EstadisticasDashboard = () => {
             } else {
                 const fecha = new Date(t.ultimaFechaTrabajada);
                 const diffTime = Math.abs(hoy - fecha);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
                 if (diffDays <= 30) recientes++;
                 else if (diffDays <= 90) medios++;
                 else antiguos++;
@@ -206,13 +225,13 @@ const EstadisticasDashboard = () => {
         const porcentajeAsignados = total > 0 ? Math.round((asignados / total) * 100) : 0;
         const porcentajeCoberturaSY = total > 0 ? Math.round((cubiertosEnSY / total) * 100) : 0;
 
-        return { 
-            dataAsignacion, 
-            dataAntiguedad, 
-            total, 
-            asignados, 
-            porcentajeAsignados, 
-            nunca, 
+        return {
+            dataAsignacion,
+            dataAntiguedad,
+            total,
+            asignados,
+            porcentajeAsignados,
+            nunca,
             sinAsignar,
             cubiertosEnSY,
             porcentajeCoberturaSY,
@@ -322,7 +341,7 @@ const EstadisticasDashboard = () => {
 
     return (
         <div className="container-fluid p-0 mt-3 pb-5">
-            
+
             {/* Header y Selector de Año de Servicio */}
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 bg-body p-3 rounded-4 shadow-sm border">
                 <div>
@@ -338,9 +357,9 @@ const EstadisticasDashboard = () => {
                 <div className="d-flex align-items-center bg-body-tertiary rounded-pill px-3 py-1 border shadow-sm">
                     <i className="bi bi-calendar-check text-primary me-2"></i>
                     <span className="text-body-secondary fw-semibold small me-2">Año de Servicio:</span>
-                    <select 
-                        className="form-select form-select-sm border-0 bg-transparent fw-bold text-primary p-0 pe-3" 
-                        value={yearSelected} 
+                    <select
+                        className="form-select form-select-sm border-0 bg-transparent fw-bold text-primary p-0 pe-3"
+                        value={yearSelected}
                         onChange={(e) => setYearSelected(e.target.value)}
                         style={{ width: 'auto', cursor: 'pointer', outline: 'none', boxShadow: 'none' }}
                     >
@@ -385,7 +404,7 @@ const EstadisticasDashboard = () => {
                         <div className="row g-2">
                             {terrStats.alarmasList.slice(0, 6).map(t => (
                                 <div className="col-12 col-md-6 col-lg-4" key={t.id}>
-                                    <div 
+                                    <div
                                         className="p-3 rounded-3 border bg-body-tertiary d-flex justify-content-between align-items-center hover-shadow"
                                         style={{ transition: 'all 0.2s ease', cursor: 'pointer' }}
                                         onClick={() => navigate('/edificios', { state: { territorioId: t.id, t: Date.now() } })}
@@ -429,9 +448,9 @@ const EstadisticasDashboard = () => {
                             {terrStats.cubiertosEnSY} de {terrStats.total} territorios trabajados en este ciclo
                         </span>
                         <div className="progress mt-auto" style={{ height: '8px' }}>
-                            <div 
-                                className="progress-bar bg-primary" 
-                                role="progressbar" 
+                            <div
+                                className="progress-bar bg-primary"
+                                role="progressbar"
                                 style={{ width: `${terrStats.porcentajeCoberturaSY}%` }}
                             ></div>
                         </div>
@@ -452,9 +471,9 @@ const EstadisticasDashboard = () => {
                             {terrStats.asignados} asignados • {terrStats.sinAsignar} libres para asignar
                         </span>
                         <div className="progress mt-auto" style={{ height: '8px' }}>
-                            <div 
-                                className="progress-bar bg-info" 
-                                role="progressbar" 
+                            <div
+                                className="progress-bar bg-info"
+                                role="progressbar"
                                 style={{ width: `${terrStats.porcentajeAsignados}%` }}
                             ></div>
                         </div>
@@ -480,9 +499,9 @@ const EstadisticasDashboard = () => {
                             {edificiosStats.atendieron + edificiosStats.revisitas} respuestas de {edificiosStats.totalTocados} timbres visitados
                         </span>
                         <div className="progress mt-auto" style={{ height: '8px' }}>
-                            <div 
-                                className="progress-bar bg-success" 
-                                role="progressbar" 
+                            <div
+                                className="progress-bar bg-success"
+                                role="progressbar"
                                 style={{ width: `${edificiosStats.tasaEfectividad}%` }}
                             ></div>
                         </div>
@@ -492,7 +511,7 @@ const EstadisticasDashboard = () => {
 
             {/* SECCIÓN 3: GRÁFICOS Y DETALLES */}
             <div className="row g-4">
-                
+
                 {/* 1. Edificios: Estados de Timbres */}
                 <div className="col-12 col-xl-6">
                     <div className="card border-0 shadow-sm rounded-4 h-100 bg-body p-4">
@@ -534,7 +553,7 @@ const EstadisticasDashboard = () => {
                                 </small>
                                 <div className="d-flex flex-column gap-2">
                                     {edificiosStats.topEdificios.slice(0, 3).map(ed => (
-                                        <div 
+                                        <div
                                             key={ed.id}
                                             className="d-flex justify-content-between align-items-center p-2 rounded bg-body-tertiary small"
                                             style={{ cursor: 'pointer' }}
@@ -564,7 +583,7 @@ const EstadisticasDashboard = () => {
                         <p className="text-body-secondary small mb-3">
                             Tiempo transcurrido desde la última vez que fueron trabajados.
                         </p>
-                        
+
                         <div style={{ height: '320px', width: '100%', minWidth: 0 }}>
                             <ResponsiveContainer width="99%" height="100%">
                                 <BarChart data={terrStats.dataAntiguedad} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
@@ -593,7 +612,7 @@ const EstadisticasDashboard = () => {
                         <p className="text-body-secondary small mb-3">
                             Porcentaje de números con respuesta en la base telefónica.
                         </p>
-                        
+
                         <div style={{ height: '240px', width: '100%', minWidth: 0 }}>
                             <ResponsiveContainer width="99%" height="100%">
                                 <PieChart>
@@ -611,16 +630,18 @@ const EstadisticasDashboard = () => {
                                         ))}
                                     </Pie>
                                     <RechartsTooltip />
-                                    <Legend verticalAlign="bottom" height={36}/>
+                                    <Legend verticalAlign="bottom" height={36} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
-                        
+
                         <div className="text-center mt-2">
                             <h3 className={`fw-bold mb-0 ${necesitaReinicio ? 'text-warning' : 'text-success'}`}>
                                 {progresoTelefonica}%
                             </h3>
-                            <span className="text-body-secondary small">Contactados ({numerosContestados.length} de {totalNumeros})</span>
+                            <span className="text-body-secondary small">
+                                Contactados ({cantidadContestados} de {totalNumeros})
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -635,7 +656,7 @@ const EstadisticasDashboard = () => {
                         <p className="text-body-secondary small mb-3">
                             Cupos de turnos cubiertos en el período de servicio.
                         </p>
-                        
+
                         <div style={{ height: '240px', width: '100%', minWidth: 0 }}>
                             <ResponsiveContainer width="99%" height="100%">
                                 <BarChart data={dataMensual} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
