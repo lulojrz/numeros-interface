@@ -388,7 +388,6 @@ const AdminUsuarios = () => {
                                     <table className="table table-hover table-striped align-middle mb-0">
                                         <thead className="table-light">
                                             <tr>
-                                                <th className="text-body-secondary fw-semibold">ID</th>
                                                 <th className="text-body-secondary fw-semibold">Nombre</th>
                                                 <th className="text-body-secondary fw-semibold">Apellido</th>
                                                 <th className="text-body-secondary fw-semibold">Usuario</th>
@@ -407,7 +406,6 @@ const AdminUsuarios = () => {
                                                 const numLimpiado = tieneNumero ? u.telefono.replace(/\D/g, '') : '';
                                                 return (
                                                 <tr key={u.id}>
-                                                    <td className="fw-bold">{u.id}</td>
                                                     <td>{u.nombre}</td>
                                                     <td>{u.apellido}</td>
                                                     <td>{u.usuario}</td>
