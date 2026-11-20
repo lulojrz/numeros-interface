@@ -609,7 +609,8 @@ const AdminUsuarios = () => {
                                                 value={formData.contrasena}
                                                 onChange={handleInputChange}
                                                 autoComplete="new-password"
-                                                required
+                                                required 
+                                                disabled
                                             />
                                         </div>
                                     )}
