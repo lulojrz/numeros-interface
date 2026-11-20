@@ -22,7 +22,7 @@ const MisReservas = ({ hideEmpty = false, reservasExternas = null, setReservasEx
             setLoadingPropias(true);
             try {
                 const api = import.meta.env.VITE_API_URL;
-                const res = await fetch(`${api}/api/numeros/mis-reservas/${loggedInUsername}`, {
+                const res = await fetch(`${api}/api/numeros/mis-reservas?usuario=${encodeURIComponent(loggedInUsername)}`, {
                     credentials: 'include'
                 });
                 if (res.ok) {

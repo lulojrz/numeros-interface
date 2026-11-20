@@ -24,7 +24,7 @@ const TerritoriosPersonales = () => {
             setLoadingReservas(true);
             try {
                 const peticiones = [
-                    fetch(`${api}/api/numeros/mis-reservas/${loggedInUsername}`, { credentials: 'include' }),
+                    fetch(`${api}/api/numeros/mis-reservas?usuario=${encodeURIComponent(loggedInUsername)}`, { credentials: 'include' }),
                     fetch(`${api}/usuarios`, { credentials: 'include' })
                 ];
 
