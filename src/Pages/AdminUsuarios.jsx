@@ -12,7 +12,7 @@ const formularioVacio = () => ({
     apellido: '',
     usuario: '',
     telefono: '',
-    contrasena: '',
+    contrasena: 'prueba123',
     privilegio: 'ROLE_PUB',
     asignacion: '',
     grupo: '',
@@ -27,7 +27,7 @@ const crearFormularioUsuario = (user) => ({
     apellido: user.apellido || '',
     usuario: user.usuario || '',
     telefono: user.telefono || '',
-    contrasena: '',
+    contrasena: 'prueba123',
     privilegio: user.privilegio || 'ROLE_PUB',
     asignacion: user.asignacion || '',
     grupo: user.grupo || '',
@@ -42,14 +42,9 @@ const asignacionesDisponibles = [
     { value: 'publica', label: 'Pública' },
     { value: 'territorios', label: 'Territorios' },
     { value: 'servicio', label: 'Servicio' },
-    { value: 'servicio y territorios', label: 'Servicio y Territorios' },
     { value: 'telefonica', label: 'Telefónica' },
     { value: 'territorios telefonicos/personales', label: 'Territorios telefónicos/personales' },
-    { value: 'territorios telefonicos', label: 'Territorios telefónicos' },
-    { value: 'personales', label: 'Personales' },
-    { value: 'territorios personales', label: 'Territorios personales' },
-    { value: 'edificios', label: 'Edificios' },
-    { value: 'territorios edificios', label: 'Territorios edificios' }
+ 
 ];
 const gruposDisponibles = ['Grupo 1', 'Grupo 2', 'Grupo 3', 'Grupo 4', 'Grupo 5'];
 
