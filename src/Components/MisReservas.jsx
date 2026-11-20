@@ -1,15 +1,48 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { NumerosContext } from '../context/NumerosContext';
 
-const MisReservas = ({ hideEmpty = false }) => {
-    const { numeros, actualizarNumero } = useContext(NumerosContext);
+const MisReservas = ({ hideEmpty = false, reservasExternas = null, setReservasExternas = null }) => {
+    const { actualizarNumero } = useContext(NumerosContext);
     const loggedInUsername = localStorage.getItem('usuario');
     const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
     const [mostrarModal, setMostrarModal] = useState(false);
 
-    const misReservas = numeros.filter(n => {
-        return n.reservado === true && n.reservadoA?.usuario === loggedInUsername;
-    });
+    // Estado interno por si el componente se renderiza sin recibir reservasExternas desde un padre
+    const [reservasPropias, setReservasPropias] = useState([]);
+    const [loadingPropias, setLoadingPropias] = useState(reservasExternas === null);
+
+    useEffect(() => {
+        // Si el padre (ej. TerritoriosPersonales) ya le pasa las reservas, no volvemos a pedirlas
+        if (reservasExternas !== null) {
+            setLoadingPropias(false);
+            return;
+        }
+
+        const cargarMisReservas = async () => {
+            setLoadingPropias(true);
+            try {
+                const api = import.meta.env.VITE_API_URL;
+                const res = await fetch(`${api}/api/numeros/mis-reservas/${loggedInUsername}`, {
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    setReservasPropias(await res.json());
+                }
+            } catch (error) {
+                console.error('Error al cargar mis reservas:', error);
+            } finally {
+                setLoadingPropias(false);
+            }
+        };
+
+        if (loggedInUsername) {
+            cargarMisReservas();
+        } else {
+            setLoadingPropias(false);
+        }
+    }, [loggedInUsername, reservasExternas]);
+
+    const misReservas = reservasExternas !== null ? reservasExternas : reservasPropias;
 
     const getResultadoBadge = (reserva) => {
         if (!reserva.ultimaFecha) return <span className="badge bg-secondary">Sin llamar</span>;
@@ -51,6 +84,14 @@ const MisReservas = ({ hideEmpty = false }) => {
             obj.tocar = false;
         }
 
+        // Actualización optimista inmediata en la lista de MisReservas
+        if (reservasExternas !== null && typeof setReservasExternas === 'function') {
+            setReservasExternas(prev => prev.map(r => (r.id === obj.id ? obj : r)));
+        } else {
+            setReservasPropias(prev => prev.map(r => (r.id === obj.id ? obj : r)));
+        }
+
+        // Persiste en backend y sincroniza con el contexto global si el número está cargado allí
         actualizarNumero(obj);
         setMostrarModal(false);
         setReservaSeleccionada(null);
@@ -60,6 +101,10 @@ const MisReservas = ({ hideEmpty = false }) => {
         setReservaSeleccionada(reserva);
         setMostrarModal(true);
     };
+
+    if (loadingPropias) {
+        return null;
+    }
 
     if (hideEmpty && misReservas.length === 0) {
         return null;
