@@ -3,96 +3,45 @@ import MisReservas from './MisReservas';
 import { NumerosContext } from '../context/NumerosContext';
 
 const TerritoriosPersonales = () => {
-    const { numeros } = useContext(NumerosContext);
-    const loggedInUsername = localStorage.getItem('usuario');
+   const loggedInUsername = localStorage.getItem('usuario');
     const privilegio = localStorage.getItem('privilegio');
     const isAdmin = privilegio === 'ROLE_ANC' || privilegio === 'ROLE_SM';
+    
     const [mostrarMapa, setMostrarMapa] = useState(false);
     const [mostrarModalAyuda, setMostrarModalAyuda] = useState(false);
     const [tabActiva, setTabActiva] = useState('telefonica');
 
-    let usuariosConTerritorios = [];
-    if (isAdmin) {
-        const numerosReservados = numeros.filter(n => n.reservado === true && n.reservadoA?.usuario);
-        const mapUsuarios = new Map();
-        
-        numerosReservados.forEach(n => {
-            const user = n.reservadoA.usuario;
-            if (!mapUsuarios.has(user)) {
-                mapUsuarios.set(user, {
-                    usuario: user,
-                    territorios: new Set([n.territorio]),
-                    fechaAsignacion: n.fechaReserva ? new Date(n.fechaReserva).getTime() : 0
-                });
-            } else {
-                const data = mapUsuarios.get(user);
-                data.territorios.add(n.territorio);
-                const nFecha = n.fechaReserva ? new Date(n.fechaReserva).getTime() : 0;
-                if (nFecha > 0 && (data.fechaAsignacion === 0 || nFecha < data.fechaAsignacion)) {
-                    data.fechaAsignacion = nFecha;
-                }
-            }
-        });
-        
-        mapUsuarios.forEach(data => {
-            usuariosConTerritorios.push({
-                usuario: data.usuario,
-                territorios: Array.from(data.territorios).join(', '),
-                fechaAsignacion: data.fechaAsignacion > 0 ? new Date(data.fechaAsignacion).toLocaleDateString() : 'Sin fecha'
-            });
-        });
-    }
-
-    const misReservas = numeros.filter(n => n.reservado === true && n.reservadoA?.usuario === loggedInUsername);
-    const tieneReservas = misReservas.length > 0;
-
-    let fechaAsignacion = null;
-    let diasRestantes = 0;
-    let progreso = 0;
-    let colorProgreso = 'bg-success';
-    const DIAS_TOTALES = 90; // Aprox 3 meses
-
-    if (tieneReservas) {
-        // Encontrar la fecha de reserva más antigua (fecha de asignación del territorio)
-        const fechasValidas = misReservas
-            .map(n => n.fechaReserva)
-            .filter(f => f != null)
-            .map(f => new Date(f).getTime());
-        
-        if (fechasValidas.length > 0) {
-            const fechaMinima = Math.min(...fechasValidas);
-            fechaAsignacion = new Date(fechaMinima);
-            
-            // Calcular fecha límite sumando los días totales
-            const fechaLimite = new Date(fechaAsignacion.getTime() + (DIAS_TOTALES * 24 * 60 * 60 * 1000));
-            
-            const hoy = new Date();
-            const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
-            diasRestantes = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
-            
-            if (diasRestantes < 0) diasRestantes = 0;
-            
-            progreso = ((DIAS_TOTALES - diasRestantes) / DIAS_TOTALES) * 100;
-            if (progreso > 100) progreso = 100;
-            
-            if (diasRestantes <= 15) {
-                colorProgreso = 'bg-danger';
-            } else if (diasRestantes <= 30) {
-                colorProgreso = 'bg-warning';
-            }
-        }
-    }
-
+    const [misReservas, setMisReservas] = useState([]);
+    const [usuariosConTerritorios, setUsuariosConTerritorios] = useState([]);
+    const [loadingReservas, setLoadingReservas] = useState(true);
     const [encargado, setEncargado] = useState(null);
 
+    // 1. Cargar reservas reales del usuario, resumen admin (si aplica) y encargado
     useEffect(() => {
-        const fetchUsuarios = async () => {
+        const api = import.meta.env.VITE_API_URL;
+
+        const cargarDatos = async () => {
+            setLoadingReservas(true);
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, { credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        const encargadoEncontrado = data.find(u => {
+                const peticiones = [
+                    fetch(`${api}/api/numeros/mis-reservas/${loggedInUsername}`, { credentials: 'include' }),
+                    fetch(`${api}/usuarios`, { credentials: 'include' })
+                ];
+
+                if (isAdmin) {
+                    peticiones.push(fetch(`${api}/api/numeros/resumen-reservas`, { credentials: 'include' }));
+                }
+
+                const [resMisReservas, resUsuarios, resResumen] = await Promise.all(peticiones);
+
+                if (resMisReservas.ok) {
+                    setMisReservas(await resMisReservas.json());
+                }
+
+                if (resUsuarios.ok) {
+                    const dataUsuarios = await resUsuarios.json();
+                    if (Array.isArray(dataUsuarios)) {
+                        const encargadoEncontrado = dataUsuarios.find(u => {
                             const asig = (u.asignacion || '').trim().toLowerCase();
                             return asig.includes('personales') || asig.includes('telefónicos') || asig.includes('telefonicos');
                         });
@@ -101,23 +50,75 @@ const TerritoriosPersonales = () => {
                         }
                     }
                 }
+
+                if (isAdmin && resResumen && resResumen.ok) {
+                    const resumen = await resResumen.json();
+                    setUsuariosConTerritorios(resumen.map(r => ({
+                        usuario: r.usuario,
+                        territorios: r.territorios,
+                        fechaAsignacion: r.fechaAsignacion
+                            ? new Date(r.fechaAsignacion).toLocaleDateString()
+                            : 'Sin fecha'
+                    })));
+                }
             } catch (e) {
-                console.error("Error al cargar encargado", e);
+                console.error("Error al cargar datos de territorios personales:", e);
+            } finally {
+                setLoadingReservas(false);
             }
         };
-        fetchUsuarios();
-    }, []);
+
+        if (loggedInUsername) {
+            cargarDatos();
+        }
+    }, [loggedInUsername, isAdmin]);
+
+    // 2. Cálculos de progreso y vencimiento sobre misReservas reales
+    const tieneReservas = misReservas.length > 0;
+    let fechaAsignacion = null;
+    let diasRestantes = 0;
+    let progreso = 0;
+    let colorProgreso = 'bg-success';
+    const DIAS_TOTALES = 90;
+
+    if (tieneReservas) {
+        const fechasValidas = misReservas
+            .map(n => n.fechaReserva)
+            .filter(f => f != null)
+            .map(f => new Date(f).getTime());
+
+        if (fechasValidas.length > 0) {
+            const fechaMinima = Math.min(...fechasValidas);
+            fechaAsignacion = new Date(fechaMinima);
+
+            const fechaLimite = new Date(fechaAsignacion.getTime() + (DIAS_TOTALES * 24 * 60 * 60 * 1000));
+            const hoy = new Date();
+            const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
+            diasRestantes = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+
+            if (diasRestantes < 0) diasRestantes = 0;
+
+            progreso = ((DIAS_TOTALES - diasRestantes) / DIAS_TOTALES) * 100;
+            if (progreso > 100) progreso = 100;
+
+            if (diasRestantes <= 15) {
+                colorProgreso = 'bg-danger';
+            } else if (diasRestantes <= 30) {
+                colorProgreso = 'bg-warning';
+            }
+        }
+    }
 
     const enviarMensaje = (e) => {
         e.preventDefault();
         const especificacion = e.target.querySelector('input[type="text"]').value;
         const mensaje = encodeURIComponent(`Hola! Me gustaria pedir un territorio personal en la zona de ${especificacion}`);
-        
-        let telefono = '5491151030168'; // fallback
+
+        let telefono = '5491151030168';
         if (encargado && encargado.telefono) {
-            telefono = encargado.telefono.replace(/\D/g, ''); // Limpiar caracteres no numéricos
+            telefono = encargado.telefono.replace(/\D/g, '');
         }
-        
+
         const url = `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`;
         window.open(url, '_blank');
     }
