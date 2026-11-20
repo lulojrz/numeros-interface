@@ -628,15 +628,17 @@ const PredicacionEdificios = () => {
                                 }).map(dpto => {
                                     let btnClass = "btn-light border shadow-sm";
                                     let icon = "bi-bell";
-
                                     if (!dpto.tocar) {
                                         btnClass = "btn-danger text-white shadow";
                                         icon = "bi-slash-circle";
                                     } else if (dpto.estado === 'Atendió') {
                                         btnClass = "btn-success text-white shadow-sm";
                                         icon = "bi-check-circle";
-                                    } else if (dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
-                                        btnClass = "btn-warning text-body shadow-sm";
+                                    } else if (dpto.estado === 'Revisita') {
+                                        btnClass = "btn-warning text-dark shadow-sm";
+                                        icon = "bi-arrow-repeat";
+                                    } else if (dpto.estado === 'No Atendió' || dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
+                                        btnClass = "btn-secondary text-white shadow-sm";
                                         icon = "bi-house-x";
                                     }
 
