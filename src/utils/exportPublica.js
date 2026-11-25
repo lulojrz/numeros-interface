@@ -1,11 +1,35 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import Swal from 'sweetalert2';
-import { obtenerNombreRol } from './permisos';
+
 
 /**
  * Genera y descarga un informe en PDF con los hermanos aptos para predicación pública
  * y el detalle de los puntos trabajados hasta la fecha actual.
+ * 
+ * 
+ * 
  */
+
+
+const obtenerNombreRol = (privilegio) => {
+    const rol = String(privilegio || '').trim().toUpperCase();
+    switch (rol) {
+        case 'ROLE_ANC':
+        case 'ANC':
+            return 'Anciano';
+        case 'ROLE_SM':
+        case 'SM':
+            return 'Siervo Ministerial';
+        case 'ROLE_PR':
+        case 'PR':
+            return 'Precursor Regular';
+
+        case 'ROLE_PUB':
+        case 'PUB':
+        default:
+            return 'Publicador';
+    }
+};
 export const exportarInformePublicaPDF = async (apiUrl) => {
     const api = apiUrl || import.meta.env.VITE_API_URL;
 
