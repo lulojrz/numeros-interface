@@ -272,6 +272,7 @@ const agregarTerritorio = async () => {
                     <option value="Casa">Casa (Única)</option>
                     <option value="Negocio">Negocio / Local</option>
                     <option value="Telefónica">Solo Telefónica</option>
+                    <option value="NO TOCAR">NO TOCAR</option>
                 </select>
                 <input id="swal-pisos" type="number" class="swal2-input" placeholder="Cantidad de Pisos (Ej: 10)">
                 <input id="swal-dptos" type="number" class="swal2-input" placeholder="Timbres por Piso (Ej: 4)">

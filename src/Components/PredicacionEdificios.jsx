@@ -532,84 +532,103 @@ const PredicacionEdificios = () => {
 
             {/* VISTA 3: EDIFICIOS */}
             {
-                vistaActual === 'edificios' && mActual && (
-                    <div className="row g-3">
-                        {!isPublicador && (
-                            <div className="col-12 mb-3 d-flex justify-content-end">
-                                <button
-                                    className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
-                                    onClick={async () => {
-                                        const nuevoEstado = !mActual.completada;
-                                        try {
-                                            const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
-                                                method: 'PUT',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                credentials: 'include',
-                                                body: JSON.stringify({
-                                                    ...mActual,
-                                                    completada: nuevoEstado,
-                                                    ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
-                                                })
-                                            });
-                                            if (res.ok) {
-                                                Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
-                                                const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
-                                                const tNew = territoriosActualizados.find(t => t.id === tActual.id);
-                                                if (tNew) {
-                                                    const mNew = tNew.manzanas.find(m => m.id === mActual.id);
-                                                    if (mNew) setManzanaSel(mNew);
-                                                }
-                                            }
-                                        } catch {
-                                            Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
-                                        }
-                                    }}
-                                >
-                                    {mActual.completada ? (
-                                        <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
-                                    ) : (
-                                        <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
-                                    )}
-                                </button>
-                            </div>
-                        )}
-                        {(!mActual.edificios || mActual.edificios.length === 0) ? (
-                            <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
+    vistaActual === 'edificios' && mActual && (
+        <div className="row g-3">
+            {!isPublicador && (
+                <div className="col-12 mb-3 d-flex justify-content-end">
+                    <button
+                        className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
+                        onClick={async () => {
+                            const nuevoEstado = !mActual.completada;
+                            try {
+                                const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({
+                                        ...mActual,
+                                        completada: nuevoEstado,
+                                        ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
+                                    })
+                                });
+                                if (res.ok) {
+                                    Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
+                                    const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
+                                    const tNew = territoriosActualizados.find(t => t.id === tActual.id);
+                                    if (tNew) {
+                                        const mNew = tNew.manzanas.find(m => m.id === mActual.id);
+                                        if (mNew) setManzanaSel(mNew);
+                                    }
+                                }
+                            } catch {
+                                Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
+                            }
+                        }}
+                    >
+                        {mActual.completada ? (
+                            <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
                         ) : (
-                            mActual.edificios.map(e => {
-                                const total = e.departamentos?.length || 0;
-                                const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
-                                const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
-                                const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
-                                const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
+                            <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
+                        )}
+                    </button>
+                </div>
+            )}
+            {(!mActual.edificios || mActual.edificios.length === 0) ? (
+                <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
+            ) : (
+                mActual.edificios.map(e => {
+                    const total = e.departamentos?.length || 0;
+                    const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
+                    const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
+                    const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
+                    const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
+                    const esNoTocar = e.noTocar === true || e.tocar === false || e.categoria?.toLowerCase() === 'no tocar';
 
-                                return (
-                                    <div className="col-12 col-lg-6" key={e.id}>
-                                        <div className="card h-100 border-0 shadow-sm" onClick={() => irAPortero(e)} style={{ cursor: 'pointer' }}>
-                                            <div className="card-body">
-                                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h5 className="fw-bold m-0">{e.direccion}</h5>
-                                                    <span className="badge bg-secondary">{e.categoria}</span>
-                                                </div>
-                                                <div className="text-muted small mb-3">
-                                                    <i className="bi bi-bell me-1"></i> {total} timbres en total
-                                                </div>
-                                                <div className="progress" style={{ height: '8px' }}>
-                                                    <div className="progress-bar bg-success" style={{ width: `${progreso}%` }}></div>
-                                                </div>
-                                                <div className="d-flex justify-content-between small fw-bold mt-2">
-                                                    <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
-                                                    <span className="text-success">{progreso}% Cubierto</span>
-                                                </div>
-                                            </div>
+                    return (
+                        <div className="col-12 col-lg-6" key={e.id}>
+                            <div
+                                className={`card h-100 shadow-sm ${esNoTocar ? 'border-0 border-start border-danger border-4' : 'border-0'}`}
+                                onClick={() => irAPortero(e)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className="card-body">
+                                    <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                        <h5 className="fw-bold m-0">{e.direccion}</h5>
+                                        <div className="d-flex flex-wrap justify-content-end gap-1">
+                                            {esNoTocar && (
+                                                <span className="badge bg-danger">
+                                                    <i className="bi bi-slash-circle-fill me-1"></i>NO TOCAR
+                                                </span>
+                                            )}
+                                            {e.categoria && e.categoria.toLowerCase() !== 'no tocar' && (
+                                                <span className="badge bg-secondary">{e.categoria}</span>
+                                            )}
                                         </div>
                                     </div>
-                                )
-                            })
-                        )}
-                    </div>
-                )
-            }
+                                    <div className="text-muted small mb-3">
+                                        <i className="bi bi-bell me-1"></i> {total} timbres en total
+                                    </div>
+                                    <div className="progress" style={{ height: '8px' }}>
+                                        <div className="progress-bar bg-success" style={{ width: `${progreso}%` }}></div>
+                                    </div>
+                                    <div className="d-flex justify-content-between small fw-bold mt-2">
+                                        <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
+                                        <span className="text-success">{progreso}% Cubierto</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })
+            )}
+        </div>
+    )
+}
+
+
+
+
+
 
             {/* VISTA 4: PORTERO ELÉCTRICO */}
             {
