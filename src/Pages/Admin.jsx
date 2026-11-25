@@ -220,44 +220,55 @@ const Admin = () => {
         )}
 
         {tabActiva === 'publica' && (
+    <>
+        {isPublicaAdmin ? (
             <>
-                {isPublicaAdmin ? (
-                    <>
-                        <h3 className="h5">Elija una opcion (Pública)</h3>
-                        <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
-                            <button 
-                                className={`btn flex-fill fw-semibold ${subTabPublica === 'puntos' ? 'btn-success' : 'btn-outline-success'}`}
-                                onClick={() => setSubTabPublica('puntos')}
-                            >
-                                Gestión de Puntos
-                            </button>
-                            <button 
-                                className={`btn flex-fill fw-semibold ${subTabPublica === 'plantillas' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setSubTabPublica('plantillas')}
-                            >
-                                Plantillas de Turnos
-                            </button>
-                            <button 
-                                className={`btn flex-fill fw-semibold ${subTabPublica === 'reportes' ? 'btn-warning' : 'btn-outline-warning'}`}
-                                onClick={() => setSubTabPublica('reportes')}
-                            >
-                                <i className="bi bi-list-task me-1"></i> To-Do Reportes
-                            </button>
-                        </div>
-                        
-                        {subTabPublica === 'puntos' ? (
-                            <GestionPuntos />
-                        ) : subTabPublica === 'plantillas' ? (
-                            <GestionPlantillas />
-                        ) : (
-                            <GestionReportes />
-                        )}
-                    </>
+                <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-2">
+                    <h3 className="h5 mb-0">Elija una opción (Pública)</h3>
+                    <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm fw-semibold shadow-sm"
+                        onClick={() => exportarInformePublicaPDF()}
+                        title="Descargar PDF con hermanos aptos y puntos trabajados hasta hoy"
+                    >
+                        <i className="bi bi-file-earmark-pdf-fill me-1"></i> Descargar Informe PDF
+                    </button>
+                </div>
+
+                <div className='container-buttons d-grid gap-3 d-md-flex mt-3 mb-4'>
+                    <button 
+                        className={`btn flex-fill fw-semibold ${subTabPublica === 'puntos' ? 'btn-success' : 'btn-outline-success'}`}
+                        onClick={() => setSubTabPublica('puntos')}
+                    >
+                        Gestión de Puntos
+                    </button>
+                    <button 
+                        className={`btn flex-fill fw-semibold ${subTabPublica === 'plantillas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => setSubTabPublica('plantillas')}
+                    >
+                        Plantillas de Turnos
+                    </button>
+                    <button 
+                        className={`btn flex-fill fw-semibold ${subTabPublica === 'reportes' ? 'btn-warning' : 'btn-outline-warning'}`}
+                        onClick={() => setSubTabPublica('reportes')}
+                    >
+                        <i className="bi bi-list-task me-1"></i> To-Do Reportes
+                    </button>
+                </div>
+                
+                {subTabPublica === 'puntos' ? (
+                    <GestionPuntos />
+                ) : subTabPublica === 'plantillas' ? (
+                    <GestionPlantillas />
                 ) : (
-                    <MisTurnosPublicos />
+                    <GestionReportes />
                 )}
             </>
+        ) : (
+            <MisTurnosPublicos />
         )}
+    </>
+)}
 
         {tabActiva === 'estadisticas' && isFullAdmin && (
             <EstadisticasDashboard />
