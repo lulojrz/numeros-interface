@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import Swal from 'sweetalert2';
-import { normalizarRol, obtenerNombreRol } from './permisos';
+import { obtenerNombreRol } from './permisos';
 
 /**
  * Genera y descarga un informe en PDF con los hermanos aptos para predicación pública
@@ -9,7 +9,6 @@ import { normalizarRol, obtenerNombreRol } from './permisos';
 export const exportarInformePublicaPDF = async (apiUrl) => {
     const api = apiUrl || import.meta.env.VITE_API_URL;
 
-    // Toast de progreso inicial
     Swal.fire({
         title: 'Generando informe...',
         text: 'Obteniendo publicadores habilitados y registro de turnos...',
@@ -20,25 +19,26 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
     });
 
     try {
-        // 1. Obtener usuarios, turnos y puntos en paralelo
+        // 1. Obtener usuarios habilitados, turnos y puntos en paralelo
+        // NOTA: Verifica que la ruta de puntos coincida con tu PuntoController (ej. /api/puntos/todos o /api/turnos/puntos)
         const [resUsuarios, resTurnos, resPuntos] = await Promise.all([
             fetch(`${api}/usuarios/habilitados/publica`, { credentials: 'include' }),
             fetch(`${api}/api/turnos/todos`, { credentials: 'include' }).catch(() => ({ ok: false })),
-            fetch(`${api}/api/turnos/puntos`, { credentials: 'include' }).catch(() => ({ ok: false }))
+            fetch(`${api}/api/puntos/todos`, { credentials: 'include' }).catch(() => ({ ok: false }))
         ]);
 
         if (!resUsuarios.ok) {
-            throw new Error('No se pudo obtener la lista de usuarios.');
+            throw new Error('No se pudo obtener la lista de usuarios habilitados.');
         }
 
         const usuarios = await resUsuarios.json();
         const turnos = resTurnos.ok ? await resTurnos.json() : [];
         const puntos = resPuntos.ok ? await resPuntos.json() : [];
 
-        // 2. Filtrar publicadores aptos
-        const publicadoresAptos = (Array.isArray(usuarios) ? usuarios : []).filter(u => {
-            return u.habilitacionPublica === true || u.aptoPredicacionPublica === true;
-        });
+        // 2. Asegurar filtro y orden alfabético por apellido y nombre
+        const publicadoresAptos = (Array.isArray(usuarios) ? usuarios : []).filter(u =>
+            u.habilitacionPublica === true || u.habilitacionPublica === 1 || u.aptoPredicacionPublica === true
+        );
 
         if (publicadoresAptos.length === 0) {
             Swal.fire({
@@ -50,31 +50,26 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             return;
         }
 
-        // Ordenar alfabéticamente por apellido y nombre
         publicadoresAptos.sort((a, b) => {
             const apeA = (a.apellido || '').trim().toLowerCase();
             const apeB = (b.apellido || '').trim().toLowerCase();
-            if (apeA !== apeB) return apeA.localeCompare(apeB);
-            return (a.nombre || '').trim().toLowerCase().localeCompare((b.nombre || '').trim().toLowerCase());
+            if (apeA !== apeB) return apeA.localeCompare(apeB, 'es');
+            return (a.nombre || '').trim().toLowerCase().localeCompare((b.nombre || '').trim().toLowerCase(), 'es');
         });
 
         // 3. Procesar turnos trabajados hasta el momento (fecha <= hoy)
         const hoy = new Date();
         const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-        
-        const turnosValidos = (Array.isArray(turnos) ? turnos : []).filter(t => {
-            return t.fecha && t.fecha <= hoyStr;
-        });
 
-        // Mapear estadísticas por usuario
+        const turnosValidos = (Array.isArray(turnos) ? turnos : []).filter(t => t.fecha && t.fecha <= hoyStr);
+
         const statsPorUsuario = {};
         let granTotalTurnos = 0;
 
         publicadoresAptos.forEach(u => {
             statsPorUsuario[u.usuario] = {
                 totalTurnos: 0,
-                puntosMap: {},
-                turnosList: []
+                puntosMap: {}
             };
         });
 
@@ -95,7 +90,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             }
         });
 
-        // 4. Crear Documento PDF (A4 Apaisado / Landscape: 841.89 x 595.28 pt)
+        // 4. Crear Documento PDF (A4 Apaisado / Landscape)
         const pdfDoc = await PDFDocument.create();
         const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -103,9 +98,9 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         const PAGE_WIDTH = 841.89;
         const PAGE_HEIGHT = 595.28;
         const MARGIN = 36;
-        const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2; // ~770 pt
+        const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 
-        const colorPrimario = rgb(0.05, 0.43, 0.99); // Azul corporativo #0d6efd
+        const colorPrimario = rgb(0.05, 0.43, 0.99);
         const colorSecundario = rgb(0.3, 0.35, 0.4);
         const colorGrisFondo = rgb(0.96, 0.97, 0.98);
         const colorGrisBorde = rgb(0.85, 0.88, 0.92);
@@ -113,7 +108,6 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         const colorBlanco = rgb(1, 1, 1);
         const colorVerde = rgb(0.1, 0.6, 0.3);
 
-        // Definición de columnas de la tabla
         const cols = [
             { id: 'nombre', header: 'Publicador / Hermano', width: 170 },
             { id: 'rol', header: 'Rol / Privilegio', width: 110 },
@@ -124,14 +118,11 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             { id: 'puntos', header: 'Puntos Trabajados (Detalle)', width: 230 }
         ];
 
-        let currentPage = null;
-        let y = 0;
         const ROW_HEIGHT = 22;
 
-        const dibujarEncabezadoPagina = (pageNumber, totalPagesEstimate = 1) => {
+        const dibujarEncabezadoPagina = (pageNumber) => {
             const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-            
-            // Banda superior decorativa
+
             page.drawRectangle({
                 x: 0,
                 y: PAGE_HEIGHT - 6,
@@ -140,7 +131,6 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 color: colorPrimario
             });
 
-            // Título y membrete
             page.drawText('CONGREGACIÓN COLEGIALES — PREDICACIÓN PÚBLICA', {
                 x: MARGIN,
                 y: PAGE_HEIGHT - 32,
@@ -171,7 +161,6 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 color: colorSecundario
             });
 
-            // Si es la página 1, dibujar tarjetas de resumen
             let tablaStartY = PAGE_HEIGHT - 70;
             if (pageNumber === 1) {
                 const cardY = PAGE_HEIGHT - 100;
@@ -257,7 +246,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 tablaStartY = cardY - 20;
             }
 
-            // Dibujar cabecera de la tabla
+            // Cabecera de tabla
             page.drawRectangle({
                 x: MARGIN,
                 y: tablaStartY - ROW_HEIGHT,
@@ -284,15 +273,13 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             };
         };
 
-        // Iniciar primera página
         let pageCount = 1;
         let setup = dibujarEncabezadoPagina(pageCount);
-        currentPage = setup.page;
-        y = setup.tablaStartY - ROW_HEIGHT;
+        let currentPage = setup.page;
+        let y = setup.tablaStartY - ROW_HEIGHT;
 
-        // 5. Imprimir cada fila de usuario
+        // 5. Imprimir cada fila
         publicadoresAptos.forEach((u, index) => {
-            // Si nos quedamos sin espacio vertical en la página, crear otra
             if (y < 45) {
                 pageCount++;
                 setup = dibujarEncabezadoPagina(pageCount);
@@ -300,9 +287,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 y = setup.tablaStartY - ROW_HEIGHT;
             }
 
-            // Fondo alternado de filas
-            const esPar = index % 2 === 0;
-            if (esPar) {
+            if (index % 2 === 0) {
                 currentPage.drawRectangle({
                     x: MARGIN,
                     y: y,
@@ -312,7 +297,6 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 });
             }
 
-            // Línea separadora inferior
             currentPage.drawLine({
                 start: { x: MARGIN, y: y },
                 end: { x: MARGIN + CONTENT_WIDTH, y: y },
@@ -320,25 +304,22 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 color: colorGrisBorde
             });
 
-            // Preparar valores
             const stats = statsPorUsuario[u.usuario] || { totalTurnos: 0, puntosMap: {} };
-            
-            // Resumen de puntos en texto: "Malabia (4), Parque (2)"
+
             const puntosDetalle = Object.entries(stats.puntosMap)
                 .map(([pto, cant]) => `${pto} (${cant})`)
                 .join(', ') || (stats.totalTurnos === 0 ? 'Sin turnos registrados' : 'Varios');
 
-            const nombreCompleto = `${u.apellido || ''}, ${u.nombre || ''}`.trim() || u.usuario;
+            const nombreCompleto = [u.apellido, u.nombre].map(s => (s || '').trim()).filter(Boolean).join(', ') || u.usuario;
             const rolTexto = obtenerNombreRol(u.privilegio);
-            const grupoTexto = u.grupo ? `G${String(u.grupo).replace(/\D/g, '') || u.grupo}` : '—';
-            const telTexto = (u.telefono || '').trim() || '—';
-            
-            let invTexto = '';
-            if (u.carrito) invTexto += 'Carrito ';
-            if (u.banner) invTexto += 'Banner';
-            if (!invTexto) invTexto = '—';
+            const grupoTexto = u.grupo ? `G${String(u.grupo).replace(/\D/g, '') || u.grupo}` : '-';
+            const telTexto = (u.telefono || '').trim() || '-';
 
-            // Dibujar columnas
+            let invParts = [];
+            if (u.carrito) invParts.push('Carrito');
+            if (u.banner) invParts.push('Banner');
+            const invTexto = invParts.length > 0 ? invParts.join(' / ') : '-';
+
             let currentX = MARGIN;
 
             // Col 1: Nombre
@@ -362,7 +343,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             currentX += cols[1].width;
 
             // Col 3: Grupo
-            currentPage.drawText(grupoTexto, {
+            currentPage.drawText(truncarTexto(grupoTexto, 8), {
                 x: currentX + 6,
                 y: y + 6.5,
                 size: 8,
@@ -372,7 +353,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             currentX += cols[2].width;
 
             // Col 4: Teléfono
-            currentPage.drawText(truncarTexto(telTexto, 14), {
+            currentPage.drawText(truncarTexto(telTexto, 15), {
                 x: currentX + 6,
                 y: y + 6.5,
                 size: 8,
@@ -382,7 +363,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             currentX += cols[3].width;
 
             // Col 5: Inventario
-            currentPage.drawText(truncarTexto(invTexto, 12), {
+            currentPage.drawText(truncarTexto(invTexto, 14), {
                 x: currentX + 6,
                 y: y + 6.5,
                 size: 7.5,
@@ -406,14 +387,14 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 x: currentX + 6,
                 y: y + 6.5,
                 size: 7.5,
-                font: stats.totalTurnos > 0 ? fontRegular : fontRegular,
+                font: fontRegular,
                 color: stats.totalTurnos > 0 ? colorTexto : colorSecundario
             });
 
             y -= ROW_HEIGHT;
         });
 
-        // 6. Pie de página en todas las hojas con numeración
+        // 6. Pie de página
         const allPages = pdfDoc.getPages();
         allPages.forEach((page, idx) => {
             page.drawLine({
@@ -471,11 +452,14 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
 };
 
 /**
- * Recorta texto largo para evitar desbordes en celdas de ancho fijo.
+ * Recorta texto largo y elimina caracteres fuera de WinAnsi (ej. emojis) para evitar errores en pdf-lib.
  */
 function truncarTexto(str, maxLen) {
     if (!str) return '';
-    const limpio = String(str).trim();
+    // Reemplaza caracteres fuera de Latin-1/WinAnsi (como emojis) para que StandardFonts.Helvetica no falle
+    const limpio = String(str)
+        .replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
+        .trim();
     if (limpio.length <= maxLen) return limpio;
-    return limpio.slice(0, maxLen - 1) + '…';
+    return limpio.slice(0, maxLen - 3) + '...';
 }
