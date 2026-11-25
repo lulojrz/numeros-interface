@@ -15,6 +15,8 @@ import AdminSalidas from '../Components/AdminSalidas.jsx'
 import { Link } from 'react-router-dom'
 import { obtenerPermisosAdmin } from '../utils/permisos'
 import { traerTodosLosUsuarios } from '../utils/usuarios'
+import { exportarInformePublicaPDF } from '../utils/exportPublica.js'
+
 const Admin = () => {
   const {numeros}= useContext(NumerosContext)
   const numerosContestados = numeros.filter(numero => numero.contesta);
