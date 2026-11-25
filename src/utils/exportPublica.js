@@ -36,7 +36,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         // 1. Obtener usuarios habilitados, turnos y puntos en paralelo
         const [resUsuarios, resTurnos, resPuntos] = await Promise.all([
             fetch(`${api}/usuarios/habilitados/publica`, { credentials: 'include' }),
-            fetch(`${api}/api/turnos/obtener`, { credentials: 'include' }).catch(() => ({ ok: false })),
+            fetch(`${api}/api/turnos/obtener?year=${anioActual}`, { credentials: 'include' }),
             fetch(`${api}/api/turnos/puntos`, { credentials: 'include' }).catch(() => ({ ok: false }))
         ]);
 
