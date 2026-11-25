@@ -1,16 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import Swal from 'sweetalert2';
 
-
-/**
- * Genera y descarga un informe en PDF con los hermanos aptos para predicación pública
- * y el detalle de los puntos trabajados hasta la fecha actual.
- * 
- * 
- * 
- */
-
-
 const obtenerNombreRol = (privilegio) => {
     const rol = String(privilegio || '').trim().toUpperCase();
     switch (rol) {
@@ -23,13 +13,13 @@ const obtenerNombreRol = (privilegio) => {
         case 'ROLE_PR':
         case 'PR':
             return 'Precursor Regular';
-
         case 'ROLE_PUB':
         case 'PUB':
         default:
             return 'Publicador';
     }
 };
+
 export const exportarInformePublicaPDF = async (apiUrl) => {
     const api = apiUrl || import.meta.env.VITE_API_URL;
 
@@ -44,7 +34,6 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
 
     try {
         // 1. Obtener usuarios habilitados, turnos y puntos en paralelo
-        // NOTA: Verifica que la ruta de puntos coincida con tu PuntoController (ej. /api/puntos/todos o /api/turnos/puntos)
         const [resUsuarios, resTurnos, resPuntos] = await Promise.all([
             fetch(`${api}/usuarios/habilitados/publica`, { credentials: 'include' }),
             fetch(`${api}/api/turnos/obtener`, { credentials: 'include' }).catch(() => ({ ok: false })),
@@ -97,22 +86,59 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             };
         });
 
+        // Estadísticas agregadas por punto
+        const statsPorPunto = {};
+        (Array.isArray(puntos) ? puntos : []).forEach(p => {
+            const nombrePto = (p.nombre || 'Punto').trim();
+            statsPorPunto[nombrePto] = {
+                nombre: nombrePto,
+                direccion: (p.direccion || p.ubicacion || '').trim(),
+                activo: p.activo !== false,
+                turnosRealizados: 0,
+                participaciones: 0
+            };
+        });
+
         turnosValidos.forEach(t => {
             const u1 = t.publicador1?.usuario;
             const u2 = t.publicador2?.usuario;
-            const puntoNombre = t.punto?.nombre || 'Punto';
+            const puntoNombre = (t.punto?.nombre || 'Punto').trim();
 
-            if (u1 && statsPorUsuario[u1]) {
-                statsPorUsuario[u1].totalTurnos += 1;
-                statsPorUsuario[u1].puntosMap[puntoNombre] = (statsPorUsuario[u1].puntosMap[puntoNombre] || 0) + 1;
-                granTotalTurnos++;
+            if (!statsPorPunto[puntoNombre]) {
+                statsPorPunto[puntoNombre] = {
+                    nombre: puntoNombre,
+                    direccion: (t.punto?.direccion || t.punto?.ubicacion || '').trim(),
+                    activo: t.punto?.activo !== false,
+                    turnosRealizados: 0,
+                    participaciones: 0
+                };
             }
-            if (u2 && statsPorUsuario[u2]) {
-                statsPorUsuario[u2].totalTurnos += 1;
-                statsPorUsuario[u2].puntosMap[puntoNombre] = (statsPorUsuario[u2].puntosMap[puntoNombre] || 0) + 1;
-                granTotalTurnos++;
+
+            if (u1 || u2) {
+                statsPorPunto[puntoNombre].turnosRealizados += 1;
+            }
+
+            if (u1) {
+                statsPorPunto[puntoNombre].participaciones += 1;
+                if (statsPorUsuario[u1]) {
+                    statsPorUsuario[u1].totalTurnos += 1;
+                    statsPorUsuario[u1].puntosMap[puntoNombre] = (statsPorUsuario[u1].puntosMap[puntoNombre] || 0) + 1;
+                    granTotalTurnos++;
+                }
+            }
+            if (u2) {
+                statsPorPunto[puntoNombre].participaciones += 1;
+                if (statsPorUsuario[u2]) {
+                    statsPorUsuario[u2].totalTurnos += 1;
+                    statsPorUsuario[u2].puntosMap[puntoNombre] = (statsPorUsuario[u2].puntosMap[puntoNombre] || 0) + 1;
+                    granTotalTurnos++;
+                }
             }
         });
+
+        const listaPuntosResumen = Object.values(statsPorPunto).sort((a, b) =>
+            a.nombre.localeCompare(b.nombre, 'es')
+        );
 
         // 4. Crear Documento PDF (A4 Apaisado / Landscape)
         const pdfDoc = await PDFDocument.create();
@@ -131,6 +157,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         const colorTexto = rgb(0.12, 0.14, 0.17);
         const colorBlanco = rgb(1, 1, 1);
         const colorVerde = rgb(0.1, 0.6, 0.3);
+        const colorNaranja = rgb(0.8, 0.5, 0.1);
 
         const cols = [
             { id: 'nombre', header: 'Publicador / Hermano', width: 170 },
@@ -144,7 +171,8 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
 
         const ROW_HEIGHT = 22;
 
-        const dibujarEncabezadoPagina = (pageNumber) => {
+        // Dibuja solo el membrete superior de página (reutilizable con o sin tabla de publicadores)
+        const crearNuevaPagina = (pageNumber, conTablaUsuarios = true) => {
             const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
             page.drawRectangle({
@@ -177,7 +205,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 year: 'numeric'
             }) + ' ' + hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
-            page.drawText(`Generado: ${fechaHora} hs | Villa Crespo, CABA`, {
+            page.drawText(`Generado: ${fechaHora} hs | Colegiales, CABA`, {
                 x: PAGE_WIDTH - MARGIN - 230,
                 y: PAGE_HEIGHT - 32,
                 size: 8.5,
@@ -242,7 +270,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 });
 
                 // Card 3: Puntos Activos
-                const cantPuntosActivos = Array.isArray(puntos) ? puntos.filter(p => p.activo !== false).length : 0;
+                const cantPuntosActivos = listaPuntosResumen.filter(p => p.activo).length;
                 page.drawRectangle({
                     x: MARGIN + (cardWidth + 10) * 2,
                     y: cardY,
@@ -257,7 +285,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                     y: cardY + 22,
                     size: 7.5,
                     font: fontBold,
-                    color: rgb(0.8, 0.5, 0.1)
+                    color: colorNaranja
                 });
                 page.drawText(`${cantPuntosActivos} puntos habilitados`, {
                     x: MARGIN + (cardWidth + 10) * 2 + 10,
@@ -270,45 +298,51 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
                 tablaStartY = cardY - 20;
             }
 
-            // Cabecera de tabla
-            page.drawRectangle({
-                x: MARGIN,
-                y: tablaStartY - ROW_HEIGHT,
-                width: CONTENT_WIDTH,
-                height: ROW_HEIGHT,
-                color: colorPrimario
-            });
-
-            let currentX = MARGIN;
-            cols.forEach(col => {
-                page.drawText(col.header, {
-                    x: currentX + 6,
-                    y: tablaStartY - ROW_HEIGHT + 7,
-                    size: 8.5,
-                    font: fontBold,
-                    color: colorBlanco
+            if (conTablaUsuarios) {
+                page.drawRectangle({
+                    x: MARGIN,
+                    y: tablaStartY - ROW_HEIGHT,
+                    width: CONTENT_WIDTH,
+                    height: ROW_HEIGHT,
+                    color: colorPrimario
                 });
-                currentX += col.width;
-            });
+
+                let currentX = MARGIN;
+                cols.forEach(col => {
+                    page.drawText(col.header, {
+                        x: currentX + 6,
+                        y: tablaStartY - ROW_HEIGHT + 7,
+                        size: 8.5,
+                        font: fontBold,
+                        color: colorBlanco
+                    });
+                    currentX += col.width;
+                });
+
+                return {
+                    page,
+                    nextY: tablaStartY - ROW_HEIGHT
+                };
+            }
 
             return {
                 page,
-                tablaStartY: tablaStartY - ROW_HEIGHT
+                nextY: tablaStartY
             };
         };
 
         let pageCount = 1;
-        let setup = dibujarEncabezadoPagina(pageCount);
+        let setup = crearNuevaPagina(pageCount, true);
         let currentPage = setup.page;
-        let y = setup.tablaStartY - ROW_HEIGHT;
+        let y = setup.nextY - ROW_HEIGHT;
 
-        // 5. Imprimir cada fila
+        // 5. Imprimir filas de publicadores
         publicadoresAptos.forEach((u, index) => {
             if (y < 45) {
                 pageCount++;
-                setup = dibujarEncabezadoPagina(pageCount);
+                setup = crearNuevaPagina(pageCount, true);
                 currentPage = setup.page;
-                y = setup.tablaStartY - ROW_HEIGHT;
+                y = setup.nextY - ROW_HEIGHT;
             }
 
             if (index % 2 === 0) {
@@ -418,6 +452,144 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
             y -= ROW_HEIGHT;
         });
 
+        // 5.5 Mini tabla informativa por cada Punto de Predicación
+        if (listaPuntosResumen.length > 0) {
+            const colsPuntos = [
+                { header: 'Punto de Predicación', width: 220 },
+                { header: 'Ubicación / Referencia', width: 270 },
+                { header: 'Estado', width: 90 },
+                { header: 'Turnos Cubiertos', width: 95 },
+                { header: 'Participaciones', width: 95 }
+            ];
+
+            // Altura necesaria para título + cabecera + al menos 2 filas
+            const altoMinimoBloque = 28 + ROW_HEIGHT * Math.min(listaPuntosResumen.length + 1, 3);
+            if (y - altoMinimoBloque < 45) {
+                pageCount++;
+                setup = crearNuevaPagina(pageCount, false);
+                currentPage = setup.page;
+                y = setup.nextY;
+            } else {
+                y -= 18;
+            }
+
+            const dibujarCabeceraPuntos = () => {
+                currentPage.drawText('RESUMEN POR PUNTO DE PREDICACIÓN (HASTA HOY)', {
+                    x: MARGIN,
+                    y: y - 4,
+                    size: 9.5,
+                    font: fontBold,
+                    color: colorSecundario
+                });
+
+                y -= 14;
+
+                currentPage.drawRectangle({
+                    x: MARGIN,
+                    y: y - ROW_HEIGHT,
+                    width: CONTENT_WIDTH,
+                    height: ROW_HEIGHT,
+                    color: colorSecundario
+                });
+
+                let cx = MARGIN;
+                colsPuntos.forEach(col => {
+                    currentPage.drawText(col.header, {
+                        x: cx + 6,
+                        y: y - ROW_HEIGHT + 7,
+                        size: 8.5,
+                        font: fontBold,
+                        color: colorBlanco
+                    });
+                    cx += col.width;
+                });
+
+                y = y - ROW_HEIGHT * 2;
+            };
+
+            dibujarCabeceraPuntos();
+
+            listaPuntosResumen.forEach((pto, idx) => {
+                if (y < 45) {
+                    pageCount++;
+                    setup = crearNuevaPagina(pageCount, false);
+                    currentPage = setup.page;
+                    y = setup.nextY;
+                    dibujarCabeceraPuntos();
+                }
+
+                if (idx % 2 === 0) {
+                    currentPage.drawRectangle({
+                        x: MARGIN,
+                        y: y,
+                        width: CONTENT_WIDTH,
+                        height: ROW_HEIGHT,
+                        color: colorGrisFondo
+                    });
+                }
+
+                currentPage.drawLine({
+                    start: { x: MARGIN, y: y },
+                    end: { x: MARGIN + CONTENT_WIDTH, y: y },
+                    thickness: 0.5,
+                    color: colorGrisBorde
+                });
+
+                let cx = MARGIN;
+
+                // Nombre del punto
+                currentPage.drawText(truncarTexto(pto.nombre, 34), {
+                    x: cx + 6,
+                    y: y + 6.5,
+                    size: 8,
+                    font: fontBold,
+                    color: colorTexto
+                });
+                cx += colsPuntos[0].width;
+
+                // Ubicación / Dirección
+                currentPage.drawText(truncarTexto(pto.direccion || '-', 46), {
+                    x: cx + 6,
+                    y: y + 6.5,
+                    size: 8,
+                    font: fontRegular,
+                    color: colorSecundario
+                });
+                cx += colsPuntos[1].width;
+
+                // Estado
+                currentPage.drawText(pto.activo ? 'Activo' : 'Inactivo', {
+                    x: cx + 6,
+                    y: y + 6.5,
+                    size: 8,
+                    font: fontBold,
+                    color: pto.activo ? colorVerde : colorSecundario
+                });
+                cx += colsPuntos[2].width;
+
+                // Turnos cubiertos en ese punto
+                currentPage.drawText(`${pto.turnosRealizados}`, {
+                    x: cx + 32,
+                    y: y + 6.5,
+                    size: 8.5,
+                    font: fontBold,
+                    color: pto.turnosRealizados > 0 ? colorPrimario : colorSecundario
+                });
+                cx += colsPuntos[3].width;
+
+                // Participaciones totales de hermanos
+                currentPage.drawText(`${pto.participaciones}`, {
+                    x: cx + 32,
+                    y: y + 6.5,
+                    size: 8,
+                    font: fontRegular,
+                    color: colorTexto
+                });
+
+                y -= ROW_HEIGHT;
+            });
+        }
+
         // 6. Pie de página
         const allPages = pdfDoc.getPages();
         allPages.forEach((page, idx) => {
@@ -460,7 +632,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         Swal.fire({
             icon: 'success',
             title: '¡Informe descargado!',
-            text: `Se descargó el PDF con ${publicadoresAptos.length} hermanos habilitados y su historial de turnos.`,
+            text: `Se descargó el PDF con ${publicadoresAptos.length} hermanos habilitados y el resumen de ${listaPuntosResumen.length} puntos.`,
             confirmButtonColor: 'var(--bs-primary)'
         });
 
@@ -475,12 +647,8 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
     }
 };
 
-/**
- * Recorta texto largo y elimina caracteres fuera de WinAnsi (ej. emojis) para evitar errores en pdf-lib.
- */
 function truncarTexto(str, maxLen) {
     if (!str) return '';
-    // Reemplaza caracteres fuera de Latin-1/WinAnsi (como emojis) para que StandardFonts.Helvetica no falle
     const limpio = String(str)
         .replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
         .trim();
