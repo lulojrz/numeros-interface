@@ -13,7 +13,7 @@ const AdminSalidas = () => {
     const [paginaConductores, setPaginaConductores] = useState(1);
     const [loading, setLoading] = useState(true);
     const [mapaViewer, setMapaViewer] = useState(false);
-    const [soloSemanaActualYProximas, setSoloSemanaActualYProximas] = useState(true);
+    const [filtroVistaSemanas, setFiltroVistaSemanas] = useState('recientes_y_proximas');
 
     const [fecha, setFecha] = useState('');
     const [hora, setHora] = useState('');
@@ -148,9 +148,13 @@ const AdminSalidas = () => {
         return acc;
     }, {});
 
-    const lunesActualClave = formatearClaveSemana(
-        obtenerLunesDeSemana(formatearClaveSemana(new Date()))
-    );
+    const lunesActual = obtenerLunesDeSemana(formatearClaveSemana(new Date()));
+    const lunesActualClave = formatearClaveSemana(lunesActual);
+
+    // Lunes de hace 2 semanas (14 días antes del lunes actual)
+    const lunesHaceDosSemanas = new Date(lunesActual);
+    lunesHaceDosSemanas.setDate(lunesActual.getDate() - 14);
+    const lunesLimiteClave = formatearClaveSemana(lunesHaceDosSemanas);
 
     const salidasOrdenadas = [...salidas].sort((a, b) => {
         const cmpFecha = (a.fecha || '').localeCompare(b.fecha || '');
@@ -162,7 +166,7 @@ const AdminSalidas = () => {
         const lunes = obtenerLunesDeSemana(s.fecha);
         const clave = formatearClaveSemana(lunes);
 
-        if (soloSemanaActualYProximas && clave < lunesActualClave) {
+        if (filtroVistaSemanas === 'recientes_y_proximas' && clave < lunesLimiteClave) {
             return acc;
         }
 
@@ -172,6 +176,7 @@ const AdminSalidas = () => {
             acc[clave] = {
                 clave,
                 esActual: clave === lunesActualClave,
+                esPasada: clave < lunesActualClave,
                 titulo: `Semana del ${lunes.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} al ${domingo.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}`,
                 items: []
             };
@@ -393,15 +398,15 @@ const AdminSalidas = () => {
                         <div className="btn-group btn-group-sm" role="group">
                             <button
                                 type="button"
-                                className={`btn ${soloSemanaActualYProximas ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setSoloSemanaActualYProximas(true)}
+                                className={`btn ${filtroVistaSemanas === 'recientes_y_proximas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setFiltroVistaSemanas('recientes_y_proximas')}
                             >
-                                Actual y próximas
+                                Últimas 2 sem., actual y próximas
                             </button>
                             <button
                                 type="button"
-                                className={`btn ${!soloSemanaActualYProximas ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setSoloSemanaActualYProximas(false)}
+                                className={`btn ${filtroVistaSemanas === 'todas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setFiltroVistaSemanas('todas')}
                             >
                                 Historial completo
                             </button>
@@ -418,7 +423,7 @@ const AdminSalidas = () => {
                         semanasAgrupadas.map((semana) => (
                             <div
                                 key={semana.clave}
-                                className={`card shadow-sm mb-3 ${semana.esActual ? 'border-primary' : 'border-0'}`}
+                                className={`card shadow-sm mb-3 ${semana.esActual ? 'border-primary' : 'border-0'} ${semana.esPasada ? 'opacity-75' : ''}`}
                             >
                                 <div className={`card-header d-flex justify-content-between align-items-center py-2 ${semana.esActual ? 'bg-primary bg-opacity-10 text-primary' : 'bg-body-tertiary'}`}>
                                     <span className="fw-bold">
@@ -428,6 +433,9 @@ const AdminSalidas = () => {
                                     <div className="d-flex align-items-center gap-2">
                                         {semana.esActual && (
                                             <span className="badge bg-primary">Semana actual</span>
+                                        )}
+                                        {semana.esPasada && (
+                                            <span className="badge bg-body-secondary text-body-secondary border">Reciente</span>
                                         )}
                                         <span className="badge bg-secondary rounded-pill">
                                             {semana.items.length} {semana.items.length === 1 ? 'salida' : 'salidas'}
