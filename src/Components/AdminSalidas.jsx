@@ -20,6 +20,8 @@ const AdminSalidas = () => {
     const [puntoEncuentro, setPuntoEncuentro] = useState('');
     const [conductorId, setConductorId] = useState('');
     const [territorioId, setTerritorioId] = useState('');
+    const [territorio2Id, setTerritorio2Id] = useState('');
+    const [territorio3Id, setTerritorio3Id] = useState('');
     const [grupos, setGrupos] = useState('Toda la congregación');
 
     const Toast = Swal.mixin({
@@ -76,6 +78,8 @@ const AdminSalidas = () => {
                 conductor: { id: conductorId }
             };
             if (territorioId) body.territorio = { id: territorioId };
+            if (territorio2Id) body.territorio2 = { id: territorio2Id };
+            if (territorio3Id) body.territorio3 = { id: territorio3Id };
 
             const res = await fetchConCsrf(`${api}/salidas/agregar`, {
                 method: 'POST',
@@ -89,6 +93,8 @@ const AdminSalidas = () => {
                 setPuntoEncuentro('');
                 setConductorId('');
                 setTerritorioId('');
+                setTerritorio2Id('');
+                setTerritorio3Id('');
                 setGrupos('Toda la congregación');
                 await fetchData();
             } else {
@@ -198,12 +204,81 @@ const AdminSalidas = () => {
 
     const semanasAgrupadas = Object.values(semanasMap);
 
-    const territorioSeleccionado = territorios.find(t => Number(t.id) === Number(territorioId));
+    // Validación de conflictos para los 3 territorios
     const inicioAsignacion = fecha && hora ? new Date(`${fecha}T${hora}:00`) : null;
     const finAsignacion = fecha ? new Date(`${fecha}T23:59:59`) : null;
-    const usuarioEnConflicto = territorioSeleccionado && inicioAsignacion && finAsignacion
-        ? obtenerConflictoAsignacion(territorioSeleccionado, conductorId, inicioAsignacion, finAsignacion)
-        : null;
+
+    const idsSeleccionados = [territorioId, territorio2Id, territorio3Id]
+        .filter(Boolean)
+        .map(id => Number(id));
+
+    const conflictosActivos = idsSeleccionados
+        .map(id => {
+            const terr = territorios.find(t => Number(t.id) === id);
+            if (!terr || !inicioAsignacion || !finAsignacion) return null;
+            const usuarioConf = obtenerConflictoAsignacion(terr, conductorId, inicioAsignacion, finAsignacion);
+            return usuarioConf ? { territorio: terr, usuario: usuarioConf } : null;
+        })
+        .filter(Boolean);
+
+    // Precalcular sugeridos y otros territorios una sola vez para los 3 selectores
+    const territoriosOrdenados = [...territorios].sort((a, b) => {
+        if (!a.ultimaFechaTrabajada) return -1;
+        if (!b.ultimaFechaTrabajada) return 1;
+        return new Date(a.ultimaFechaTrabajada) - new Date(b.ultimaFechaTrabajada);
+    });
+    const territoriosSugeridos = territoriosOrdenados.slice(0, 3);
+    const sugeridosIds = territoriosSugeridos.map(t => t.id);
+    const otrosTerritorios = territorios.filter(t => !sugeridosIds.includes(t.id));
+
+    const renderOpcionesTerritorios = (valorActual) => {
+        const otrosIdsElegidos = idsSeleccionados.filter(id => id !== Number(valorActual));
+
+        const renderOption = (t, mostrarNuncaTrabajado) => {
+            const yaElegidoEnOtroSlot = otrosIdsElegidos.includes(Number(t.id));
+            const conflicto = inicioAsignacion && finAsignacion
+                ? obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion)
+                : null;
+
+            return (
+                <option
+                    key={t.id}
+                    value={t.id}
+                    disabled={yaElegidoEnOtroSlot || Boolean(conflicto)}
+                >
+                    Territorio {t.numero} - {t.manzanas?.length || 0} manzanas{' '}
+                    {t.ultimaFechaTrabajada
+                        ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})`
+                        : mostrarNuncaTrabajado ? '(Nunca trabajado)' : ''}
+                    {yaElegidoEnOtroSlot ? ' — ya seleccionado en esta salida' : ''}
+                    {!yaElegidoEnOtroSlot && conflicto
+                        ? ` — asignado a ${conflicto.nombre || 'otro usuario'}`
+                        : ''}
+                </option>
+            );
+        };
+
+        return (
+            <>
+                {territoriosSugeridos.length > 0 && (
+                    <optgroup label="Sugeridos (Hace mucho no se trabajan)">
+                        {territoriosSugeridos.map(t => renderOption(t, true))}
+                    </optgroup>
+                )}
+                {otrosTerritorios.length > 0 && (
+                    <optgroup label="Otros Territorios">
+                        {otrosTerritorios.map(t => renderOption(t, false))}
+                    </optgroup>
+                )}
+            </>
+        );
+    };
+
+    const slotsTerritorios = [
+        { label: 'Territorio 1 (Opcional)', value: territorioId, setter: setTerritorioId },
+        { label: 'Territorio 2 (Opcional)', value: territorio2Id, setter: setTerritorio2Id },
+        { label: 'Territorio 3 (Opcional)', value: territorio3Id, setter: setTerritorio3Id }
+    ];
 
     return (
         <div className="container mt-4 mb-5">
@@ -325,78 +400,67 @@ const AdminSalidas = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="col-md-12">
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <label className="form-label small fw-bold text-success m-0"><i className="bi bi-map-fill me-1"></i> Territorio Asignado (Opcional)</label>
-                                        <div>
-                                            {territorioId && territorios.find(t => t.id === parseInt(territorioId))?.imagen && (
-                                                <button type="button" className="btn btn-sm btn-outline-info fw-bold py-0 me-2" onClick={() => setMapaViewer(territorios.find(t => t.id === parseInt(territorioId))?.imagen)}>
-                                                    <i className="bi bi-image me-1"></i> Ver Territorio
-                                                </button>
-                                            )}
-                                            <button type="button" className="btn btn-sm btn-outline-success fw-bold py-0" onClick={() => setMapaViewer('/mapa_general.jpg')}>
-                                                <i className="bi bi-eye me-1"></i> Ver Mapa General
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <select className="form-select" value={territorioId} onChange={e => setTerritorioId(e.target.value)}>
-                                        <option value="">Ninguno específico...</option>
-                                        {(() => {
-                                            const territoriosOrdenados = [...territorios].sort((a, b) => {
-                                                if (!a.ultimaFechaTrabajada) return -1;
-                                                if (!b.ultimaFechaTrabajada) return 1;
-                                                return new Date(a.ultimaFechaTrabajada) - new Date(b.ultimaFechaTrabajada);
-                                            });
-                                            const territoriosSugeridos = territoriosOrdenados.slice(0, 3);
-                                            const sugeridosIds = territoriosSugeridos.map(t => t.id);
-                                            const otrosTerritorios = territorios.filter(t => !sugeridosIds.includes(t.id));
 
+                                {/* Selección de hasta 3 Territorios */}
+                                <div className="col-md-12">
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <label className="form-label small fw-bold text-success m-0">
+                                            <i className="bi bi-map-fill me-1"></i> Territorios Asignados (Hasta 3 opcionales)
+                                        </label>
+                                        <button type="button" className="btn btn-sm btn-outline-success fw-bold py-0" onClick={() => setMapaViewer('/mapa_general.jpg')}>
+                                            <i className="bi bi-eye me-1"></i> Ver Mapa General
+                                        </button>
+                                    </div>
+
+                                    <div className="row g-2">
+                                        {slotsTerritorios.map((slot, idx) => {
+                                            const terrObj = slot.value ? territorios.find(t => Number(t.id) === Number(slot.value)) : null;
                                             return (
-                                                <>
-                                                    {territoriosSugeridos.length > 0 && (
-                                                        <optgroup label="Sugeridos (Hace mucho no se trabajan)">
-                                                            {territoriosSugeridos.map(t => (
-                                                                <option
-                                                                    key={t.id}
-                                                                    value={t.id}
-                                                                    disabled={Boolean(inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion))}
-                                                                >
-                                                                    Territorio {t.numero} - {t.manzanas?.length || 0} manzanas {t.ultimaFechaTrabajada ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})` : '(Nunca trabajado)'}
-                                                                    {inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion)
-                                                                        ? ` — asignado a ${obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion).nombre || 'otro usuario'}`
-                                                                        : ''}
-                                                                </option>
-                                                            ))}
-                                                        </optgroup>
-                                                    )}
-                                                    {otrosTerritorios.length > 0 && (
-                                                        <optgroup label="Otros Territorios">
-                                                            {otrosTerritorios.map(t => (
-                                                                <option
-                                                                    key={t.id}
-                                                                    value={t.id}
-                                                                    disabled={Boolean(inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion))}
-                                                                >
-                                                                    Territorio {t.numero} - {t.manzanas?.length || 0} manzanas {t.ultimaFechaTrabajada ? `(Última vez: ${new Date(t.ultimaFechaTrabajada).toLocaleDateString()})` : ''}
-                                                                    {inicioAsignacion && finAsignacion && obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion)
-                                                                        ? ` — asignado a ${obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion).nombre || 'otro usuario'}`
-                                                                        : ''}
-                                                                </option>
-                                                            ))}
-                                                        </optgroup>
-                                                    )}
-                                                </>
+                                                <div className="col-12" key={idx}>
+                                                    <div className="input-group input-group-sm">
+                                                        <span className="input-group-text fw-semibold text-success bg-body">
+                                                            #{idx + 1}
+                                                        </span>
+                                                        <select
+                                                            className="form-select"
+                                                            value={slot.value}
+                                                            onChange={e => slot.setter(e.target.value)}
+                                                            aria-label={slot.label}
+                                                        >
+                                                            <option value="">{slot.label} — Ninguno...</option>
+                                                            {renderOpcionesTerritorios(slot.value)}
+                                                        </select>
+                                                        {terrObj?.imagen && (
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-outline-info fw-bold"
+                                                                onClick={() => setMapaViewer(terrObj.imagen)}
+                                                                title={`Ver mapa del Territorio ${terrObj.numero}`}
+                                                            >
+                                                                <i className="bi bi-image"></i>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             );
-                                        })()}
-                                    </select>
-                                    {usuarioEnConflicto && (
-                                        <div className="form-text text-danger">
-                                            Este territorio ya está asignado a {[usuarioEnConflicto.nombre, usuarioEnConflicto.apellido].filter(Boolean).join(' ')} durante ese período.
+                                        })}
+                                    </div>
+
+                                    {conflictosActivos.length > 0 && (
+                                        <div className="form-text text-danger mt-2">
+                                            {conflictosActivos.map(({ territorio, usuario }) => (
+                                                <div key={territorio.id}>
+                                                    El Territorio {territorio.numero} ya está asignado a {[usuario.nombre, usuario.apellido].filter(Boolean).join(' ')} durante ese período.
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="col-12 text-end">
-                                    <button type="submit" className="btn btn-primary fw-bold px-4" disabled={Boolean(usuarioEnConflicto)}>Guardar Salida</button>
+                                    <button type="submit" className="btn btn-primary fw-bold px-4" disabled={conflictosActivos.length > 0}>
+                                        Guardar Salida
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -458,40 +522,45 @@ const AdminSalidas = () => {
                                     </div>
                                 </div>
                                 <div className="list-group list-group-flush">
-                                    {semana.items.map((s) => (
-                                        <div
-                                            key={s.id}
-                                            className="list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
-                                        >
-                                            <div>
-                                                <h6 className="fw-bold mb-1 d-flex flex-wrap align-items-center gap-2">
-                                                    <span className="text-primary">{obtenerNombreDia(s.fecha)}</span>
-                                                    <span>
-                                                        {new Date(`${s.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} — {s.hora} hs
-                                                    </span>
-                                                    <span className="badge bg-primary">{s.grupos || 'Toda la congregación'}</span>
-                                                </h6>
-                                                <div className="small text-muted">
-                                                    <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
-                                                    {s.territorio && (
-                                                        <span className="ms-2 badge bg-success">
-                                                            <i className="bi bi-map-fill me-1"></i>Territorio {s.territorio.numero}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="small text-muted mt-1">
-                                                    <i className="bi bi-person-fill text-primary me-1"></i> Conduce: {s.conductor?.nombre} {s.conductor?.apellido}
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="btn btn-sm btn-outline-danger"
-                                                onClick={() => borrarSalida(s.id)}
-                                                title="Eliminar salida"
+                                    {semana.items.map((s) => {
+                                        const territoriosDeSalida = [s.territorio, s.territorio2, s.territorio3].filter(Boolean);
+                                        return (
+                                            <div
+                                                key={s.id}
+                                                className="list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
                                             >
-                                                <i className="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    ))}
+                                                <div>
+                                                    <h6 className="fw-bold mb-1 d-flex flex-wrap align-items-center gap-2">
+                                                        <span className="text-primary">{obtenerNombreDia(s.fecha)}</span>
+                                                        <span>
+                                                            {new Date(`${s.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} — {s.hora} hs
+                                                        </span>
+                                                        <span className="badge bg-primary">{s.grupos || 'Toda la congregación'}</span>
+                                                    </h6>
+                                                    <div className="small text-muted d-flex flex-wrap align-items-center gap-1">
+                                                        <span>
+                                                            <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
+                                                        </span>
+                                                        {territoriosDeSalida.map((terr, i) => (
+                                                            <span key={terr.id || i} className="ms-1 badge bg-success">
+                                                                <i className="bi bi-map-fill me-1"></i>Territorio {terr.numero}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="small text-muted mt-1">
+                                                        <i className="bi bi-person-fill text-primary me-1"></i> Conduce: {s.conductor?.nombre} {s.conductor?.apellido}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => borrarSalida(s.id)}
+                                                    title="Eliminar salida"
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))
