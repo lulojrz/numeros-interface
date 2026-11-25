@@ -23,8 +23,8 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         // NOTA: Verifica que la ruta de puntos coincida con tu PuntoController (ej. /api/puntos/todos o /api/turnos/puntos)
         const [resUsuarios, resTurnos, resPuntos] = await Promise.all([
             fetch(`${api}/usuarios/habilitados/publica`, { credentials: 'include' }),
-            fetch(`${api}/api/turnos/todos`, { credentials: 'include' }).catch(() => ({ ok: false })),
-            fetch(`${api}/api/puntos/todos`, { credentials: 'include' }).catch(() => ({ ok: false }))
+            fetch(`${api}/api/turnos/obtener`, { credentials: 'include' }).catch(() => ({ ok: false })),
+            fetch(`${api}/api/turnos/puntos`, { credentials: 'include' }).catch(() => ({ ok: false }))
         ]);
 
         if (!resUsuarios.ok) {
