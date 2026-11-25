@@ -13,6 +13,7 @@ const AdminSalidas = () => {
     const [paginaConductores, setPaginaConductores] = useState(1);
     const [loading, setLoading] = useState(true);
     const [mapaViewer, setMapaViewer] = useState(false);
+    const [soloSemanaActualYProximas, setSoloSemanaActualYProximas] = useState(true);
 
     const [fecha, setFecha] = useState('');
     const [hora, setHora] = useState('');
@@ -83,7 +84,12 @@ const AdminSalidas = () => {
             });
             if (res.ok) {
                 Toast.fire({ icon: 'success', title: 'Salida programada' });
-                setFecha(''); setHora(''); setPuntoEncuentro(''); setConductorId(''); setTerritorioId(''); setGrupos('Toda la congregación');
+                setFecha('');
+                setHora('');
+                setPuntoEncuentro('');
+                setConductorId('');
+                setTerritorioId('');
+                setGrupos('Toda la congregación');
                 await fetchData();
             } else {
                 const error = await res.text();
@@ -111,6 +117,28 @@ const AdminSalidas = () => {
         }
     };
 
+    // Utilidades de fecha y agrupación semanal (Lunes a Domingo)
+    const obtenerLunesDeSemana = (fechaStr) => {
+        const fechaObj = new Date(`${fechaStr}T12:00:00`);
+        const dia = fechaObj.getDay(); // 0 = Domingo, 1 = Lunes ... 6 = Sábado
+        const diffALunes = dia === 0 ? -6 : 1 - dia;
+        const lunes = new Date(fechaObj);
+        lunes.setDate(fechaObj.getDate() + diffALunes);
+        return lunes;
+    };
+
+    const formatearClaveSemana = (fechaObj) => {
+        const y = fechaObj.getFullYear();
+        const m = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const d = String(fechaObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const obtenerNombreDia = (fechaStr) => {
+        const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        return dias[new Date(`${fechaStr}T12:00:00`).getDay()];
+    };
+
     if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary"></div></div>;
 
     // Agrupar disponibilidades por día para una mejor visualización
@@ -119,6 +147,41 @@ const AdminSalidas = () => {
         acc[d.diaSemana].push(d);
         return acc;
     }, {});
+
+    const lunesActualClave = formatearClaveSemana(
+        obtenerLunesDeSemana(formatearClaveSemana(new Date()))
+    );
+
+    const salidasOrdenadas = [...salidas].sort((a, b) => {
+        const cmpFecha = (a.fecha || '').localeCompare(b.fecha || '');
+        return cmpFecha !== 0 ? cmpFecha : (a.hora || '').localeCompare(b.hora || '');
+    });
+
+    const semanasMap = salidasOrdenadas.reduce((acc, s) => {
+        if (!s.fecha) return acc;
+        const lunes = obtenerLunesDeSemana(s.fecha);
+        const clave = formatearClaveSemana(lunes);
+
+        if (soloSemanaActualYProximas && clave < lunesActualClave) {
+            return acc;
+        }
+
+        if (!acc[clave]) {
+            const domingo = new Date(lunes);
+            domingo.setDate(lunes.getDate() + 6);
+            acc[clave] = {
+                clave,
+                esActual: clave === lunesActualClave,
+                titulo: `Semana del ${lunes.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} al ${domingo.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}`,
+                items: []
+            };
+        }
+        acc[clave].items.push(s);
+        return acc;
+    }, {});
+
+    const semanasAgrupadas = Object.values(semanasMap);
+
     const territorioSeleccionado = territorios.find(t => Number(t.id) === Number(territorioId));
     const inicioAsignacion = fecha && hora ? new Date(`${fecha}T${hora}:00`) : null;
     const finAsignacion = fecha ? new Date(`${fecha}T23:59:59`) : null;
@@ -144,7 +207,7 @@ const AdminSalidas = () => {
                                 <div className="p-4 text-center text-muted">Ningún hermano ha cargado disponibilidades aún.</div>
                             ) : (
                                 <div className="accordion accordion-flush" id="accordionDisp">
-                                    {['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map(dia => {
+                                    {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(dia => {
                                         const lista = dispPorDia[dia];
                                         if (!lista) return null;
                                         return (
@@ -167,7 +230,7 @@ const AdminSalidas = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        )
+                                        );
                                     })}
                                 </div>
                             )}
@@ -215,7 +278,7 @@ const AdminSalidas = () => {
                     </div>
                 </div>
 
-                {/* Columna Derecha: Formulario y Programa */}
+                {/* Columna Derecha: Formulario y Programa Semanal */}
                 <div className="col-12 col-lg-7">
                     <div className="card shadow-sm border-0 mb-4 bg-body-tertiary">
                         <div className="card-body">
@@ -323,31 +386,93 @@ const AdminSalidas = () => {
                         </div>
                     </div>
 
-                    <h5 className="fw-bold mb-3">Programa Armado</h5>
-                    <div className="list-group shadow-sm">
-                        {salidas.length === 0 ? (
-                            <div className="list-group-item text-center text-muted py-4">No hay salidas programadas.</div>
-                        ) : (
-                            salidas.sort((a,b) => a.fecha.localeCompare(b.fecha)).map(s => (
-                                <div key={s.id} className="list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-                                    <div>
-                                        <h6 className="fw-bold mb-1 d-flex flex-wrap align-items-center gap-2">
-                                            <span>{new Date(s.fecha + 'T12:00:00').toLocaleDateString()} a las {s.hora} hs</span>
-                                            <span className="badge bg-primary">{s.grupos || 'Toda la congregación'}</span>
-                                        </h6>
-                                        <div className="small text-muted">
-                                            <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
-                                            {s.territorio && <span className="ms-2 badge bg-success"><i className="bi bi-map-fill me-1"></i>Territorio {s.territorio.numero}</span>}
-                                        </div>
-                                        <div className="small text-muted mt-1"><i className="bi bi-person-fill text-primary me-1"></i> Conduce: {s.conductor?.nombre} {s.conductor?.apellido}</div>
-                                    </div>
-                                    <button className="btn btn-sm btn-outline-danger" onClick={() => borrarSalida(s.id)}>
-                                        <i className="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            ))
-                        )}
+                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <h5 className="fw-bold m-0">
+                            <i className="bi bi-calendar-week me-2 text-primary"></i>Programa por Semana
+                        </h5>
+                        <div className="btn-group btn-group-sm" role="group">
+                            <button
+                                type="button"
+                                className={`btn ${soloSemanaActualYProximas ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setSoloSemanaActualYProximas(true)}
+                            >
+                                Actual y próximas
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${!soloSemanaActualYProximas ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setSoloSemanaActualYProximas(false)}
+                            >
+                                Historial completo
+                            </button>
+                        </div>
                     </div>
+
+                    {semanasAgrupadas.length === 0 ? (
+                        <div className="card shadow-sm border-0">
+                            <div className="card-body text-center text-muted py-4">
+                                No hay salidas programadas en este período.
+                            </div>
+                        </div>
+                    ) : (
+                        semanasAgrupadas.map((semana) => (
+                            <div
+                                key={semana.clave}
+                                className={`card shadow-sm mb-3 ${semana.esActual ? 'border-primary' : 'border-0'}`}
+                            >
+                                <div className={`card-header d-flex justify-content-between align-items-center py-2 ${semana.esActual ? 'bg-primary bg-opacity-10 text-primary' : 'bg-body-tertiary'}`}>
+                                    <span className="fw-bold">
+                                        <i className="bi bi-calendar3 me-2"></i>
+                                        {semana.titulo}
+                                    </span>
+                                    <div className="d-flex align-items-center gap-2">
+                                        {semana.esActual && (
+                                            <span className="badge bg-primary">Semana actual</span>
+                                        )}
+                                        <span className="badge bg-secondary rounded-pill">
+                                            {semana.items.length} {semana.items.length === 1 ? 'salida' : 'salidas'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="list-group list-group-flush">
+                                    {semana.items.map((s) => (
+                                        <div
+                                            key={s.id}
+                                            className="list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
+                                        >
+                                            <div>
+                                                <h6 className="fw-bold mb-1 d-flex flex-wrap align-items-center gap-2">
+                                                    <span className="text-primary">{obtenerNombreDia(s.fecha)}</span>
+                                                    <span>
+                                                        {new Date(`${s.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} — {s.hora} hs
+                                                    </span>
+                                                    <span className="badge bg-primary">{s.grupos || 'Toda la congregación'}</span>
+                                                </h6>
+                                                <div className="small text-muted">
+                                                    <i className="bi bi-geo-alt-fill text-danger me-1"></i> {s.puntoEncuentro}
+                                                    {s.territorio && (
+                                                        <span className="ms-2 badge bg-success">
+                                                            <i className="bi bi-map-fill me-1"></i>Territorio {s.territorio.numero}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="small text-muted mt-1">
+                                                    <i className="bi bi-person-fill text-primary me-1"></i> Conduce: {s.conductor?.nombre} {s.conductor?.apellido}
+                                                </div>
+                                            </div>
+                                            <button
+                                                className="btn btn-sm btn-outline-danger"
+                                                onClick={() => borrarSalida(s.id)}
+                                                title="Eliminar salida"
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
