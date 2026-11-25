@@ -34,6 +34,8 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
 
     try {
         // 1. Obtener usuarios habilitados, turnos y puntos en paralelo
+        const hoy = new Date();
+        const anioActual = hoy.getFullYear();
         const [resUsuarios, resTurnos, resPuntos] = await Promise.all([
             fetch(`${api}/usuarios/habilitados/publica`, { credentials: 'include' }),
             fetch(`${api}/api/turnos/obtener?year=${anioActual}`, { credentials: 'include' }),
@@ -71,7 +73,7 @@ export const exportarInformePublicaPDF = async (apiUrl) => {
         });
 
         // 3. Procesar turnos trabajados hasta el momento (fecha <= hoy)
-        const hoy = new Date();
+        
         const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
         const turnosValidos = (Array.isArray(turnos) ? turnos : []).filter(t => t.fecha && t.fecha <= hoyStr);
