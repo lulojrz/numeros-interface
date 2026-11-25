@@ -23,6 +23,7 @@ const AdminSalidas = () => {
     const [territorio2Id, setTerritorio2Id] = useState('');
     const [territorio3Id, setTerritorio3Id] = useState('');
     const [grupos, setGrupos] = useState('Toda la congregación');
+    const [repetirProximaSemana, setRepetirProximaSemana] = useState(false);
 
     const Toast = Swal.mixin({
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
@@ -67,44 +68,70 @@ const AdminSalidas = () => {
         }
     }, [paginaConductores, totalPaginasConductores]);
 
+    const sumarDiasAFecha = (fechaStr, dias) => {
+        const fechaObj = new Date(`${fechaStr}T12:00:00`);
+        fechaObj.setDate(fechaObj.getDate() + dias);
+        const y = fechaObj.getFullYear();
+        const m = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const d = String(fechaObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
     const crearSalida = async (e) => {
         e.preventDefault();
         try {
-            const body = {
-                fecha,
-                hora,
-                puntoEncuentro,
-                grupos,
-                conductor: { id: conductorId }
-            };
-            if (territorioId) body.territorio = { id: territorioId };
-            if (territorio2Id) body.territorio2 = { id: territorio2Id };
-            if (territorio3Id) body.territorio3 = { id: territorio3Id };
+            const fechasACrear = repetirProximaSemana
+                ? [fecha, sumarDiasAFecha(fecha, 7)]
+                : [fecha];
 
-            const res = await fetchConCsrf(`${api}/salidas/agregar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (res.ok) {
-                Toast.fire({ icon: 'success', title: 'Salida programada' });
-                setFecha('');
-                setHora('');
-                setPuntoEncuentro('');
-                setConductorId('');
-                setTerritorioId('');
-                setTerritorio2Id('');
-                setTerritorio3Id('');
-                setGrupos('Toda la congregación');
-                await fetchData();
-            } else {
-                const error = await res.text();
-                Toast.fire({
-                    icon: 'error',
-                    title: 'No se pudo programar la salida',
-                    text: error || `Error del servidor (${res.status})`
+            for (let i = 0; i < fechasACrear.length; i++) {
+                const fechaActual = fechasACrear[i];
+                const body = {
+                    fecha: fechaActual,
+                    hora,
+                    puntoEncuentro,
+                    grupos,
+                    conductor: { id: conductorId }
+                };
+                if (territorioId) body.territorio = { id: territorioId };
+                if (territorio2Id) body.territorio2 = { id: territorio2Id };
+                if (territorio3Id) body.territorio3 = { id: territorio3Id };
+
+                const res = await fetchConCsrf(`${api}/salidas/agregar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
                 });
+
+                if (!res.ok) {
+                    const error = await res.text();
+                    Toast.fire({
+                        icon: 'error',
+                        title: i === 0
+                            ? 'No se pudo programar la salida'
+                            : `Se guardó el ${fecha}, pero falló la repetición del ${fechaActual}`,
+                        text: error || `Error del servidor (${res.status})`
+                    });
+                    await fetchData();
+                    return;
+                }
             }
+
+            Toast.fire({
+                icon: 'success',
+                title: repetirProximaSemana ? 'Salidas programadas (2 semanas)' : 'Salida programada'
+            });
+
+            setFecha('');
+            setHora('');
+            setPuntoEncuentro('');
+            setConductorId('');
+            setTerritorioId('');
+            setTerritorio2Id('');
+            setTerritorio3Id('');
+            setGrupos('Toda la congregación');
+            setRepetirProximaSemana(false);
+            await fetchData();
         } catch (e) {
             console.error(e);
             Toast.fire({ icon: 'error', title: 'Error de conexión al programar la salida' });
@@ -204,22 +231,34 @@ const AdminSalidas = () => {
 
     const semanasAgrupadas = Object.values(semanasMap);
 
-    // Validación de conflictos para los 3 territorios
-    const inicioAsignacion = fecha && hora ? new Date(`${fecha}T${hora}:00`) : null;
-    const finAsignacion = fecha ? new Date(`${fecha}T23:59:59`) : null;
+    // Validación de conflictos para los 3 territorios (contemplando la 2da semana si está tildada)
+    const fechasAValidar = fecha && hora
+        ? (repetirProximaSemana ? [fecha, sumarDiasAFecha(fecha, 7)] : [fecha])
+        : [];
 
     const idsSeleccionados = [territorioId, territorio2Id, territorio3Id]
         .filter(Boolean)
         .map(id => Number(id));
 
-    const conflictosActivos = idsSeleccionados
-        .map(id => {
-            const terr = territorios.find(t => Number(t.id) === id);
-            if (!terr || !inicioAsignacion || !finAsignacion) return null;
-            const usuarioConf = obtenerConflictoAsignacion(terr, conductorId, inicioAsignacion, finAsignacion);
-            return usuarioConf ? { territorio: terr, usuario: usuarioConf } : null;
-        })
-        .filter(Boolean);
+    const conflictosActivos = [];
+    idsSeleccionados.forEach(id => {
+        const terr = territorios.find(t => Number(t.id) === id);
+        if (!terr) return;
+
+        for (const f of fechasAValidar) {
+            const inicio = new Date(`${f}T${hora}:00`);
+            const fin = new Date(`${f}T23:59:59`);
+            const usuarioConf = obtenerConflictoAsignacion(terr, conductorId, inicio, fin);
+            if (usuarioConf) {
+                conflictosActivos.push({
+                    territorio: terr,
+                    usuario: usuarioConf,
+                    fecha: f
+                });
+                break;
+            }
+        }
+    });
 
     // Precalcular sugeridos y otros territorios una sola vez para los 3 selectores
     const territoriosOrdenados = [...territorios].sort((a, b) => {
@@ -236,9 +275,13 @@ const AdminSalidas = () => {
 
         const renderOption = (t, mostrarNuncaTrabajado) => {
             const yaElegidoEnOtroSlot = otrosIdsElegidos.includes(Number(t.id));
-            const conflicto = inicioAsignacion && finAsignacion
-                ? obtenerConflictoAsignacion(t, conductorId, inicioAsignacion, finAsignacion)
-                : null;
+            let conflicto = null;
+            for (const f of fechasAValidar) {
+                const inicio = new Date(`${f}T${hora}:00`);
+                const fin = new Date(`${f}T23:59:59`);
+                conflicto = obtenerConflictoAsignacion(t, conductorId, inicio, fin);
+                if (conflicto) break;
+            }
 
             return (
                 <option
@@ -448,18 +491,37 @@ const AdminSalidas = () => {
 
                                     {conflictosActivos.length > 0 && (
                                         <div className="form-text text-danger mt-2">
-                                            {conflictosActivos.map(({ territorio, usuario }) => (
+                                            {conflictosActivos.map(({ territorio, usuario, fecha: fechaConf }) => (
                                                 <div key={territorio.id}>
-                                                    El Territorio {territorio.numero} ya está asignado a {[usuario.nombre, usuario.apellido].filter(Boolean).join(' ')} durante ese período.
+                                                    El Territorio {territorio.numero} ya está asignado a {[usuario.nombre, usuario.apellido].filter(Boolean).join(' ')} el {new Date(`${fechaConf}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}.
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="col-12 text-end">
+                                <div className="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 pt-1">
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            id="checkRepetirSemana"
+                                            checked={repetirProximaSemana}
+                                            onChange={(e) => setRepetirProximaSemana(e.target.checked)}
+                                        />
+                                        <label className="form-check-label small fw-semibold" htmlFor="checkRepetirSemana">
+                                            <i className="bi bi-arrow-repeat me-1 text-primary"></i>
+                                            Repetir también la próxima semana
+                                            {fecha && (
+                                                <span className="text-muted ms-1">
+                                                    ({new Date(`${sumarDiasAFecha(fecha, 7)}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })})
+                                                </span>
+                                            )}
+                                        </label>
+                                    </div>
+
                                     <button type="submit" className="btn btn-primary fw-bold px-4" disabled={conflictosActivos.length > 0}>
-                                        Guardar Salida
+                                        {repetirProximaSemana ? 'Guardar Ambas Salidas' : 'Guardar Salida'}
                                     </button>
                                 </div>
                             </form>

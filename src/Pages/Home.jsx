@@ -41,30 +41,37 @@ const MisSalidasBanner = () => {
   const diaStr = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric' });
   const esHoy = s.fecha === new Date().toISOString().split('T')[0];
 
-  return (
-    <div className="alert alert-info border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-4" style={{backgroundColor: '#e0f2fe', color: '#0369a1'}}>
-      <div>
-        <h4 className="fw-bold mb-1">
-          <i className="bi bi-bell-fill text-warning me-2"></i>
-          {esHoy ? '¡Hoy tienes una salida programada!' : 'Próxima salida a tu cargo'}
-        </h4>
-        <p className="m-0 mb-2">Has sido asignado para conducir el grupo de predicación.</p>
-        <div className="d-flex gap-3 flex-wrap">
-          <span className="badge bg-body text-body border shadow-sm px-3 py-2"><i className="bi bi-calendar3 me-2 text-primary"></i>{diaStr} - {s.hora} hs</span>
-          <span className="badge bg-body text-body border shadow-sm px-3 py-2"><i className="bi bi-geo-alt-fill me-2 text-danger"></i>{s.puntoEncuentro}</span>
-          {s.territorio && (
-            <Link 
-              to="/edificios" 
-              state={{ territorioId: s.territorio.id, territorioNumero: s.territorio.numero }} 
-              className="badge bg-success text-white shadow-sm px-3 py-2 text-decoration-none"
-            >
-              <i className="bi bi-map-fill me-2"></i>Territorio {s.territorio.numero} <i className="bi bi-arrow-right ms-1"></i>
-            </Link>
-          )}
-        </div>
+ const territoriosAsignados = [s.territorio, s.territorio2, s.territorio3].filter(Boolean);
+
+return (
+  <div className="alert alert-info border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-4" style={{backgroundColor: '#e0f2fe', color: '#0369a1'}}>
+    <div>
+      <h4 className="fw-bold mb-1">
+        <i className="bi bi-bell-fill text-warning me-2"></i>
+        {esHoy ? '¡Hoy tienes una salida programada!' : 'Próxima salida a tu cargo'}
+      </h4>
+      <p className="m-0 mb-2">Has sido asignado para conducir el grupo de predicación.</p>
+      <div className="d-flex gap-3 flex-wrap">
+        <span className="badge bg-body text-body border shadow-sm px-3 py-2">
+          <i className="bi bi-calendar3 me-2 text-primary"></i>{diaStr} - {s.hora} hs
+        </span>
+        <span className="badge bg-body text-body border shadow-sm px-3 py-2">
+          <i className="bi bi-geo-alt-fill me-2 text-danger"></i>{s.puntoEncuentro}
+        </span>
+        {territoriosAsignados.map((terr, idx) => (
+          <Link
+            key={terr.id || idx}
+            to="/edificios"
+            state={{ territorioId: terr.id, territorioNumero: terr.numero }}
+            className="badge bg-success text-white shadow-sm px-3 py-2 text-decoration-none"
+          >
+            <i className="bi bi-map-fill me-2"></i>Territorio {terr.numero} <i className="bi bi-arrow-right ms-1"></i>
+          </Link>
+        ))}
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 const Home = () => {
