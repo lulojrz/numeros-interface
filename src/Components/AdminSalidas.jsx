@@ -13,7 +13,7 @@ const AdminSalidas = () => {
     const [paginaConductores, setPaginaConductores] = useState(1);
     const [loading, setLoading] = useState(true);
     const [mapaViewer, setMapaViewer] = useState(false);
-    const [filtroVistaSemanas, setFiltroVistaSemanas] = useState('recientes_y_proximas');
+    const [vistaSemana, setVistaSemana] = useState('actual'); // 'pasadas' | 'actual' | 'proximas'
 
     const [fecha, setFecha] = useState('');
     const [hora, setHora] = useState('');
@@ -141,20 +141,24 @@ const AdminSalidas = () => {
 
     if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary"></div></div>;
 
-    // Agrupar disponibilidades por día para una mejor visualización
+    // Agrupar disponibilidades por día
     const dispPorDia = disponibilidades.reduce((acc, d) => {
         if (!acc[d.diaSemana]) acc[d.diaSemana] = [];
         acc[d.diaSemana].push(d);
         return acc;
     }, {});
 
+    // Calcular claves de referencia (Lunes de cada semana)
     const lunesActual = obtenerLunesDeSemana(formatearClaveSemana(new Date()));
     const lunesActualClave = formatearClaveSemana(lunesActual);
 
-    // Lunes de hace 2 semanas (14 días antes del lunes actual)
     const lunesHaceDosSemanas = new Date(lunesActual);
     lunesHaceDosSemanas.setDate(lunesActual.getDate() - 14);
-    const lunesLimiteClave = formatearClaveSemana(lunesHaceDosSemanas);
+    const lunesHaceDosSemanasClave = formatearClaveSemana(lunesHaceDosSemanas);
+
+    const lunesEnDosSemanas = new Date(lunesActual);
+    lunesEnDosSemanas.setDate(lunesActual.getDate() + 14);
+    const lunesEnDosSemanasClave = formatearClaveSemana(lunesEnDosSemanas);
 
     const salidasOrdenadas = [...salidas].sort((a, b) => {
         const cmpFecha = (a.fecha || '').localeCompare(b.fecha || '');
@@ -166,7 +170,14 @@ const AdminSalidas = () => {
         const lunes = obtenerLunesDeSemana(s.fecha);
         const clave = formatearClaveSemana(lunes);
 
-        if (filtroVistaSemanas === 'recientes_y_proximas' && clave < lunesLimiteClave) {
+        // Filtrado según el botón activo
+        if (vistaSemana === 'pasadas' && !(clave >= lunesHaceDosSemanasClave && clave < lunesActualClave)) {
+            return acc;
+        }
+        if (vistaSemana === 'actual' && clave !== lunesActualClave) {
+            return acc;
+        }
+        if (vistaSemana === 'proximas' && !(clave > lunesActualClave && clave <= lunesEnDosSemanasClave)) {
             return acc;
         }
 
@@ -391,24 +402,31 @@ const AdminSalidas = () => {
                         </div>
                     </div>
 
-                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
                         <h5 className="fw-bold m-0">
-                            <i className="bi bi-calendar-week me-2 text-primary"></i>Programa por Semana
+                            <i className="bi bi-calendar-week me-2 text-primary"></i>Programa Armado
                         </h5>
                         <div className="btn-group btn-group-sm" role="group">
                             <button
                                 type="button"
-                                className={`btn ${filtroVistaSemanas === 'recientes_y_proximas' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setFiltroVistaSemanas('recientes_y_proximas')}
+                                className={`btn ${vistaSemana === 'pasadas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setVistaSemana('pasadas')}
                             >
-                                Últimas 2 sem., actual y próximas
+                                Últimas 2 semanas
                             </button>
                             <button
                                 type="button"
-                                className={`btn ${filtroVistaSemanas === 'todas' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setFiltroVistaSemanas('todas')}
+                                className={`btn ${vistaSemana === 'actual' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setVistaSemana('actual')}
                             >
-                                Historial completo
+                                Semana actual
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${vistaSemana === 'proximas' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setVistaSemana('proximas')}
+                            >
+                                Próximas 2 semanas
                             </button>
                         </div>
                     </div>
@@ -416,14 +434,14 @@ const AdminSalidas = () => {
                     {semanasAgrupadas.length === 0 ? (
                         <div className="card shadow-sm border-0">
                             <div className="card-body text-center text-muted py-4">
-                                No hay salidas programadas en este período.
+                                No hay salidas programadas para este rango de semanas.
                             </div>
                         </div>
                     ) : (
                         semanasAgrupadas.map((semana) => (
                             <div
                                 key={semana.clave}
-                                className={`card shadow-sm mb-3 ${semana.esActual ? 'border-primary' : 'border-0'} ${semana.esPasada ? 'opacity-75' : ''}`}
+                                className={`card shadow-sm mb-3 ${semana.esActual ? 'border-primary' : 'border-0'}`}
                             >
                                 <div className={`card-header d-flex justify-content-between align-items-center py-2 ${semana.esActual ? 'bg-primary bg-opacity-10 text-primary' : 'bg-body-tertiary'}`}>
                                     <span className="fw-bold">
@@ -433,9 +451,6 @@ const AdminSalidas = () => {
                                     <div className="d-flex align-items-center gap-2">
                                         {semana.esActual && (
                                             <span className="badge bg-primary">Semana actual</span>
-                                        )}
-                                        {semana.esPasada && (
-                                            <span className="badge bg-body-secondary text-body-secondary border">Reciente</span>
                                         )}
                                         <span className="badge bg-secondary rounded-pill">
                                             {semana.items.length} {semana.items.length === 1 ? 'salida' : 'salidas'}
