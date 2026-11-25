@@ -74,84 +74,84 @@ const GestionEdificios = () => {
         fetchData();
     }, [fetchData]);
 
-const agregarTerritorio = async () => {
-    const { value: formValues } = await Swal.fire({
-        title: 'Nuevo Territorio (Edificios)',
-        html: `
-            <input id="swal-num" class="swal2-input" placeholder="Número o Nombre (Ej: 15)">
-            <div class="mt-3 text-start" style="width: 80%; margin: 0 auto;">
-                <label class="form-label text-muted small mb-1">Imagen del mapa (Opcional)</label>
-                <input type="file" id="swal-img-file" class="form-control" accept="image/*">
-            </div>
-        `,
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Crear',
-        preConfirm: () => {
-            const numero = document.getElementById('swal-num').value.trim();
-            const fileInput = document.getElementById('swal-img-file');
+    const agregarTerritorio = async () => {
+        const { value: formValues } = await Swal.fire({
+            title: 'Nuevo Territorio (Edificios)',
+            html: `
+                <input id="swal-num" class="swal2-input" placeholder="Número o Nombre (Ej: 15)">
+                <div class="mt-3 text-start" style="width: 80%; margin: 0 auto;">
+                    <label class="form-label text-muted small mb-1">Imagen del mapa (Opcional)</label>
+                    <input type="file" id="swal-img-file" class="form-control" accept="image/*">
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Crear',
+            preConfirm: () => {
+                const numero = document.getElementById('swal-num').value.trim();
+                const fileInput = document.getElementById('swal-img-file');
 
-            if (!numero) {
-                Swal.showValidationMessage('El número de territorio es obligatorio');
-                return false;
-            }
-
-            let imagenFile = null;
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                if (file.size > 10 * 1024 * 1024) {
-                    Swal.showValidationMessage('La imagen es muy pesada (Máximo 10MB)');
+                if (!numero) {
+                    Swal.showValidationMessage('El número de territorio es obligatorio');
                     return false;
                 }
-                imagenFile = file;
-            }
 
-            return { numero, imagenFile };
+                let imagenFile = null;
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    if (file.size > 10 * 1024 * 1024) {
+                        Swal.showValidationMessage('La imagen es muy pesada (Máximo 10MB)');
+                        return false;
+                    }
+                    imagenFile = file;
+                }
+
+                return { numero, imagenFile };
+            }
+        });
+
+        if (formValues && formValues.numero) {
+            try {
+                const formData = new FormData();
+                formData.append('territorio', JSON.stringify({ numero: formValues.numero }));
+
+                if (formValues.imagenFile) {
+                    const opciones = {
+                        maxSizeMB: 0.4,
+                        maxWidthOrHeight: 1600,
+                        useWebWorker: true,
+                        fileType: 'image/webp'
+                    };
+                    const imagenOptimizada = await imageCompression(formValues.imagenFile, opciones);
+                    formData.append('imagen', imagenOptimizada, 'mapa.webp');
+                }
+
+                const res = await fetchConCsrf(`${api}/territorios/agregar`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    Toast.fire({ icon: 'success', title: 'Territorio creado' });
+                    fetchData();
+                } else {
+                    const errorText = await res.text();
+                    console.error("Detalle error backend:", errorText);
+                    throw new Error(errorText || "Error backend");
+                }
+            } catch (e) {
+                Toast.fire({ icon: 'error', title: 'No se pudo crear el territorio' });
+                console.error("Error al crear territorio:", e);
+            }
         }
-    });
-
-    if (formValues && formValues.numero) {
-        try {
-            const formData = new FormData();
-
-            // 1. Parte "territorio" como String JSON (coincide con @RequestParam("territorio"))
-            formData.append('territorio', JSON.stringify({ numero: formValues.numero }));
-
-            // 2. Comprime a WebP (máx ~400 KB) y adjunta al FormData
-            if (formValues.imagenFile) {
-                const opciones = {
-                    maxSizeMB: 0.4,
-                    maxWidthOrHeight: 1600,
-                    useWebWorker: true,
-                    fileType: 'image/webp'
-                };
-                const imagenOptimizada = await imageCompression(formValues.imagenFile, opciones);
-                formData.append('imagen', imagenOptimizada, 'mapa.webp');
-            }
-
-            const res = await fetchConCsrf(`${api}/territorios/agregar`, {
-                method: 'POST',
-                credentials: 'include',
-                body: formData
-            });
-
-            if (res.ok) {
-                Toast.fire({ icon: 'success', title: 'Territorio creado' });
-                fetchData();
-            } else {
-                const errorText = await res.text();
-                console.error("Detalle error backend:", errorText);
-                throw new Error(errorText || "Error backend");
-            }
-        } catch (e) {
-            Toast.fire({ icon: 'error', title: 'No se pudo crear el territorio' });
-            console.error("Error al crear territorio:", e);
-        }
-    }
-};
+    };
 
     const editarAsignacion = async (territorio, asignadoAId) => {
-        const usuarioAsignado = usuarios.find(u => u.id === parseInt(asignadoAId));
+        const usuarioAsignado = asignadoAId
+            ? usuarios.find(u => Number(u.id) === Number(asignadoAId))
+            : null;
+
         if (usuarioAsignado) {
             const conflicto = obtenerConflictoAsignacion(
                 territorio,
@@ -168,6 +168,7 @@ const agregarTerritorio = async () => {
                 return;
             }
         }
+
         const updated = { ...territorio, asignadoA: usuarioAsignado || null };
         try {
             const res = await fetchConCsrf(`${api}/territorios/editar/${territorio.id}`, {
@@ -177,7 +178,10 @@ const agregarTerritorio = async () => {
                 body: JSON.stringify(updated)
             });
             if (res.ok) {
-                Toast.fire({ icon: 'success', title: 'Asignación actualizada' });
+                Toast.fire({
+                    icon: 'success',
+                    title: usuarioAsignado ? 'Asignación actualizada' : 'Territorio liberado'
+                });
                 fetchData();
             } else {
                 const error = await res.text();
@@ -230,7 +234,7 @@ const agregarTerritorio = async () => {
                     calleEste: document.getElementById('swal-este').value,
                     calleOeste: document.getElementById('swal-oeste').value,
                     territorio: { id: territorioId }
-                }
+                };
             }
         });
         if (formValues && formValues.nombre) {
@@ -291,11 +295,9 @@ const agregarTerritorio = async () => {
                     return false;
                 }
 
-                // Autogeneración de departamentos
                 const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'];
                 const departamentos = [];
 
-                // Si es Casa o Negocio, solo creamos 1 timbre
                 if (cat === 'Casa' || cat === 'Negocio') {
                     departamentos.push({ piso: "PB", letra: "-", estado: "No visitado", tocar: true });
                 } else {
@@ -373,7 +375,7 @@ const agregarTerritorio = async () => {
                     estado: "No visitado",
                     tocar: true,
                     edificio: { id: edificioId }
-                }
+                };
             }
         });
         if (formValues && formValues.piso) {
@@ -405,6 +407,10 @@ const agregarTerritorio = async () => {
     const currentManzanaFull = currentTerritorioFull && manzanaSeleccionada ? currentTerritorioFull.manzanas.find(m => m.id === manzanaSeleccionada.id) : null;
     const currentEdificioFull = currentManzanaFull && edificioSeleccionado ? currentManzanaFull.edificios?.find(e => e.id === edificioSeleccionado.id) : null;
 
+    const usuariosOrdenados = [...usuarios].sort((a, b) =>
+        `${a.apellido || ''} ${a.nombre || ''}`.localeCompare(`${b.apellido || ''} ${b.nombre || ''}`, 'es')
+    );
+
     return (
         <div className="mt-3">
             <div className="d-flex justify-content-between align-items-center mb-3">
@@ -417,93 +423,115 @@ const agregarTerritorio = async () => {
             <div className="row g-4">
                 {/* LISTA DE TERRITORIOS (Se oculta si entramos a una manzana) */}
                 {!manzanaSeleccionada && (
-        <div className="col-12 col-md-5 col-lg-4">
-            <div className="card shadow-sm border-0 bg-body-tertiary">
-                <div className="card-header bg-transparent border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-                    <h5 className="fw-bold m-0">
-                        <i className="bi bi-map text-warning me-2"></i>
-                        Territorios <span className="badge bg-secondary-subtle text-body-emphasis ms-1">{territorios.length}</span>
-                    </h5>
-                    <button className="btn btn-sm btn-outline-success rounded-circle" onClick={agregarTerritorio} title="Agregar Territorio">
-                        <i className="bi bi-plus-lg"></i>
-                    </button>
-                </div>
-                <div className="card-body">
-                    {/* Buscador instantáneo en memoria */}
-                    {territorios.length > 0 && (
-                        <div className="input-group input-group-sm mb-3">
-                            <span className="input-group-text bg-body border-end-0">
-                                <i className="bi bi-search text-muted"></i>
-                            </span>
-                            <input
-                                type="text"
-                                className="form-control bg-body border-start-0"
-                                placeholder="Buscar territorio o persona..."
-                                value={busquedaTerritorio}
-                                onChange={(e) => setBusquedaTerritorio(e.target.value)}
-                            />
-                            {busquedaTerritorio && (
-                                <button
-                                    className="btn btn-outline-secondary border-start-0"
-                                    type="button"
-                                    onClick={() => setBusquedaTerritorio('')}
-                                >
-                                    <i className="bi bi-x"></i>
+                    <div className="col-12 col-md-5 col-lg-4">
+                        <div className="card shadow-sm border-0 bg-body-tertiary">
+                            <div className="card-header bg-transparent border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                                <h5 className="fw-bold m-0">
+                                    <i className="bi bi-map text-warning me-2"></i>
+                                    Territorios <span className="badge bg-secondary-subtle text-body-emphasis ms-1">{territorios.length}</span>
+                                </h5>
+                                <button className="btn btn-sm btn-outline-success rounded-circle" onClick={agregarTerritorio} title="Agregar Territorio">
+                                    <i className="bi bi-plus-lg"></i>
                                 </button>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                            <div className="card-body">
+                                {/* Buscador instantáneo en memoria */}
+                                {territorios.length > 0 && (
+                                    <div className="input-group input-group-sm mb-3">
+                                        <span className="input-group-text bg-body border-end-0">
+                                            <i className="bi bi-search text-muted"></i>
+                                        </span>
+                                        <input
+                                            type="text"
+                                            className="form-control bg-body border-start-0"
+                                            placeholder="Buscar territorio o persona..."
+                                            value={busquedaTerritorio}
+                                            onChange={(e) => setBusquedaTerritorio(e.target.value)}
+                                        />
+                                        {busquedaTerritorio && (
+                                            <button
+                                                className="btn btn-outline-secondary border-start-0"
+                                                type="button"
+                                                onClick={() => setBusquedaTerritorio('')}
+                                            >
+                                                <i className="bi bi-x"></i>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
 
-                    {territorios.length === 0 ? (
-                        <p className="text-muted small text-center">No hay territorios creados.</p>
-                    ) : (
-                        <div
-                            className="list-group list-group-flush border-0 pe-1"
-                            style={{ maxHeight: '65vh', overflowY: 'auto' }}
-                        >
-                            {territorios
-                                .filter(t => {
-                                    if (!busquedaTerritorio.trim()) return true;
-                                    const q = busquedaTerritorio.toLowerCase();
-                                    const estado = obtenerEstadoAsignacion(t);
-                                    const asignado = estado
-                                        ? `${estado.usuario.nombre || ''} ${estado.usuario.apellido || ''}`.toLowerCase()
-                                        : 'sin asignar';
-                                    return (
-                                        String(t.numero).toLowerCase().includes(q) ||
-                                        asignado.includes(q)
-                                    );
-                                })
-                                .map(t => {
-                                    const estadoAsignacion = obtenerEstadoAsignacion(t);
-                                    return (
+                                {territorios.length === 0 ? (
+                                    <p className="text-muted small text-center">No hay territorios creados.</p>
+                                ) : (
+                                    <div
+                                        className="list-group list-group-flush border-0 pe-1"
+                                        style={{ maxHeight: '65vh', overflowY: 'auto' }}
+                                    >
+                                        {territorios
+                                            .filter(t => {
+                                                if (!busquedaTerritorio.trim()) return true;
+                                                const q = busquedaTerritorio.toLowerCase();
+                                                const estado = obtenerEstadoAsignacion(t);
+                                                const asignado = estado
+                                                    ? `${estado.usuario.nombre || ''} ${estado.usuario.apellido || ''}`.toLowerCase()
+                                                    : 'sin asignar';
+                                                return (
+                                                    String(t.numero).toLowerCase().includes(q) ||
+                                                    asignado.includes(q)
+                                                );
+                                            })
+                                            .map(t => {
+                                                const estadoAsignacion = obtenerEstadoAsignacion(t);
+                                                return (
+                                                    <button
+                                                        key={t.id}
+                                                        onClick={() => setTerritorioSeleccionado(t)}
+                                                        className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
+                                                    >
+                                                        <div>
+                                                            <div className="fw-bold">Territorio {t.numero}</div>
+                                                            <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
+                                                                {t.manzanas?.length || 0} manzanas
+                                                            </small>
+                                                            <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
+                                                                <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
+                                                                {estadoAsignacion
+                                                                    ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
+                                                                    : 'Sin asignar'}
+                                                            </div>
+                                                        </div>
+                                                        <i className="bi bi-chevron-right"></i>
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                )}
+
+                                {(paginaTerritorios > 0 || hayMasTerritorios) && (
+                                    <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                         <button
-                                            key={t.id}
-                                            onClick={() => setTerritorioSeleccionado(t)}
-                                            className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 mb-1 border-0 ${territorioSeleccionado?.id === t.id ? 'active shadow-sm' : 'bg-body'}`}
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary"
+                                            disabled={paginaTerritorios === 0}
+                                            onClick={() => setPaginaTerritorios(p => Math.max(0, p - 1))}
                                         >
-                                            <div>
-                                                <div className="fw-bold">Territorio {t.numero}</div>
-                                                <small className={territorioSeleccionado?.id === t.id ? 'text-white-50' : 'text-muted'}>
-                                                    {t.manzanas?.length || 0} manzanas
-                                                </small>
-                                                <div className={`small mt-1 ${territorioSeleccionado?.id === t.id ? 'text-white-50' : estadoAsignacion ? 'text-primary' : 'text-muted'}`}>
-                                                    <i className={`bi ${estadoAsignacion ? 'bi-person-check' : 'bi-person-dash'} me-1`}></i>
-                                                    {estadoAsignacion
-                                                        ? `${estadoAsignacion.tipo === 'salida' ? 'Reservado para salida' : 'Asignado a'}: ${[estadoAsignacion.usuario.nombre, estadoAsignacion.usuario.apellido].filter(Boolean).join(' ')}`
-                                                        : 'Sin asignar'}
-                                                </div>
-                                            </div>
-                                            <i className="bi bi-chevron-right"></i>
+                                            Anterior
                                         </button>
-                                    );
-                                })}
+                                        <span className="small text-muted">Página {paginaTerritorios + 1}</span>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary"
+                                            disabled={!hayMasTerritorios}
+                                            onClick={() => setPaginaTerritorios(p => p + 1)}
+                                        >
+                                            Siguiente
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    )}
+                    </div>
+                )}
 
                 {/* DETALLE DEL TERRITORIO O MANZANA */}
                 <div className={manzanaSeleccionada ? "col-12" : "col-12 col-md-7 col-lg-8"}>
@@ -614,80 +642,100 @@ const agregarTerritorio = async () => {
                                             </button>
                                         </div>
 
+                                        {/* Controles de Asignación y Mapa */}
+                                        <div className="row g-3 mb-4 p-3 rounded-3 bg-body-tertiary border">
+                                            <div className={currentTerritorioFull.imagen ? 'col-12 col-md-6' : 'col-12'}>
+                                                <label className="form-label small fw-bold text-body-secondary mb-1">
+                                                    <i className="bi bi-person-lines-fill me-1 text-primary"></i> Asignar / Cambiar Hermano
+                                                </label>
+                                                <select
+                                                    className="form-select shadow-sm"
+                                                    value={currentTerritorioFull.asignadoA?.id || ''}
+                                                    onChange={(e) => editarAsignacion(currentTerritorioFull, e.target.value)}
+                                                >
+                                                    <option value="">— Sin asignar (Disponible) —</option>
+                                                    {usuariosOrdenados.map((u) => (
+                                                        <option key={u.id} value={u.id}>
+                                                            {[u.apellido, u.nombre].filter(Boolean).join(', ') || u.usuario}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
 
-                                        <div className="col-12 col-md-6">
                                             {currentTerritorioFull.imagen && (
-                                                <button onClick={() => setMapaViewer(currentTerritorioFull.imagen)} className="btn btn-outline-info w-100 h-100 d-flex align-items-center justify-content-center border-0 shadow-sm bg-body p-3">
-                                                    <i className="bi bi-image fs-4 me-2"></i> <span className="fw-semibold">Ver Mapa del Territorio</span>
-                                                </button>
+                                                <div className="col-12 col-md-6 d-flex align-items-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMapaViewer(currentTerritorioFull.imagen)}
+                                                        className="btn btn-outline-info w-100 d-flex align-items-center justify-content-center shadow-sm bg-body py-2"
+                                                    >
+                                                        <i className="bi bi-image fs-5 me-2"></i>
+                                                        <span className="fw-semibold">Ver Mapa del Territorio</span>
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
 
-                                    
-
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-body-secondary me-2"></i>Manzanas</h5>
-                                        <button className="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm" onClick={() => agregarManzana(currentTerritorioFull.id)}>
-                                            <i className="bi bi-plus-lg me-1"></i> Nueva Manzana
-                                        </button>
-                                    </div>
-
-                                    {(!currentTerritorioFull.manzanas || currentTerritorioFull.manzanas.length === 0) ? (
-                                        <div className="alert alert-light border text-center py-4 text-muted">
-                                            <i className="bi bi-building fs-1 d-block mb-2 text-body-secondary opacity-50"></i>
-                                            No hay manzanas creadas en este territorio.
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 className="fw-bold m-0"><i className="bi bi-grid-3x3 text-body-secondary me-2"></i>Manzanas</h5>
+                                            <button className="btn btn-success btn-sm px-3 rounded-pill fw-semibold shadow-sm" onClick={() => agregarManzana(currentTerritorioFull.id)}>
+                                                <i className="bi bi-plus-lg me-1"></i> Nueva Manzana
+                                            </button>
                                         </div>
-                                    ) : (
-                                        <div className="row g-3">
-                                            {currentTerritorioFull.manzanas.map(m => (
-                                                <div className="col-12 col-xl-6" key={m.id}>
-                                                    <div className="card h-100 border bg-body rounded-3 shadow-sm position-relative">
-                                                        <div className="card-body">
-                                                            <div className="d-flex justify-content-between align-items-start mb-2">
-                                                                <h6 className="fw-bold text-primary m-0">{m.nombre}</h6>
-                                                                <button className="btn btn-link text-danger p-0" onClick={() => borrarManzana(m.id)}>
-                                                                    <i className="bi bi-x-circle-fill fs-5"></i>
+
+                                        {(!currentTerritorioFull.manzanas || currentTerritorioFull.manzanas.length === 0) ? (
+                                            <div className="alert alert-light border text-center py-4 text-muted">
+                                                <i className="bi bi-building fs-1 d-block mb-2 text-body-secondary opacity-50"></i>
+                                                No hay manzanas creadas en este territorio.
+                                            </div>
+                                        ) : (
+                                            <div className="row g-3">
+                                                {currentTerritorioFull.manzanas.map(m => (
+                                                    <div className="col-12 col-xl-6" key={m.id}>
+                                                        <div className="card h-100 border bg-body rounded-3 shadow-sm position-relative">
+                                                            <div className="card-body">
+                                                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                                                    <h6 className="fw-bold text-primary m-0">{m.nombre}</h6>
+                                                                    <button className="btn btn-link text-danger p-0" onClick={() => borrarManzana(m.id)}>
+                                                                        <i className="bi bi-x-circle-fill fs-5"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <div className="text-muted small lh-sm mb-3">
+                                                                    <div><span className="fw-semibold">Calles:</span> {m.calleNorte}, {m.calleSur}, {m.calleEste}, {m.calleOeste}</div>
+                                                                </div>
+                                                                <button className="btn btn-primary btn-sm w-100 fw-semibold" onClick={() => setManzanaSeleccionada(m)}>
+                                                                    Gestionar Edificios ({m.edificios?.length || 0})
                                                                 </button>
                                                             </div>
-                                                            <div className="text-muted small lh-sm mb-3">
-                                                                <div><span className="fw-semibold">Calles:</span> {m.calleNorte}, {m.calleSur}, {m.calleEste}, {m.calleOeste}</div>
-                                                            </div>
-                                                            <button className="btn btn-primary btn-sm w-100 fw-semibold" onClick={() => setManzanaSeleccionada(m)}>
-                                                                Gestionar Edificios ({m.edificios?.length || 0})
-                                                            </button>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                        
-                ) : (
-                <div className="card shadow-sm border-0 h-100 bg-body-tertiary d-flex align-items-center justify-content-center py-5">
-                    <div className="text-center text-muted">
-                        <i className="bi bi-map fs-1 mb-3 d-block opacity-50"></i>
-                        <h5>Selecciona un territorio</h5>
+                            ) : (
+                                <div className="card shadow-sm border-0 h-100 bg-body-tertiary d-flex align-items-center justify-content-center py-5">
+                                    <div className="text-center text-muted">
+                                        <i className="bi bi-map fs-1 mb-3 d-block opacity-50"></i>
+                                        <h5>Selecciona un territorio</h5>
+                                    </div>
+                                </div>
+                            )}
+                </div>
+            </div>
+
+            {mapaViewer && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
+                        <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <i className="bi bi-x-lg"></i>
+                        </button>
+                        <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
                     </div>
                 </div>
-                    )}
-            </div>
+            )}
         </div>
-
-            {
-        mapaViewer && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '95%' }}>
-                    <button onClick={() => setMapaViewer(null)} className="btn btn-danger position-absolute shadow" style={{ top: '-15px', right: '-15px', borderRadius: '50%', width: '40px', height: '40px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <i className="bi bi-x-lg"></i>
-                    </button>
-                    <img src={mapaViewer} alt="Mapa del Territorio" className="img-fluid rounded shadow-lg" style={{ maxHeight: '90vh', objectFit: 'contain' }} />
-                </div>
-            </div>
-        )
-    }
-        </div >
     );
 };
 
