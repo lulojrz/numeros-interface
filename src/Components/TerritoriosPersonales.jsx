@@ -217,9 +217,7 @@ const TerritoriosPersonales = () => {
                     <div className="alert alert-primary shadow-sm mb-4 mx-auto" style={{ maxWidth: '700px', borderRadius: '0.75rem' }}>
                         <h5 className="alert-heading fw-bold"><i className="bi bi-info-circle me-2"></i>¿Cómo funciona?</h5>
                         <p className="mb-0">
-                            Los territorios personales son territorios que se te asignan de forma exclusiva para que los trabajes durante un tiempo.
                             Al solicitar un territorio, los números correspondientes a esa zona quedarán reservados a tu nombre y ningún otro usuario podrá verlos o llamarlos.
-                            Una vez que hayas terminado de realizar los llamados en esa área, deberás "devolver" el territorio para que quede disponible nuevamente en el sistema.
                             ¿Cómo lo devuelvo? Simplemente contacta al hermano encargado y pídele que lo libere para que otros puedan usarlo.
                         </p>
                     </div>
