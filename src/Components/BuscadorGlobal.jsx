@@ -13,17 +13,17 @@ const normalizar = (txt) => {
 };
 
 const BuscadorGlobal = () => {
-    const { 
-        isSearchOpen, 
-        cerrarBuscador, 
-        territorios, 
-        cargarTerritorios, 
+    const {
+        isSearchOpen,
+        cerrarBuscador,
+        territorios,
+        cargarTerritorios,
         loadingTerritorios,
-        numeros 
+        numeros
     } = useContext(NumerosContext);
 
     const [query, setQuery] = useState('');
-    const [filtroTipo, setFiltroTipo] = useState('todos'); // 'todos', 'edificios', 'calles', 'territorios', 'telefonos'
+    const [filtroTipo, setFiltroTipo] = useState('todos'); // 'todos', 'edificios', 'territorios', 'telefonos'
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     const inputRef = useRef(null);
@@ -36,7 +36,6 @@ const BuscadorGlobal = () => {
             if (!territorios || territorios.length === 0) {
                 cargarTerritorios();
             }
-            // Auto focus
             setTimeout(() => {
                 inputRef.current?.focus();
             }, 100);
@@ -59,13 +58,11 @@ const BuscadorGlobal = () => {
         };
 
         const resEdificios = [];
-        const resCalles = [];
         const resTerritorios = [];
         const resTelefonos = [];
 
-        // 1. Buscar en Territorios, Manzanas y Edificios
+        // 1. Buscar en Territorios y Edificios
         (territorios || []).forEach(t => {
-            // Territorio directo
             const matchTerNumero = matchAllTerms(`territorio ${t.numero} ${t.asignadoA?.nombre || ''}`);
             if (matchTerNumero) {
                 resTerritorios.push({
@@ -83,37 +80,6 @@ const BuscadorGlobal = () => {
             }
 
             (t.manzanas || []).forEach(m => {
-                // Calles de la manzana
-                const callesManzana = [
-                    { nombre: m.calleNorte, lado: 'Norte' },
-                    { nombre: m.calleSur, lado: 'Sur' },
-                    { nombre: m.calleEste, lado: 'Este' },
-                    { nombre: m.calleOeste, lado: 'Oeste' }
-                ];
-
-                const callesVistas = new Set();
-                callesManzana.forEach(({ nombre, lado }) => {
-                    if (nombre && !callesVistas.has(nombre.trim().toLowerCase())) {
-                        callesVistas.add(nombre.trim().toLowerCase());
-                        if (matchAllTerms(`${nombre} manzana ${m.nombre} territorio ${t.numero}`)) {
-                            resCalles.push({
-                                tipo: 'calle',
-                                id: `calle-${m.id}-${lado}`,
-                                titulo: `Calle ${nombre}`,
-                                subtitulo: `Lado ${lado} de ${m.nombre} • Territorio #${t.numero}`,
-                                detalles: `${m.edificios?.length || 0} edificios en esta manzana`,
-                                territorio: t,
-                                manzana: m,
-                                accion: () => {
-                                    cerrarBuscador();
-                                    navigate('/edificios', { state: { territorioId: t.id, manzanaId: m.id, t: Date.now() } });
-                                }
-                            });
-                        }
-                    }
-                });
-
-                // Edificios
                 (m.edificios || []).forEach(e => {
                     const textoBusquedaEdificio = `${e.direccion} ${e.categoria || ''} manzana ${m.nombre} territorio ${t.numero}`;
                     if (matchAllTerms(textoBusquedaEdificio)) {
@@ -132,13 +98,13 @@ const BuscadorGlobal = () => {
                             edificio: e,
                             accion: () => {
                                 cerrarBuscador();
-                                navigate('/edificios', { 
-                                    state: { 
-                                        territorioId: t.id, 
-                                        manzanaId: m.id, 
-                                        edificioId: e.id, 
-                                        t: Date.now() 
-                                    } 
+                                navigate('/edificios', {
+                                    state: {
+                                        territorioId: t.id,
+                                        manzanaId: m.id,
+                                        edificioId: e.id,
+                                        t: Date.now()
+                                    }
                                 });
                             }
                         });
@@ -161,12 +127,12 @@ const BuscadorGlobal = () => {
                         numero: num,
                         accion: () => {
                             cerrarBuscador();
-                            navigate('/telefonica', { 
-                                state: { 
-                                    tab: 'llamar', 
-                                    numeroId: num.id, 
-                                    timestamp: Date.now() 
-                                } 
+                            navigate('/telefonica', {
+                                state: {
+                                    tab: 'llamar',
+                                    numeroId: num.id,
+                                    timestamp: Date.now()
+                                }
                             });
                         }
                     });
@@ -175,9 +141,8 @@ const BuscadorGlobal = () => {
         }
 
         return {
-            todos: [...resEdificios, ...resCalles, ...resTerritorios, ...resTelefonos.slice(0, 10)],
+            todos: [...resEdificios, ...resTerritorios, ...resTelefonos.slice(0, 10)],
             edificios: resEdificios,
-            calles: resCalles,
             territorios: resTerritorios,
             telefonos: resTelefonos
         };
@@ -217,13 +182,13 @@ const BuscadorGlobal = () => {
     if (!isSearchOpen) return null;
 
     return (
-        <div 
-            className="modal fade show d-block" 
-            tabIndex="-1" 
-            style={{ 
-                backgroundColor: 'rgba(0, 0, 0, 0.65)', 
+        <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.65)',
                 backdropFilter: 'blur(5px)',
-                zIndex: 1060 
+                zIndex: 1060
             }}
             onClick={(e) => {
                 if (e.target === e.currentTarget) cerrarBuscador();
@@ -231,7 +196,7 @@ const BuscadorGlobal = () => {
         >
             <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
                 <div className="modal-content shadow-lg border-0 rounded-4 overflow-hidden bg-body">
-                    
+
                     {/* Header con Buscador */}
                     <div className="modal-header border-bottom p-3 bg-body">
                         <div className="d-flex align-items-center w-100 gap-2">
@@ -240,14 +205,14 @@ const BuscadorGlobal = () => {
                                 ref={inputRef}
                                 type="text"
                                 className="form-control form-control-lg border-0 shadow-none bg-transparent fs-5"
-                                placeholder="Buscar edificio, calle (ej: Amenábar 2150, Conde) o territorio..."
+                                placeholder="Buscar edificio (ej: Amenábar 2150), territorio o teléfono..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 autoFocus
                             />
                             {query && (
-                                <button 
+                                <button
                                     className="btn btn-sm btn-light rounded-circle text-muted"
                                     onClick={() => { setQuery(''); inputRef.current?.focus(); }}
                                     title="Borrar búsqueda"
@@ -255,7 +220,7 @@ const BuscadorGlobal = () => {
                                     <i className="bi bi-x-lg"></i>
                                 </button>
                             )}
-                            <button 
+                            <button
                                 className="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 ms-2"
                                 onClick={cerrarBuscador}
                             >
@@ -268,32 +233,26 @@ const BuscadorGlobal = () => {
                     {/* Filtros por Categoría */}
                     {query.trim().length > 0 && (
                         <div className="px-3 pt-2 pb-2 border-bottom bg-body-tertiary d-flex gap-2 overflow-auto">
-                            <button 
+                            <button
                                 className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold ${filtroTipo === 'todos' ? 'btn-primary' : 'btn-outline-secondary border-0 bg-body'}`}
                                 onClick={() => setFiltroTipo('todos')}
                             >
                                 Todos ({resultados.todos?.length || 0})
                             </button>
-                            <button 
+                            <button
                                 className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold ${filtroTipo === 'edificios' ? 'btn-primary' : 'btn-outline-secondary border-0 bg-body'}`}
                                 onClick={() => setFiltroTipo('edificios')}
                             >
                                 <i className="bi bi-building me-1"></i> Edificios ({resultados.edificios?.length || 0})
                             </button>
-                            <button 
-                                className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold ${filtroTipo === 'calles' ? 'btn-primary' : 'btn-outline-secondary border-0 bg-body'}`}
-                                onClick={() => setFiltroTipo('calles')}
-                            >
-                                <i className="bi bi-geo-alt me-1"></i> Calles ({resultados.calles?.length || 0})
-                            </button>
-                            <button 
+                            <button
                                 className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold ${filtroTipo === 'territorios' ? 'btn-primary' : 'btn-outline-secondary border-0 bg-body'}`}
                                 onClick={() => setFiltroTipo('territorios')}
                             >
                                 <i className="bi bi-map me-1"></i> Territorios ({resultados.territorios?.length || 0})
                             </button>
                             {resultados.telefonos?.length > 0 && (
-                                <button 
+                                <button
                                     className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold ${filtroTipo === 'telefonos' ? 'btn-primary' : 'btn-outline-secondary border-0 bg-body'}`}
                                     onClick={() => setFiltroTipo('telefonos')}
                                 >
@@ -304,9 +263,9 @@ const BuscadorGlobal = () => {
                     )}
 
                     {/* Contenido / Lista de Resultados */}
-                    <div 
+                    <div
                         ref={resultsContainerRef}
-                        className="modal-body p-2" 
+                        className="modal-body p-2"
                         style={{ minHeight: '280px', maxHeight: '55vh' }}
                     >
                         {loadingTerritorios && (
@@ -325,9 +284,9 @@ const BuscadorGlobal = () => {
                                 </div>
                                 <h6 className="fw-bold text-body">Buscador Inteligente Global</h6>
                                 <p className="text-body-secondary small mb-4" style={{ maxWidth: '420px', margin: '0 auto' }}>
-                                    Escribe el nombre de una calle, una dirección exacta, o el número de territorio para saltar directo a su portero o manzana.
+                                    Escribe la dirección de un edificio, un número de teléfono o el número de territorio para saltar directo a su portero o manzana.
                                 </p>
-                                
+
                                 {territorios && territorios.length > 0 && (
                                     <div className="text-start mt-3 pt-3 border-top">
                                         <small className="fw-bold text-body-secondary text-uppercase d-block mb-2">
@@ -357,7 +316,7 @@ const BuscadorGlobal = () => {
                                 <i className="bi bi-search fs-1 d-block mb-3 opacity-50"></i>
                                 <h6 className="fw-bold text-body">No se encontraron resultados</h6>
                                 <p className="small mb-0">
-                                    No hay edificios, calles ni territorios que coincidan con <strong>"{query}"</strong>.
+                                    No hay edificios, territorios ni teléfonos que coincidan con <strong>"{query}"</strong>.
                                 </p>
                             </div>
                         )}
@@ -370,11 +329,7 @@ const BuscadorGlobal = () => {
                                     let badgeIcon = 'bi-building';
                                     let badgeLabel = 'Edificio';
 
-                                    if (item.tipo === 'calle') {
-                                        badgeColor = 'bg-info text-dark';
-                                        badgeIcon = 'bi-geo-alt';
-                                        badgeLabel = 'Calle';
-                                    } else if (item.tipo === 'territorio') {
+                                    if (item.tipo === 'territorio') {
                                         badgeColor = 'bg-success';
                                         badgeIcon = 'bi-map';
                                         badgeLabel = 'Territorio';
@@ -395,7 +350,7 @@ const BuscadorGlobal = () => {
                                             onMouseEnter={() => setSelectedIndex(index)}
                                         >
                                             <div className="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden me-2">
-                                                <div 
+                                                <div
                                                     className={`badge ${badgeColor} rounded-pill d-flex align-items-center justify-content-center p-2 flex-shrink-0 mt-1`}
                                                     style={{ width: '32px', height: '32px' }}
                                                 >
@@ -420,7 +375,7 @@ const BuscadorGlobal = () => {
                                             </div>
                                             <div className="d-flex align-items-center text-primary flex-shrink-0">
                                                 <span className="small d-none d-md-inline me-1 fw-semibold">
-                                                    {item.tipo === 'edificio' ? 'Abrir Portero' : item.tipo === 'territorio' ? 'Ver Territorio' : item.tipo === 'telefono' ? 'Ir a Llamar' : 'Ver Manzana'}
+                                                    {item.tipo === 'edificio' ? 'Abrir Portero' : item.tipo === 'territorio' ? 'Ver Territorio' : 'Ir a Llamar'}
                                                 </span>
                                                 <i className="bi bi-chevron-right fs-5"></i>
                                             </div>
