@@ -1,12 +1,28 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import MisReservas from './MisReservas';
-import { NumerosContext } from '../context/NumerosContext';
+import Swal from 'sweetalert2';
+
+const normalizarTexto = (texto) =>
+    String(texto || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .toLowerCase();
+
+const formatearTelefonoWhatsApp = (telefonoRaw) => {
+    const digitos = String(telefonoRaw || '').replace(/\D/g, '');
+    if (!digitos) return '';
+    if (digitos.startsWith('549')) return digitos;
+    if (digitos.startsWith('54')) return `549${digitos.slice(2)}`;
+    if (digitos.startsWith('0')) return `549${digitos.slice(1)}`;
+    return `549${digitos}`;
+};
 
 const TerritoriosPersonales = () => {
-   const loggedInUsername = localStorage.getItem('usuario');
+    const loggedInUsername = localStorage.getItem('usuario');
     const privilegio = localStorage.getItem('privilegio');
     const isAdmin = privilegio === 'ROLE_ANC' || privilegio === 'ROLE_SM';
-    
+
     const [mostrarMapa, setMostrarMapa] = useState(false);
     const [mostrarModalAyuda, setMostrarModalAyuda] = useState(false);
     const [tabActiva, setTabActiva] = useState('telefonica');
@@ -18,19 +34,18 @@ const TerritoriosPersonales = () => {
 
     // 1. Cargar reservas reales del usuario, resumen admin (si aplica) y encargado
     useEffect(() => {
-        console.log(encargado);
-        const api = import.meta.env.VITE_API_URL;
+        const api = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
         const cargarDatos = async () => {
             setLoadingReservas(true);
             try {
                 const peticiones = [
-                    fetch(`${api}/api/numeros/mis-reservas?usuario=${encodeURIComponent(loggedInUsername)}`, { credentials: 'include' }),
-                    fetch(`${api}/usuarios`, { credentials: 'include' })
+                    fetch(`${api}/api/numeros/mis-reservas?usuario=${encodeURIComponent(loggedInUsername)}`),
+                    fetch(`${api}/usuarios?page=0&size=200`)
                 ];
 
                 if (isAdmin) {
-                    peticiones.push(fetch(`${api}/api/numeros/resumen-reservas`, { credentials: 'include' }));
+                    peticiones.push(fetch(`${api}/api/numeros/resumen-reservas`));
                 }
 
                 const [resMisReservas, resUsuarios, resResumen] = await Promise.all(peticiones);
@@ -43,12 +58,14 @@ const TerritoriosPersonales = () => {
                     const dataUsuarios = await resUsuarios.json();
                     if (Array.isArray(dataUsuarios)) {
                         const encargadoEncontrado = dataUsuarios.find(u => {
-                            const asig = (u.asignacion || '').trim().toLowerCase();
-                            return asig.includes('personales') || asig.includes('telefónicos') || asig.includes('telefonicos');
+                            const asig = normalizarTexto(u.asignacion);
+                            return (
+                                asig.includes('telefonica') ||
+                                asig.includes('telefonicos') ||
+                                asig.includes('personales')
+                            );
                         });
-                        if (encargadoEncontrado) {
-                            setEncargado(encargadoEncontrado);
-                        }
+                        setEncargado(encargadoEncontrado || null);
                     }
                 }
 
@@ -110,19 +127,33 @@ const TerritoriosPersonales = () => {
         }
     }
 
+    const nombreEncargado = encargado
+        ? [encargado.nombre, encargado.apellido].filter(Boolean).join(' ').trim() || encargado.usuario
+        : null;
+
+    const telefonoEncargadoWhatsApp = encargado ? formatearTelefonoWhatsApp(encargado.telefono) : '';
+
     const enviarMensaje = (e) => {
         e.preventDefault();
-        const especificacion = e.target.querySelector('input[type="text"]').value;
-        const mensaje = encodeURIComponent(`Hola! Me gustaria pedir un territorio personal en la zona de ${especificacion}`);
+        const especificacion = e.target.querySelector('input[type="text"]').value.trim();
 
-        let telefono = '5491151030168';
-        if (encargado && encargado.telefono) {
-            telefono = encargado.telefono.replace(/\D/g, '');
+        if (!telefonoEncargadoWhatsApp) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin teléfono configurado',
+                text: nombreEncargado
+                    ? `El encargado (${nombreEncargado}) aún no tiene un teléfono cargado en su perfil.`
+                    : 'No hay un hermano asignado como encargado de predicación telefónica en el sistema.',
+                confirmButtonColor: '#0d6efd'
+            });
+            return;
         }
 
-        const url = `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`;
+        const saludo = nombreEncargado ? `Hola ${nombreEncargado}!` : 'Hola!';
+        const mensaje = encodeURIComponent(`${saludo} Me gustaría pedir un territorio personal en la zona de ${especificacion}`);
+        const url = `https://api.whatsapp.com/send?phone=${telefonoEncargadoWhatsApp}&text=${mensaje}`;
         window.open(url, '_blank');
-    }
+    };
 
     return (
         <div className="card shadow-sm p-4 border-0" style={{ borderRadius: '1rem' }}>
@@ -137,7 +168,7 @@ const TerritoriosPersonales = () => {
                                         Progreso del Territorio
                                     </h5>
                                     <div>
-                                        <button 
+                                        <button
                                             className="btn btn-outline-primary btn-sm rounded-pill me-2 fw-semibold shadow-sm"
                                             onClick={() => setMostrarModalAyuda(true)}
                                         >
@@ -149,18 +180,18 @@ const TerritoriosPersonales = () => {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <div className="progress mb-3 shadow-sm bg-secondary-subtle" style={{ height: '1.5rem', borderRadius: '1rem' }}>
-                                    <div 
-                                        className={`progress-bar progress-bar-striped progress-bar-animated ${colorProgreso}`} 
-                                        role="progressbar" 
-                                        style={{ width: `${progreso}%` }} 
-                                        aria-valuenow={progreso} 
-                                        aria-valuemin="0" 
+                                    <div
+                                        className={`progress-bar progress-bar-striped progress-bar-animated ${colorProgreso}`}
+                                        role="progressbar"
+                                        style={{ width: `${progreso}%` }}
+                                        aria-valuenow={progreso}
+                                        aria-valuemin="0"
                                         aria-valuemax="100"
                                     ></div>
                                 </div>
-                                
+
                                 <div className="d-flex justify-content-between text-muted small fw-semibold px-1">
                                     <span>
                                         <i className="bi bi-calendar-check me-1 text-primary"></i>
@@ -182,7 +213,7 @@ const TerritoriosPersonales = () => {
                         <i className="bi bi-geo-alt-fill text-primary" style={{ fontSize: '3rem' }}></i>
                         <h3 className="text-primary mt-2">Territorios Personales</h3>
                     </div>
-                    
+
                     <div className="alert alert-primary shadow-sm mb-4 mx-auto" style={{ maxWidth: '700px', borderRadius: '0.75rem' }}>
                         <h5 className="alert-heading fw-bold"><i className="bi bi-info-circle me-2"></i>¿Cómo funciona?</h5>
                         <p className="mb-0">
@@ -197,38 +228,50 @@ const TerritoriosPersonales = () => {
                         <form onSubmit={enviarMensaje} className="p-3 bg-body border rounded-3 shadow-sm">
                             <label htmlFor="territorio" className="form-label fw-semibold text-body-secondary mb-3">
                                 <i className="bi bi-whatsapp text-success me-2"></i>
-                                Solicita tu territorio a {encargado ? `${encargado.nombre} ${encargado.apellido}` : 'tu encargado'}:
+                                {loadingReservas
+                                    ? 'Buscando encargado de telefónica...'
+                                    : nombreEncargado
+                                        ? <>Solicita tu territorio a <span className="text-body fw-bold">{nombreEncargado}</span>{encargado?.telefono ? ` (${encargado.telefono})` : ''}:</>
+                                        : 'No hay un encargado de telefónica asignado actualmente'}
                             </label>
-                            
+
                             <div className="input-group input-group-lg mb-2">
                                 <span className="input-group-text bg-body-tertiary text-body-secondary">
                                     <i className="bi bi-search"></i>
                                 </span>
-                                <input 
-                                    type="text" 
-                                    className="form-control" 
-                                    placeholder="Ej: Cabildo al 2000, cerca del Parque..." 
+                                <input
+                                    id="territorio"
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Ej: Cabildo al 2000, cerca del Parque..."
+                                    disabled={loadingReservas || !telefonoEncargadoWhatsApp}
                                     required
                                 />
-                                <button className="btn btn-success fw-semibold px-4" type="submit">
+                                <button
+                                    className="btn btn-success fw-semibold px-4"
+                                    type="submit"
+                                    disabled={loadingReservas || !telefonoEncargadoWhatsApp}
+                                >
                                     Enviar
                                 </button>
                             </div>
                             <div className="form-text text-muted small text-center mt-2">
-                                Serás redirigido a WhatsApp para enviar tu solicitud al administrador.
+                                {telefonoEncargadoWhatsApp
+                                    ? `Serás redirigido a WhatsApp para enviar tu solicitud a ${nombreEncargado}.`
+                                    : !loadingReservas && 'Para habilitar el envío, un administrador debe asignar "Telefónica" y cargar un teléfono en el usuario encargado.'}
                             </div>
                         </form>
                     </div>
 
                     <div className="mt-4 mx-auto text-center">
-                        <button 
+                        <button
                             className="btn btn-outline-primary mb-3 fw-semibold"
                             onClick={() => setMostrarMapa(true)}
                         >
                             <i className="bi bi-map me-2"></i>
                             Ver mapa de zonas
                         </button>
-                        
+
                         {mostrarMapa && (
                             <div style={{
                                 position: 'fixed',
@@ -244,30 +287,30 @@ const TerritoriosPersonales = () => {
                                 alignItems: 'center',
                                 padding: '1rem'
                             }}>
-                                <div className="shadow-lg bg-body" style={{ 
-                                    width: '100%', 
-                                    maxWidth: '1200px', 
-                                    height: '90vh', 
-                                    borderRadius: '1rem', 
-                                    overflow: 'hidden', 
-                                    display: 'flex', 
-                                    flexDirection: 'column' 
+                                <div className="shadow-lg bg-body" style={{
+                                    width: '100%',
+                                    maxWidth: '1200px',
+                                    height: '90vh',
+                                    borderRadius: '1rem',
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column'
                                 }}>
                                     <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-body-tertiary">
                                         <h5 className="m-0 fw-bold text-primary">
                                             <i className="bi bi-geo-alt-fill me-2"></i>
                                             Mapa de Territorios
                                         </h5>
-                                        <button 
-                                            type="button" 
-                                            className="btn-close" 
-                                            onClick={() => setMostrarMapa(false)} 
+                                        <button
+                                            type="button"
+                                            className="btn-close"
+                                            onClick={() => setMostrarMapa(false)}
                                             aria-label="Cerrar"
                                         ></button>
                                     </div>
                                     <div className="flex-grow-1 position-relative">
-                                        <iframe 
-                                            src="https://www.google.com/maps/d/embed?mid=1Q2YLge2FsHV1aUYzNV4fzLL8MHNwV2Y&ehbc=2E312F" 
+                                        <iframe
+                                            src="https://www.google.com/maps/d/embed?mid=1Q2YLge2FsHV1aUYzNV4fzLL8MHNwV2Y&ehbc=2E312F"
                                             title="Mapa de territorios"
                                             style={{ border: 0, width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
                                             allowFullScreen
@@ -309,7 +352,7 @@ const TerritoriosPersonales = () => {
                                     </button>
                                 </li>
                             </ul>
-                            
+
                             <div className="p-4 bg-body" style={{ minHeight: '200px' }}>
                                 {tabActiva === 'telefonica' && (
                                     <div className="animate__animated animate__fadeIn">
