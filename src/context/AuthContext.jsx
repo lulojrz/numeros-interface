@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
     const [errors, setErrors] = useState({})
     const [isDoorOpening, setIsDoorOpening] = useState(false)
 
+    const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -34,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         setErrors({});
 
         try {
-            const res = await fetchConCsrf(`${import.meta.env.VITE_API_URL}/usuarios/login`, {
+            const res = await fetchConCsrf(`${apiUrl}/usuarios/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -64,16 +66,16 @@ export const AuthProvider = ({ children }) => {
 
             const responseData = await res.json();
 
-            // As we return the user object, it should have the 'usuario' field if successful
-            if (responseData && responseData.usuario) {
+            if (responseData && responseData.usuario && responseData.token) {
                 setErrors({});
                 setIsAuth(true);
+                localStorage.setItem('token', responseData.token);
                 localStorage.setItem('isAuth', 'true');
                 localStorage.setItem('usuario', responseData.usuario);
                 if (responseData.id) {
                     localStorage.setItem('usuarioId', responseData.id);
                 }
-                
+
                 localStorage.setItem('privilegio', responseData.privilegio || '');
                 localStorage.setItem('asignacion', responseData.asignacion || '');
                 if (responseData.habilitacionPublica !== undefined) {
@@ -103,7 +105,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{
-            user, setUser, 
+            user, setUser,
             password, setPassword,
             errors, setErrors,
             isLoading,

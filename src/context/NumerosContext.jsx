@@ -8,7 +8,6 @@ export const NumerosContext = createContext()
 
 export const NumerosProvider = ({ children }) => {
 
-
     const [numero, setNumero] = useState()
     const [numeros, setNumeros] = useState([])
     const [paginaNumeros, setPaginaNumeros] = useState(0)
@@ -56,10 +55,10 @@ export const NumerosProvider = ({ children }) => {
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
     }, []);
 
-    const api = `${import.meta.env.VITE_API_URL}`
+    const api = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
     const limpiarSesionLocal = useCallback(() => {
-        ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica', 'conductor']
+        ['token', 'isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica', 'conductor']
             .forEach(key => localStorage.removeItem(key));
         setIsAuth(false);
     }, []);
@@ -75,16 +74,21 @@ export const NumerosProvider = ({ children }) => {
             setAuthReady(false);
             setAuthCheckError(null);
 
-            if (localStorage.getItem('isAuth') !== 'true') {
+            const token = localStorage.getItem('token');
+            if (localStorage.getItem('isAuth') !== 'true' || !token) {
                 if (active) {
-                    setIsAuth(false);
+                    limpiarSesionLocal();
                     setAuthReady(true);
                 }
                 return;
             }
 
             try {
-                const response = await fetch(`${api}/usuarios/me`, { credentials: 'include' });
+                const response = await fetch(`${api}/usuarios/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (response.status === 401 || response.status === 403) {
                     if (active) {
                         limpiarSesionLocal();
@@ -174,8 +178,8 @@ export const NumerosProvider = ({ children }) => {
             toast.onmouseleave = Swal.resumeTimer;
         }
     });
+
     const actualizarNumero = async (objetoActualizado) => {
-        // Actualización optimista de la UI
         setNumeros(prev => prev.map(n => n.id === objetoActualizado.id ? objetoActualizado : n));
 
         try {
@@ -184,7 +188,6 @@ export const NumerosProvider = ({ children }) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include',
                 body: JSON.stringify(objetoActualizado)
             });
             if (!res.ok) throw new Error('Error al editar');
@@ -198,7 +201,6 @@ export const NumerosProvider = ({ children }) => {
                 icon: 'error',
                 title: 'Error al actualizar el número'
             });
-            // Revertir en caso de error manteniendo la página actual
             cargarProductos(paginaNumerosRef.current);
         }
     };
@@ -219,9 +221,7 @@ export const NumerosProvider = ({ children }) => {
             if (filtroFechaDesde) params.append('fechaDesde', filtroFechaDesde);
             if (filtroFechaHasta) params.append('fechaHasta', filtroFechaHasta);
 
-            const response = await fetch(`${api}/api/numeros?${params.toString()}`, {
-                credentials: 'include'
-            });
+            const response = await fetchConCsrf(`${api}/api/numeros?${params.toString()}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -241,7 +241,6 @@ export const NumerosProvider = ({ children }) => {
         return [];
     }, [api, busqueda, filtroTerritorio, filtroEdificio, filtroReservado, filtroFechaDesde, filtroFechaHasta]);
 
-    // Único useEffect para cargar y filtrar con debounce de 350 ms
     useEffect(() => {
         if (!isAuthenticated) {
             setNumeros([]);
@@ -285,8 +284,7 @@ export const NumerosProvider = ({ children }) => {
 
         try {
             await fetchConCsrf(`${api}/api/borrar/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
+                method: 'DELETE'
             });
             Toast.fire({
                 icon: 'success',
@@ -308,7 +306,6 @@ export const NumerosProvider = ({ children }) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include',
                 body: JSON.stringify(number)
             });
             Toast.fire({
@@ -324,10 +321,6 @@ export const NumerosProvider = ({ children }) => {
         }
     };
 
-
-
-
-
     const actualizarReserva = async (filtrados, usuarioSeleccionado) => {
         if (!filtrados || filtrados.length === 0) return;
 
@@ -338,7 +331,6 @@ export const NumerosProvider = ({ children }) => {
         const ids = filtrados.map(num => num.id);
         const idsSet = new Set(ids);
 
-        // Actualización optimista en la UI
         setNumeros(prev => prev.map(n => idsSet.has(n.id) ? {
             ...n,
             reservado: true,
@@ -350,7 +342,6 @@ export const NumerosProvider = ({ children }) => {
             const res = await fetchConCsrf(`${api}/api/numeros/reservar-lote`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify({
                     ids,
                     usuario: usuarioSeleccionado ? usuarioSeleccionado.usuario : null
@@ -371,7 +362,6 @@ export const NumerosProvider = ({ children }) => {
         const ids = filtrados.map(num => num.id);
         const idsSet = new Set(ids);
 
-        // Actualización optimista en la UI
         setNumeros(prev => prev.map(n => idsSet.has(n.id) ? {
             ...n,
             reservado: false,
@@ -383,7 +373,6 @@ export const NumerosProvider = ({ children }) => {
             const res = await fetchConCsrf(`${api}/api/numeros/liberar-lote`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify({ ids })
             });
             if (!res.ok) throw new Error('Error al liberar lote');
@@ -401,7 +390,6 @@ export const NumerosProvider = ({ children }) => {
         const ids = filtrados.map(num => num.id);
         const idsSet = new Set(ids);
 
-        // Actualización optimista en la UI
         setNumeros(prev => prev.map(n => idsSet.has(n.id) ? {
             ...n,
             contesta: false
@@ -411,7 +399,6 @@ export const NumerosProvider = ({ children }) => {
             const res = await fetchConCsrf(`${api}/api/numeros/reiniciar-contesta-lote`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify({ ids })
             });
             if (!res.ok) throw new Error('Error al reiniciar contesta');
@@ -422,7 +409,6 @@ export const NumerosProvider = ({ children }) => {
             cargarProductos(paginaNumerosRef.current);
         }
     };
-
 
     return (
         <NumerosContext.Provider value={{
@@ -441,5 +427,4 @@ export const NumerosProvider = ({ children }) => {
             {children}
         </NumerosContext.Provider>
     )
-
 }
