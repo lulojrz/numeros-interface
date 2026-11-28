@@ -53,6 +53,27 @@ const PredicacionEdificios = () => {
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
     });
 
+    const pesoPiso = (pisoRaw) => {
+        const p = String(pisoRaw || '').trim().toUpperCase();
+        if (p === 'SS' || p === 'SUBSUELO') return -1;
+        if (p === 'PB' || p === 'PLANTA BAJA' || p === '0') return 0;
+        const num = parseInt(p.replace(/\D/g, ''), 10);
+        return Number.isNaN(num) ? 999 : num;
+    };
+
+    const ordenarPortero = (a, b) => {
+        // 1. Ordenar por piso: PB (0) -> 1 -> 2 -> ... -> 10
+        // (Si prefieres pisos altos arriba como un portero real, cambia (pisoA - pisoB) por (pisoB - pisoA))
+        const diffPiso = pesoPiso(a.piso) - pesoPiso(b.piso);
+        if (diffPiso !== 0) return diffPiso;
+
+        // 2. Ordenar por letra/número de dpto con orden natural (A, B, C o 1, 2, 10)
+        return String(a.letra || '').localeCompare(String(b.letra || ''), 'es', {
+            numeric: true,
+            sensitivity: 'base'
+        });
+    };
+
     const cargarPaginaTerritorios = useCallback(async (pagina, mostrarCarga = true) => {
         if (mostrarCarga) setLoading(true);
         try {
@@ -532,101 +553,98 @@ const PredicacionEdificios = () => {
 
             {/* VISTA 3: EDIFICIOS */}
             {
-    vistaActual === 'edificios' && mActual && (
-        <div className="row g-3">
-            {!isPublicador && (
-                <div className="col-12 mb-3 d-flex justify-content-end">
-                    <button
-                        className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
-                        onClick={async () => {
-                            const nuevoEstado = !mActual.completada;
-                            try {
-                                const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: JSON.stringify({
-                                        ...mActual,
-                                        completada: nuevoEstado,
-                                        ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
-                                    })
-                                });
-                                if (res.ok) {
-                                    Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
-                                    const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
-                                    const tNew = territoriosActualizados.find(t => t.id === tActual.id);
-                                    if (tNew) {
-                                        const mNew = tNew.manzanas.find(m => m.id === mActual.id);
-                                        if (mNew) setManzanaSel(mNew);
-                                    }
-                                }
-                            } catch {
-                                Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
-                            }
-                        }}
-                    >
-                        {mActual.completada ? (
-                            <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
-                        ) : (
-                            <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
+                vistaActual === 'edificios' && mActual && (
+                    <div className="row g-3">
+                        {!isPublicador && (
+                            <div className="col-12 mb-3 d-flex justify-content-end">
+                                <button
+                                    className={`btn ${mActual.completada ? 'btn-outline-success bg-body' : 'btn-success text-white'} fw-bold shadow-sm rounded-pill px-4`}
+                                    onClick={async () => {
+                                        const nuevoEstado = !mActual.completada;
+                                        try {
+                                            const res = await fetchConCsrf(`${api}/manzanas/editar/${mActual.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                credentials: 'include',
+                                                body: JSON.stringify({
+                                                    ...mActual,
+                                                    completada: nuevoEstado,
+                                                    ultimaFechaTrabajada: nuevoEstado ? new Date().toISOString() : null
+                                                })
+                                            });
+                                            if (res.ok) {
+                                                Toast.fire({ icon: 'success', title: nuevoEstado ? 'Manzana completada' : 'Manzana reabierta' });
+                                                const territoriosActualizados = await cargarPaginaTerritorios(paginaTerritorios, false);
+                                                const tNew = territoriosActualizados.find(t => t.id === tActual.id);
+                                                if (tNew) {
+                                                    const mNew = tNew.manzanas.find(m => m.id === mActual.id);
+                                                    if (mNew) setManzanaSel(mNew);
+                                                }
+                                            }
+                                        } catch {
+                                            Toast.fire({ icon: 'error', title: 'Error al actualizar manzana' });
+                                        }
+                                    }}
+                                >
+                                    {mActual.completada ? (
+                                        <><i className="bi bi-check-circle-fill me-2"></i>Manzana Completada</>
+                                    ) : (
+                                        <><i className="bi bi-check-circle me-2"></i>Marcar Manzana como Terminada</>
+                                    )}
+                                </button>
+                            </div>
                         )}
-                    </button>
-                </div>
-            )}
-            {(!mActual.edificios || mActual.edificios.length === 0) ? (
-                <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
-            ) : (
-                mActual.edificios.map(e => {
-                    const total = e.departamentos?.length || 0;
-                    const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
-                    const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
-                    const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
-                    const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
-                    const esNoTocar = e.noTocar === true || e.tocar === false || e.categoria?.toLowerCase() === 'no tocar';
+                        {(!mActual.edificios || mActual.edificios.length === 0) ? (
+                            <div className="col-12 text-center text-muted py-5">Esta manzana no tiene edificios.</div>
+                        ) : (
+                            mActual.edificios.map(e => {
+                                const total = e.departamentos?.length || 0;
+                                const trabajados = e.departamentos?.filter(d => d.estado && d.estado !== 'No visitado').length || 0;
+                                const efectivos = e.departamentos?.filter(d => d.estado === 'Atendió').length || 0;
+                                const progreso = total === 0 ? 0 : Math.round((trabajados / total) * 100);
+                                const efectividad = total === 0 ? 0 : Math.round((efectivos / total) * 100);
+                                const esNoTocar = e.noTocar === true || e.tocar === false || e.categoria?.toLowerCase() === 'no tocar';
 
-                    return (
-                        <div className="col-12 col-lg-6" key={e.id}>
-                            <div
-                                className={`card h-100 shadow-sm ${esNoTocar ? 'border-0 border-start border-danger border-4' : 'border-0'}`}
-                                onClick={() => irAPortero(e)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                        <h5 className="fw-bold m-0">{e.direccion}</h5>
-                                        <div className="d-flex flex-wrap justify-content-end gap-1">
-                                            {esNoTocar && (
-                                                <span className="badge bg-danger">
-                                                    <i className="bi bi-slash-circle-fill me-1"></i>NO TOCAR
-                                                </span>
-                                            )}
-                                            {e.categoria && e.categoria.toLowerCase() !== 'no tocar' && (
-                                                <span className="badge bg-secondary">{e.categoria}</span>
-                                            )}
+                                return (
+                                    <div className="col-12 col-lg-6" key={e.id}>
+                                        <div
+                                            className={`card h-100 shadow-sm ${esNoTocar ? 'border-0 border-start border-danger border-4' : 'border-0'}`}
+                                            onClick={() => irAPortero(e)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <div className="card-body">
+                                                <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                    <h5 className="fw-bold m-0">{e.direccion}</h5>
+                                                    <div className="d-flex flex-wrap justify-content-end gap-1">
+                                                        {esNoTocar && (
+                                                            <span className="badge bg-danger">
+                                                                <i className="bi bi-slash-circle-fill me-1"></i>NO TOCAR
+                                                            </span>
+                                                        )}
+                                                        {e.categoria && e.categoria.toLowerCase() !== 'no tocar' && (
+                                                            <span className="badge bg-secondary">{e.categoria}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-muted small mb-3">
+                                                    <i className="bi bi-bell me-1"></i> {total} timbres en total
+                                                </div>
+                                                <div className="progress" style={{ height: '8px' }}>
+                                                    <div className="progress-bar bg-success" style={{ width: `${progreso}%` }}></div>
+                                                </div>
+                                                <div className="d-flex justify-content-between small fw-bold mt-2">
+                                                    <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
+                                                    <span className="text-success">{progreso}% Cubierto</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="text-muted small mb-3">
-                                        <i className="bi bi-bell me-1"></i> {total} timbres en total
-                                    </div>
-                                    <div className="progress" style={{ height: '8px' }}>
-                                        <div className="progress-bar bg-success" style={{ width: `${progreso}%` }}></div>
-                                    </div>
-                                    <div className="d-flex justify-content-between small fw-bold mt-2">
-                                        <span className="text-warning text-darken"><i className="bi bi-star-fill me-1"></i>{efectividad}% Efectividad</span>
-                                        <span className="text-success">{progreso}% Cubierto</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                })
-            )}
-        </div>
-    )
-}
-
-
-
+                                )
+                            })
+                        )}
+                    </div>
+                )
+            }
 
 
 
@@ -640,29 +658,27 @@ const PredicacionEdificios = () => {
                             </div>
 
                             <div className="row g-2 justify-content-center mt-4">
-                                {(eActual.departamentos || []).sort((a, b) => {
-                                    // Ordenar por piso (PB primero, luego numérico invertido para que pisos altos queden arriba)
-                                    // Esto es complejo, pero simplificamos con sort alfanumérico estandar
-                                    return a.piso.localeCompare(b.piso) || a.letra.localeCompare(b.letra);
-                                }).map(dpto => {
-                                    let btnClass = "btn-light border shadow-sm";
-                                    let icon = "bi-bell";
-                                    if (!dpto.tocar) {
-                                        btnClass = "btn-danger text-white shadow";
-                                        icon = "bi-slash-circle";
-                                    } else if (dpto.estado === 'Atendió') {
-                                        btnClass = "btn-success text-white shadow-sm";
-                                        icon = "bi-check-circle";
-                                    } else if (dpto.estado === 'Revisita') {
-                                        btnClass = "btn-warning text-dark shadow-sm";
-                                        icon = "bi-arrow-repeat";
-                                    } else if (dpto.estado === 'No Atendió' || dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
-                                        btnClass = "btn-secondary text-white shadow-sm";
-                                        icon = "bi-house-x";
-                                    }
+                                {[...(eActual.departamentos || [])]
+                                    .sort(ordenarPortero)
+                                    .map(dpto => {
+                                        let btnClass = "btn-light border shadow-sm";
+                                        let icon = "bi-bell";
+                                        if (!dpto.tocar) {
+                                            btnClass = "btn-danger text-white shadow";
+                                            icon = "bi-slash-circle";
+                                        } else if (dpto.estado === 'Atendió') {
+                                            btnClass = "btn-success text-white shadow-sm";
+                                            icon = "bi-check-circle";
+                                        } else if (dpto.estado === 'Revisita') {
+                                            btnClass = "btn-warning text-dark shadow-sm";
+                                            icon = "bi-arrow-repeat";
+                                        } else if (dpto.estado === 'No Atendió' || dpto.estado === 'No en casa' || dpto.estado === 'Ocupado') {
+                                            btnClass = "btn-secondary text-white shadow-sm";
+                                            icon = "bi-house-x";
+                                        }
 
-                                    return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} />;
-                                })}
+                                        return <DptoButton key={dpto.id} dpto={dpto} btnClass={btnClass} icon={icon} abrirMenuDpto={abrirMenuDpto} />;
+                                    })}
                             </div>
                         </div>
                     </div>
