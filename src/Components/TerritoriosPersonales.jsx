@@ -360,7 +360,7 @@ const TerritoriosPersonales = () => {
                                         <p className="text-muted">Utiliza la lista de números que aparece abajo en <strong>"Mis Reservas"</strong>. Tienes los números telefónicos exclusivos de tu territorio.</p>
                                         <ul className="text-muted small">
                                             <li>Al llamar, anota si la persona contesta o no usando el botón correspondiente.</li>
-                                            <li>Puedes dejar una nota en el número si la persona pidió que no la llamen más.</li>
+                                            <li>Puedes marcarlo como NO TOCAR si la persona pidió que no la llamen más.</li>
                                             <li>Recuerda ser amable y breve en tu presentación.</li>
                                         </ul>
                                     </div>
@@ -381,8 +381,7 @@ const TerritoriosPersonales = () => {
                                         <h6 className="text-primary fw-bold mb-3">Predicación Pública (Carritos/Banners)</h6>
                                         <p className="text-muted">Si las condiciones lo permiten, puedes organizar la predicación pública dentro de los límites de tu territorio.</p>
                                         <ul className="text-muted small mb-0">
-                                            <li>Ponte de acuerdo con tu grupo para ubicar un exhibidor portátil (carrito) en una zona transitada de este territorio.</li>
-                                            <li>Asegúrate de no superponerte con territorios de otros grupos.</li>
+                                            <li>Ponte de acuerdo con un hermano/a para ubicar un exhibidor portátil (carrito) en una zona transitada de este territorio.</li>
                                             <li>Es una excelente manera de abordar a las personas de esta zona de forma directa.</li>
                                         </ul>
                                     </div>
