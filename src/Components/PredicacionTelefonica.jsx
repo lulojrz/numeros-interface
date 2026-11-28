@@ -8,13 +8,15 @@ import Loading from './Loading';
 const PredicacionTelefonica = ({ defaultTab = 'llamar' }) => {
     const location = useLocation();
     const { numeros, loading, setNumero } = useContext(NumerosContext);
-    
+
     const [tabActiva, setTabActiva] = useState(() => {
         return location.state?.tab || location.state?.activeTab || defaultTab;
     });
     const [numeroSeleccionadoId, setNumeroSeleccionadoId] = useState(location.state?.numeroId || null);
+    const [misReservasCount, setMisReservasCount] = useState(0);
 
     const loggedInUsername = localStorage.getItem('usuario');
+    const api = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
     useEffect(() => {
         if (location.state?.tab) {
@@ -28,26 +30,38 @@ const PredicacionTelefonica = ({ defaultTab = 'llamar' }) => {
         }
     }, [location.state]);
 
-    // Conteo de números pendientes para el badge
-    const pendientesCount = numeros ? numeros.filter(num => {
-        const isReservedForOther = num.reservado && num.reservadoA?.usuario !== loggedInUsername;
-        return num.contesta === false && num.tocar !== false && !isReservedForOther;
-    }).length : 0;
+    // Cargar únicamente el conteo de reservas personales del usuario actual
+    useEffect(() => {
+        if (!loggedInUsername) return;
+        let activo = true;
 
-    // Conteo de mis reservas
-    const misReservasCount = numeros ? numeros.filter(n => {
-        return n.reservado === true && n.reservadoA?.usuario === loggedInUsername;
-    }).length : 0;
+        const cargarMisReservas = async () => {
+            try {
+                const res = await fetch(`${api}/api/numeros/mis-reservas?usuario=${encodeURIComponent(loggedInUsername)}`);
+                if (activo && res.ok) {
+                    const reservas = await res.json();
+                    setMisReservasCount(Array.isArray(reservas) ? reservas.length : 0);
+                }
+            } catch (e) {
+                console.error('Error al cargar mis reservas:', e);
+            }
+        };
+
+        cargarMisReservas();
+        return () => {
+            activo = false;
+        };
+    }, [api, loggedInUsername, numeros]);
 
     return (
         <div className="container py-4" style={{ maxWidth: '950px' }}>
             {/* Header de la sección */}
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
                 <div className="d-flex align-items-center gap-3">
-                    <Link 
-                        to="/" 
-                        className="btn btn-outline-secondary rounded-circle shadow-sm d-flex justify-content-center align-items-center" 
-                        style={{ width: '42px', height: '42px', minWidth: '42px' }} 
+                    <Link
+                        to="/"
+                        className="btn btn-outline-secondary rounded-circle shadow-sm d-flex justify-content-center align-items-center"
+                        style={{ width: '42px', height: '42px', minWidth: '42px' }}
                         title="Volver al inicio"
                     >
                         <i className="bi bi-arrow-left fs-5"></i>
@@ -62,30 +76,23 @@ const PredicacionTelefonica = ({ defaultTab = 'llamar' }) => {
                         </p>
                     </div>
                 </div>
-
-                
             </div>
 
             {/* Pestañas de Navegación */}
             <div className="mb-4">
                 <ul className="nav nav-pills gap-2 p-1 bg-body rounded-pill border shadow-sm d-inline-flex flex-wrap">
                     <li className="nav-item">
-                        <button 
+                        <button
                             type="button"
                             className={`nav-link rounded-pill fw-semibold px-3 py-2 d-flex align-items-center gap-2 border-0 ${tabActiva === 'llamar' ? 'active shadow-sm' : 'text-body-secondary bg-transparent'}`}
                             onClick={() => setTabActiva('llamar')}
                         >
                             <i className="bi bi-telephone-outbound-fill"></i>
                             <span>Llamadas Telefónicas</span>
-                            {pendientesCount > 0 && (
-                                <span className={`badge rounded-pill ${tabActiva === 'llamar' ? 'bg-white text-primary' : 'bg-primary text-white'}`}>
-                                    {pendientesCount}
-                                </span>
-                            )}
                         </button>
                     </li>
                     <li className="nav-item">
-                        <button 
+                        <button
                             type="button"
                             className={`nav-link rounded-pill fw-semibold px-3 py-2 d-flex align-items-center gap-2 border-0 ${tabActiva === 'territorios' ? 'active shadow-sm' : 'text-body-secondary bg-transparent'}`}
                             onClick={() => setTabActiva('territorios')}
@@ -111,10 +118,10 @@ const PredicacionTelefonica = ({ defaultTab = 'llamar' }) => {
                     {loading ? (
                         <Loading />
                     ) : (
-                        <Numeros 
-                            setNumero={setNumero} 
-                            numeroSeleccionadoId={numeroSeleccionadoId} 
-                            onLimpiarSeleccionado={() => setNumeroSeleccionadoId(null)} 
+                        <Numeros
+                            setNumero={setNumero}
+                            numeroSeleccionadoId={numeroSeleccionadoId}
+                            onLimpiarSeleccionado={() => setNumeroSeleccionadoId(null)}
                         />
                     )}
                 </div>
