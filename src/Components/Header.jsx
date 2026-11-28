@@ -24,7 +24,7 @@ const Header = () => {
         throw new Error(`Logout failed with status ${response.status}`);
       }
 
-      ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica']
+      ['isAuth', 'usuario', 'usuarioId', 'privilegio', 'asignacion', 'habilitacionPublica',"token","conductor"]
         .forEach((key) => localStorage.removeItem(key));
       setIsAuth(false);
       navigate('/');
